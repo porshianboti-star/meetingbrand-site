@@ -262,6 +262,8 @@ open("styles.css","w").write(css)
 open("robots.txt","w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n")
 urls=["/","/docs/","/privacy/","/terms/","/support/"]
 open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>2026-09-08</lastmod></url>" for u in urls)+"</urlset>\n")
-open("CNAME","w").write(DOMAIN+"\n")
+WRITE_CNAME=False  # flip to True (and push) once GoDaddy DNS points at GitHub Pages; until then the preview lives at porshianboti-star.github.io/meetingbrand-site/
+if WRITE_CNAME: open("CNAME","w").write(DOMAIN+"\n")
+elif os.path.exists("CNAME"): os.remove("CNAME")
 open(".nojekyll","w").write("")
 print("site generated:", sorted(p for p in pages))
