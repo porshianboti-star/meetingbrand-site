@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://meetingbrand.com/sitemap.xml

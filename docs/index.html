@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Documentation — MeetingBrand</title>
+<meta name="description" content="How MeetingBrand connects to Zoom, Microsoft Teams, Google Meet and Zoho Meeting, what employees see, and how to remove it.">
+<link rel="canonical" href="https://meetingbrand.com/docs/">
+<meta property="og:type" content="website"><meta property="og:site_name" content="MeetingBrand"><meta property="og:title" content="Documentation — MeetingBrand"><meta property="og:description" content="How MeetingBrand connects to Zoom, Microsoft Teams, Google Meet and Zoho Meeting, what employees see, and how to remove it."><meta property="og:url" content="https://meetingbrand.com/docs/"><meta property="og:image" content="https://meetingbrand.com/assets/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/favicon.ico" sizes="any"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../assets/apple-touch-icon-180.png">
+<meta name="theme-color" content="#031436">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap nav"><a class="logo" href="../" aria-label="MeetingBrand home"><img src="../assets/logo.png" alt="MeetingBrand" width="170" height="33"></a><nav aria-label="Main"><a href="../#how">How it works</a><a href="../#platforms">Platforms</a><a href="../docs/">Docs</a><a href="../support/">Support</a><a class="btn" href="../app/">Create your brand set</a></nav></div></header>
+<main id="main">
+
+<section class="band"><div class="wrap prose">
+<h1>Documentation</h1>
+<p class="lead">How MeetingBrand connects to each platform, what your employees see, and how to remove it. Written for the admin who connects the platform and for IT.</p>
+
+<h2 id="getting-started">Getting started</h2>
+<ol>
+<li><strong>Create your brand set</strong> — open <a href="../app/">the builder</a>, enter your company domain; review the logo, colors, scenes and sign treatments; set the name bar fields (name, title, department, company). The builder runs in your browser; nothing is stored on our servers during early access.</li>
+<li><strong>Connect a platform</strong> — Integrations → choose Zoom, Microsoft Teams, Google Meet or Zoho Meeting → sign in as an administrator and approve the permissions listed below. MeetingBrand then imports your people (name, email, title, department). Integrations are rolling out to early-access customers platform by platform; write to <a href="mailto:support@meetingbrand.com">support@meetingbrand.com</a> to be scheduled.</li>
+<li><strong>Assign and deploy</strong> — mark people or departments as active, choose their looks, and deploy. The People panel shows each person's status: delivered, waiting for a restart, needs the employee's one click, or blocked (with the reason).</li>
+</ol>
+
+<h2 id="zoom">Zoom</h2>
+<p><strong>Permissions requested</strong> (admin-managed app): list users; upload and delete virtual background files for users; read and update account settings related to virtual backgrounds. A Zoom account owner or admin authorizes once for the whole account; employees see no prompt.</p>
+<p><strong>What happens</strong>: each active employee's branded background is uploaded into their own Zoom virtual-background library (Zoom allows up to 10 files per user; we manage ours). After the upload the employee signs out and back in to Zoom, opens Settings → Video &amp; effects → Virtual backgrounds and picks the branded image once — Zoom remembers it. Admins can additionally turn on "Require users to always use virtual background" and disable personal uploads so the branded image is the only non-stock choice.</p>
+<p><strong>Removing MeetingBrand</strong>: Zoom App Marketplace → Manage → Added Apps → MeetingBrand → Remove. MeetingBrand deletes the background files it uploaded and the directory data it synced for that account within 30 days (immediately on request to support@meetingbrand.com).</p>
+
+<h2 id="teams">Microsoft Teams</h2>
+<p><strong>Permissions requested</strong> (Microsoft Entra ID, multitenant): <em>User.Read.All</em> (application) to read your directory — names, emails, job titles, departments — plus sign-in for the admin. A tenant administrator grants consent once; employees see no prompt.</p>
+<p><strong>What happens</strong>: Teams has no API for meeting backgrounds, so delivery goes to the employee's device. Choose one: (a) <strong>IT scripts</strong> — MeetingBrand generates an Intune platform script (Windows) and a shell script (macOS/Jamf) that place the person's background in the new-Teams gallery folder; (b) the <strong>MeetingBrand agent</strong>, a small signed helper installed from the employee's personal link. After Teams restarts, the branded image appears under Effects and avatars → Backgrounds; the employee selects it once and Teams keeps it. Tenants with <strong>Teams Premium</strong> can instead upload our images in the Teams admin center and set them as required per department — we generate the images and the policy assignment script.</p>
+<p><strong>Removing MeetingBrand</strong>: Entra admin center → Enterprise applications → MeetingBrand → Delete (revokes our access). Delete the gallery files with the uninstall script we provide, or remove the agent from Add/Remove programs (Windows) or the Applications folder (macOS).</p>
+
+<h2 id="meet">Google Meet</h2>
+<p><strong>Permissions requested</strong>: <em>View users on your domain</em> (Admin SDK Directory, read-only) to import names, emails, titles and departments. A Google Workspace administrator with the Users › Read privilege authorizes once.</p>
+<p><strong>What happens</strong>: Meet has no API for backgrounds. MeetingBrand produces the JPEG images (Meet's required format, 1920×1080) and a step-by-step runbook for the Admin console (Apps → Google Workspace → Google Meet → Meet video settings → Visual effects → custom images per organizational unit, up to 15). Employees then find the images in their Backgrounds panel. For managed Chrome browsers, the MeetingBrand Chrome extension (force-installed from the Admin console) applies the person's background automatically.</p>
+<p><strong>Removing MeetingBrand</strong>: Google Admin → Security → API controls → Manage third-party app access → MeetingBrand → Remove; remove the custom images from Meet video settings; remove the extension from the Chrome force-install list.</p>
+
+<h2 id="zoho">Zoho Meeting</h2>
+<p><strong>Permissions requested</strong>: ZohoMeeting.manageOrg.READ, ZohoMeeting.user.READ, ZohoMeeting.department.READ — to identify the organization and import its members. A Zoho Meeting organization admin authorizes once.</p>
+<p><strong>What happens</strong>: Zoho Meeting has no API or admin control for virtual backgrounds, so each employee receives a personal link and email with their background and four steps: turn on Virtual Background under Settings → My Settings, open the join page, choose "Select your background", upload the image and pick it. Zoho then uses it for all future meetings. Custom backgrounds are available on Zoho Meeting Standard and Professional editions.</p>
+<p><strong>Removing MeetingBrand</strong>: Zoho Accounts → Security → Connected apps → MeetingBrand → Revoke. Employees can delete the image from their own background list.</p>
+
+<h2 id="data">Data and security</h2>
+<ul>
+<li>We store: admin account details, the directory fields above, the OAuth tokens needed to keep your connection alive (encrypted at rest), your brand assets and the rendered background images.</li>
+<li>We never read meeting content, recordings, chats or calendars.</li>
+<li>Disconnecting a platform deletes its synced data; you can request full deletion at any time at <a href="mailto:support@meetingbrand.com">support@meetingbrand.com</a>.</li>
+<li>Full details: <a href="../privacy/">Privacy policy</a> · <a href="../terms/">Terms of service</a>.</li>
+</ul>
+</div></section>
+</main>
+<footer class="foot"><div class="wrap"><div class="fgrid"><div><a class="logo" href="../" aria-label="MeetingBrand home"><img src="../assets/logo-reversed.png" alt="MeetingBrand" width="170" height="35"></a><p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="../#how">How it works</a><a href="../#platforms">Platforms</a><a href="../app/">Create your brand set</a><a href="../docs/">Documentation</a></div><div><h4>Company</h4><a href="../support/">Support</a><a href="../privacy/">Privacy policy</a><a href="../terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:support@meetingbrand.com">support@meetingbrand.com</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC; Zoho Meeting of Zoho Corporation. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
+</body>
+</html>
