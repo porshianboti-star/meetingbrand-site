@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Funnel analytics — MeetingBrand</title>
+<link rel="icon" href="../assets/favicon.ico" sizes="any"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#031436">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<script id="mb-config">window.__MB={"supabaseUrl":"https://ohobtgbyrlczfdztzvqi.supabase.co","supabaseAnonKey":"sb_publishable_H3hDKJRE0oOH7dkg7496Rw_trmUMPW9","googleClientId":"","ga4Id":"","supabaseJs":"2.116.0","product":"meetingbrand","schema":"mb"};</script>
+<style>
+.tool{max-width:980px;margin:0 auto;padding:34px 24px 70px}.tool h1{font-size:28px;margin-bottom:4px}.tool h1 span{color:var(--vio)}.sub{color:var(--slate);font-size:14px;margin-bottom:22px}
+.tcard{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:20px;margin-bottom:16px}
+.tool input{font:600 14px Inter,Arial,sans-serif;border:1.5px solid var(--mist);border-radius:10px;padding:10px 13px;outline:none;background:#fff;color:var(--ink);width:300px;max-width:100%}.tool input:focus{border-color:var(--vio)}
+.tool button{font:700 14px Inter,Arial,sans-serif;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;background:var(--vio);color:#fff}.tool button:hover{background:var(--vio-h)}.tool button:disabled{background:var(--mist);color:var(--slate);cursor:not-allowed}
+.tool button.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--mist)}.tool button.ghost:hover{background:var(--cloud)}.tool button.danger{background:#B3261E}.tool button.danger:hover{background:#8E1D17}
+.tool label{font:700 12px Inter,Arial,sans-serif;color:var(--slate);display:block;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tool table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:8px}.tool th,.tool td{border-bottom:1px solid var(--mist);padding:10px;text-align:left;vertical-align:top}.tool th{font:700 12px Inter,Arial,sans-serif;color:var(--slate);text-transform:uppercase;letter-spacing:.05em}
+.pill{display:inline-block;background:#EEEBFF;color:var(--vio);border-radius:99px;font:700 11px Inter,Arial,sans-serif;padding:3px 9px}.pill.free{background:var(--cloud);color:var(--slate)}
+.tool .muted{color:var(--slate);font-size:12.5px}#msg{font:600 13px Inter,Arial,sans-serif;margin-left:10px}
+.notice{background:#FFF7E6;border:1px solid #F5D48A;color:#7A4B00;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:14.5px;line-height:1.5}.notice b{color:#5C3800}.notice code{background:#fff;border:1px solid #F5D48A;border-radius:6px;padding:1px 6px;font-size:13px}
+.err{display:none;background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.ok{color:#0F7A3D}.bad{color:#B3261E}
+.status{display:inline-flex;align-items:center;gap:8px;font:600 13px Inter,Arial,sans-serif;color:var(--slate)}.status i{width:10px;height:10px;border-radius:50%;background:var(--mist);display:inline-block}.status.on i{background:#22C55E}.status.off i{background:#F59E0B}
+</style>
+
+</head>
+<body>
+<header class="top"><div class="wrap nav"><a class="logo" href="../" aria-label="MeetingBrand home"><img src="../assets/logo.png" alt="MeetingBrand" width="170" height="33"></a><nav aria-label="Main"><a href="../">Site</a><a href="../app/">App</a><a href="../backoffice/">Back office</a><a href="../app/analytics.html">Analytics</a></nav></div></header>
+<main class="tool">
+
+<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:18px">
+<div><h1>Product <span>funnel</span></h1><p class="sub" style="margin:0">signup → brand fetched → background generated → downloaded → deployed, then the money path. <span class="status" id="conn"><i></i><span>checking…</span></span></p></div>
+<div class="row" id="ranges"><button class="ghost rbtn" data-d="1" type="button">Today</button><button class="ghost rbtn" data-d="7" type="button">7 days</button><button class="ghost rbtn" data-d="30" type="button">30 days</button><button class="rbtn on" data-d="36500" type="button">All time</button></div>
+</div>
+<div class="notice" id="notconnected" hidden><b>Not connected yet.</b> The MeetingBrand Supabase project has not been created, so this page has no database to talk to. Once the owner creates it (org <code>companycard</code>, region Frankfurt, name <code>meetingbrand</code>), put its URL and anon key in <code>branded-background/engine/mb-config.json</code>, run <code>python3 gen-site.py</code> and this page connects on the next deploy.</div>
+<div class="notice" id="signin" hidden><b>Sign in required.</b> Open <a href="../app/#login">the app</a>, log in, then reload this page. Any signed-in user can read the funnel (the RPC returns counts only, never rows).</div>
+<div class="err" id="err"></div>
+<h2 style="font-size:18px;margin:0 0 10px">Activation</h2>
+<div id="funnel"></div>
+<h2 style="font-size:18px;margin:26px 0 10px">Money path</h2>
+<div id="money"></div>
+<div class="tcard" id="otherCard" hidden><b>Other events in the window</b><table><thead><tr><th>Event</th><th>Total</th><th>Uniques</th></tr></thead><tbody id="other"></tbody></table></div>
+<p class="muted" style="margin-top:18px;line-height:1.6">Numbers are <b>unique visitors</b> (by device session; signed-in actions count by user). The grey figure in each row is total events. Percentages are conversion from <b>signup</b>. Sessions whose id starts with <code>qa-</code> are test traffic and are excluded by <code>funnel_stats</code>. Data updates live — refresh to see new events.</p>
+<style>
+.step{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:16px 20px;margin-bottom:10px;display:grid;grid-template-columns:34px 1fr auto auto;gap:14px;align-items:center}
+.step .n{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--cyan);font-weight:700;display:grid;place-items:center}
+.step .t b{display:block;color:var(--ink);font-size:16px}.step .t span{color:var(--slate);font-size:13px}
+.step .num{font-weight:800;font-size:28px;color:var(--ink);min-width:70px;text-align:right}.step .cv{font-size:13px;font-weight:700;color:var(--slate);min-width:96px;text-align:right}.step .cv.good{color:#0F7A3D}
+.bar{grid-column:2/5;height:8px;border-radius:6px;background:var(--cloud);overflow:hidden}.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--cyan),var(--vio))}
+.step.dim .num,.step.dim .cv{color:var(--mist)}
+</style>
+<script>
+(function(){
+const C=window.__MB||{}; const SUPA=(C.supabaseUrl||'').replace(/\/$/,''); const KEY=C.supabaseAnonKey||'';
+const CONNECTED=!!(SUPA&&KEY);
+const STEPS=[
+ ["signup","Signed up","Created an account with a work email + password or Google (base step)"],
+ ["brand_fetched","Brand fetched","connectBrand resolved a logo or a palette for the signup domain (source, fetch_ms, logo, colors in props)"],
+ ["background_generated","Background generated","The starter set or a new look was rendered in the org's colors and logo"],
+ ["background_downloaded","Background downloaded","The delivery event — a 1920×1080 background left the browser"],
+ ["deploy_clicked","Deploy clicked","\"Deploy to all\" pressed for a platform (platform, count in props)"]
+];
+const MONEY=[
+ ["view_upgrade","Viewed upgrade","Opened the plans view"],
+ ["pay_intent","Pay intent","Chose a plan and billing period (plan, billing, value, per_month, currency)"],
+ ["pay_click","Pay click","Pressed pay — mock:true until a payment processor exists; the CEO 'first non-mock pay_click' rule applies"]
+];
+const $=id=>document.getElementById(id);
+function setConn(){const el=$('conn'); el.className='status '+(CONNECTED?'on':'off'); el.querySelector('span').textContent=CONNECTED?('connected · '+SUPA.replace(/^https?:\/\//,'')):'OFFLINE — not connected yet';}
+function render(target,steps,by,base,dim){
+ let html='';
+ steps.forEach((s,i)=>{
+  const d=by[s[0]]||{total:0,uniques:0}; const has=!dim&&by[s[0]];
+  const pct=base?Math.round(d.uniques/base*100):0; const w=base?Math.max(2,d.uniques/base*100):2;
+  html+='<div class="step'+(dim?' dim':'')+'"><div class="n">'+(i+1)+'</div><div class="t"><b>'+s[1]+'</b><span>'+s[2]+'</span></div>'
+   +'<div class="cv'+(has&&i>0&&pct>=20?' good':'')+'">'+(dim?'—':(i===0&&target==='funnel'?(d.total+' total'):(pct+'% · '+d.total+' total')))+'</div>'
+   +'<div class="num">'+(dim?'—':d.uniques)+'</div><div class="bar"><i style="width:'+(dim?2:w)+'%"></i></div></div>';
+ });
+ $(target).innerHTML=html;
+}
+function draw(rows){
+ const by={}; (rows||[]).forEach(r=>{by[r.event]=r});
+ const base=(by.signup||{}).uniques||0;
+ render('funnel',STEPS,by,base,false); render('money',MONEY,by,base,false);
+ const known=new Set(STEPS.concat(MONEY).map(s=>s[0]));
+ const other=(rows||[]).filter(r=>!known.has(r.event)).sort((a,b)=>b.total-a.total);
+ $('other').innerHTML=other.map(r=>'<tr><td><code>'+r.event+'</code></td><td>'+r.total+'</td><td>'+r.uniques+'</td></tr>').join('');
+ $('otherCard').hidden=!other.length;
+}
+function hasSession(){
+ try{const ref=(SUPA.match(/^https?:\/\/([^.]+)\./)||[])[1]; return !!(ref&&localStorage.getItem('sb-'+ref+'-auth-token'));}catch(e){return false}
+}
+function load(days){
+ if(!CONNECTED) return;
+ fetch(SUPA+'/rest/v1/rpc/funnel_stats',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json','Content-Profile':(window.__MB.schema||'public'),'Accept-Profile':(window.__MB.schema||'public')},body:JSON.stringify({p_days:days})})
+ .then(r=>r.json()).then(rows=>{ if(!Array.isArray(rows)) throw new Error(JSON.stringify(rows).slice(0,160)); draw(rows); $('err').style.display='none'; })
+ .catch(e=>{$('err').textContent='Could not load stats: '+e.message; $('err').style.display='block';});
+}
+document.querySelectorAll('.rbtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.rbtn').forEach(x=>{x.classList.remove('on');x.classList.add('ghost')}); b.classList.add('on'); b.classList.remove('ghost'); load(+b.dataset.d);}));
+setConn(); document.body.dataset.connected=CONNECTED?'1':'0';
+if(!CONNECTED){ $('notconnected').hidden=false; render('funnel',STEPS,{},0,true); render('money',MONEY,{},0,true); document.querySelectorAll('.rbtn').forEach(b=>b.disabled=true); }
+else if(!hasSession()){ $('signin').hidden=false; render('funnel',STEPS,{},0,true); render('money',MONEY,{},0,true); }
+else load(36500);
+})();
+</script>
+</main>
+</body>
+</html>

@@ -2,10 +2,24 @@
 """MeetingBrand marketing site generator — static HTML, no build step, GitHub Pages. Run: python3 gen-site.py
 Brand: the complete kit (brand-final-v3): Deep Ink #031436 · Signal Violet #5739FB · Pulse Cyan #00BDDF · Cloud · Slate · Mist · Inter.
 Copy: 04-messaging/website-copy.md + messaging-framework.md (Zoho Meeting added: the product supports it)."""
-import os, datetime
+import os, datetime, json, glob, re, shutil, hashlib
 INK="#031436"; VIO="#5739FB"; VIOH="#4528E8"; CYAN="#00BDDF"; CLOUD="#F5F7FB"; SLATE="#667085"; MIST="#DDE3EE"; WHITE="#FFFFFF"
 DOMAIN="meetingbrand.com"; SITE="https://meetingbrand.com"; SUPPORT="support@meetingbrand.com"; APP="/app/"
 TODAY=datetime.date(2026,9,8).strftime("%B %-d, %Y")
+PRIVACY_DATE=datetime.date(2026,9,9)   # the privacy page changed on this date (account data + deletion sections); terms keep TODAY
+# ---------- cloud config: ONE source of truth, BB/engine/mb-config.json (read by build-vNN.py and by this generator).
+# Empty supabaseUrl/supabaseAnonKey = the Supabase project does not exist yet -> every cloud page renders its "not connected yet" state.
+BB="/Users/motty/branded-background"
+CFG_PATH=f"{BB}/engine/mb-config.json"
+CFG_KEYS=("supabaseUrl","supabaseAnonKey","googleClientId","ga4Id","supabaseJs","product","schema")
+CFG={"supabaseUrl":"","supabaseAnonKey":"","googleClientId":"","ga4Id":"","supabaseJs":"2.116.0","product":"meetingbrand","schema":"public"}
+try:
+    CFG.update({k:str(v) for k,v in json.load(open(CFG_PATH,encoding="utf-8")).items() if k in CFG_KEYS})
+    print("config:", CFG_PATH, "->", "CONNECTED" if CFG["supabaseUrl"] and CFG["supabaseAnonKey"] else "OFFLINE (supabaseUrl/supabaseAnonKey empty)")
+except FileNotFoundError:
+    print("config:", CFG_PATH, "missing -> OFFLINE values")
+CONNECTED=bool(CFG["supabaseUrl"] and CFG["supabaseAnonKey"])
+MB_CONFIG_BLOCK='<script id="mb-config">window.__MB='+json.dumps({k:CFG[k] for k in CFG_KEYS},separators=(",",":"))+';</script>'
 LOGO=f'<a class="logo" href="/" aria-label="MeetingBrand home"><img src="/assets/logo.png" alt="MeetingBrand" width="170" height="33"></a>'
 LOGO_REV=f'<a class="logo" href="/" aria-label="MeetingBrand home"><img src="/assets/logo-reversed.png" alt="MeetingBrand" width="170" height="35"></a>'
 PLATFORMS="Zoom, Microsoft Teams, Google Meet and Zoho Meeting"
@@ -29,7 +43,7 @@ def layout(title, desc, body, path="/", extra_head=""):
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="wrap nav">{LOGO}<nav aria-label="Main"><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="/docs/">Docs</a><a href="/support/">Support</a><a class="btn" href="{APP}">Create your brand set</a></nav></div></header>
+<header class="top"><div class="wrap nav">{LOGO}<nav aria-label="Main"><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="/docs/">Docs</a><a href="/support/">Support</a><a href="{APP}#login">Log in</a><a class="btn" href="{APP}">Create your brand set</a></nav></div></header>
 <main id="main">
 {body}
 </main>
@@ -148,13 +162,13 @@ docs=f'''
 privacy=f'''
 <section class="band"><div class="wrap prose">
 <h1>Privacy policy</h1>
-<p class="muted">Effective {TODAY}. This policy explains how MeetingBrand ("MeetingBrand", "we", "us") collects, uses and protects information.</p>
+<p class="muted">Effective {PRIVACY_DATE.strftime("%B %-d, %Y")}. This policy explains how MeetingBrand ("MeetingBrand", "we", "us") collects, uses and protects information.</p>
 <h2>1. What MeetingBrand does</h2>
 <p>MeetingBrand is a business service that creates branded virtual-meeting backgrounds and name bars for a company and delivers them to that company's employees' meeting applications (Zoom, Microsoft Teams, Google Meet, Zoho Meeting). Our customers are companies; the people whose data we process are their administrators and employees.</p>
 <h2>2. Data we collect</h2>
 <ul>
 <li><strong>Brand-set builder</strong> — the builder at {SITE}{APP} runs in your browser. The domain you type is used to fetch that company's public logo and colors; the images you create are rendered on your device and are not uploaded to us during early access.</li>
-<li><strong>Account data</strong> — the administrator's name, work email and company, given when requesting access or signing up.</li>
+<li><strong>Account data</strong> — the administrator's name, work email and company, given when requesting access or signing up. You can sign up with a work email and password or with Sign in with Google (which shares only your Google email address and basic profile with us). The domain of your work email is used to identify your company and fetch its public brand (section 7).</li>
 <li><strong>Directory data</strong> — when an administrator connects a platform, we import employees' display names, email addresses, job titles, departments and platform user identifiers, using the permissions shown on the platform's consent screen.</li>
 <li><strong>Connection data</strong> — the OAuth tokens the platforms issue so the connection keeps working. They are encrypted at rest and never shown to anyone.</li>
 <li><strong>Brand and image data</strong> — logos, colors, scenes and the background images we render for each person.</li>
@@ -166,19 +180,29 @@ privacy=f'''
 <p>To render personalised backgrounds, deliver them to employees' meeting applications, show administrators delivery status, keep the platform connection alive, provide support, and secure the service. We do not sell personal data and we do not use it for advertising.</p>
 <h2>4. Google API Services</h2>
 <p>MeetingBrand's use of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements. We use Google Workspace directory data only to import your organization's people into MeetingBrand for the purpose of personalising and delivering backgrounds; we do not transfer it to third parties except as needed to provide the service, do not use it for advertising, and do not allow humans to read it except with your permission, for security, or to comply with law.</p>
+<p><strong>Sign in with Google.</strong> If you choose to sign in with Google, we request only your Google email address and basic profile (the <em>openid</em> and <em>email</em> scopes) to create and identify your account. Authorization happens directly between your browser and Google; your Google password is never seen by MeetingBrand. Google user data received this way is used only to sign you in, is not transferred to third parties except as necessary to provide the service, and is never used for advertising. You can revoke MeetingBrand's access at any time at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</p>
 <h2>5. Sharing</h2>
 <p>We share data only with the meeting platforms you connect (Zoom Video Communications, Microsoft, Google, Zoho — to deliver backgrounds and read your directory as authorized) and with our infrastructure providers under data-processing terms (website hosting: GitHub; application database and file storage: Supabase). We disclose data when the law requires it.</p>
-<h2>6. Retention and deletion</h2>
+<h2>6. Where your data lives</h2>
+<p>Account, brand, background, directory and delivery data are stored with our database and file-storage provider, <a href="https://supabase.com/privacy">Supabase</a>, in its Frankfurt (EU) region, protected by industry-standard security and row-level access controls so that each company's data is visible only to that company's users. This website and the application page are hosted on <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub Pages</a>. Usage events (for example that a brand was fetched or a background was downloaded) are recorded with a random device session identifier and, when you are signed in, your user identifier, so we can see where the product works and where it fails; they are never sold or used for advertising.</p>
+<h2>7. Account data and deletion</h2>
+<p>When you sign up, the domain of your work email (for example <em>acme.com</em>) is used to fetch your company's public logo and colors from its public website and to create your brand kit; nothing is read from your mailbox. Your brand kit and the backgrounds you save are stored with your account so they can be reused, updated and deployed to your people.</p>
+<ul>
+<li><strong>Self-serve deletion</strong> — you can delete your account at any time from Settings → Danger zone in the application. This permanently removes your login, your profile and, when you are the last user of your company workspace, the workspace itself with its brand kit, backgrounds, uploaded logos, directory data and delivery records.</li>
+<li><strong>By request</strong> — write to <a href="mailto:{SUPPORT}">{SUPPORT}</a> from the email address on the account and we delete it for you, or send you a copy of your data, within 30 days.</li>
+<li><strong>Retention</strong> — data is kept while your account is active. After deletion it is removed from live systems immediately and from backups within 30 days, except where the law requires us to keep it longer.</li>
+</ul>
+<h2>8. Retention and deletion of platform data</h2>
 <p>Directory and delivery data are kept while the platform connection is active. Disconnecting a platform deletes the data synced from it within 30 days; deleting your MeetingBrand account deletes everything within 30 days. Any administrator or employee can ask us to access, correct or delete their data at <a href="mailto:{SUPPORT}">{SUPPORT}</a>; we answer within 30 days.</p>
-<h2>7. Security</h2>
+<h2>9. Security</h2>
 <p>Data is encrypted in transit (TLS 1.2+) and at rest; OAuth tokens are stored encrypted with keys separate from the database; access is limited to staff who need it to operate the service; we log administrative access.</p>
-<h2>8. International transfers</h2>
+<h2>10. International transfers</h2>
 <p>Our providers process data in the EU and the United States under standard contractual clauses or equivalent safeguards.</p>
-<h2>9. Children</h2>
+<h2>11. Children</h2>
 <p>MeetingBrand is a business service and is not directed to anyone under 16.</p>
-<h2>10. Changes</h2>
+<h2>12. Changes</h2>
 <p>We will post changes on this page and update the effective date; material changes are announced to administrators by email.</p>
-<h2>11. Contact</h2>
+<h2>13. Contact</h2>
 <p><a href="mailto:{SUPPORT}">{SUPPORT}</a></p>
 </div></section>'''
 # ---------- terms
@@ -259,9 +283,264 @@ p{{margin:0 0 1em}}a{{color:var(--vio)}}a:hover{{color:var(--vio-h)}}
 @media(max-width:900px){{.herogrid,.three,.scenes,.steps,.cards,.two,.fgrid{{grid-template-columns:1fr}}.nav nav a:not(.btn){{display:none}}.nav nav .btn{{white-space:nowrap;padding:9px 14px;font-size:14px}}.hero{{padding:56px 0 40px}}.band{{padding:56px 0}}.logo img{{width:140px}}}}
 '''
 open("styles.css","w").write(css)
-open("robots.txt","w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n")
-urls=["/","/docs/","/privacy/","/terms/","/support/"]
-open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>2026-09-08</lastmod></url>" for u in urls)+"</urlset>\n")
+# ---------- robots.txt: normal crawlers keep Allow: /; the AI-crawler block is the CompanyCard one (cc-work/robots.txt:9-46) verbatim.
+AI_BOTS=["GPTBot","OAI-SearchBot","ChatGPT-User","PerplexityBot","Perplexity-User","Google-Extended","ClaudeBot","Claude-User","Claude-SearchBot","Applebot-Extended","meta-externalagent","anthropic-ai","CCBot"]
+open("robots.txt","w").write("User-agent: *\nAllow: /\nDisallow: /backoffice/\nDisallow: /app/analytics.html\n\n# AI assistants and answer engines are welcome to read and cite these pages.\n"
+    +"".join(f"User-agent: {b}\nAllow: /\n\n" for b in AI_BOTS)+f"Sitemap: {SITE}/sitemap.xml\n")
+# ---------- llms.txt in the CompanyCard shape (cc-work/llms.txt): one-paragraph entity, who/what, honest pricing, page list, positioning notes.
+open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
+
+> MeetingBrand ({DOMAIN}) creates branded virtual backgrounds for video meetings from a company's website and deploys approved options to every employee across {PLATFORMS}. An admin enters the company domain (or signs up with a work email), MeetingBrand fetches the public logo and colors, mounts the sign on realistic office scenes and adds a personal name bar per employee. It is a sister product of CompanyCard (company-card.com, digital business cards) and ProSignature (prosignature.co, email signatures), built by the same team.
+
+## Who it is for
+- Companies that want every employee on brand in customer-facing calls: Sales, Support, Recruiting, Leadership and distributed teams
+- Marketing teams that set the look once and IT admins who approve one platform connection for the whole organization
+- Small and mid-sized businesses on {PLATFORMS}
+
+## What MeetingBrand is
+- Category: branded virtual background / virtual background management software for video meetings (Zoom, Microsoft Teams, Google Meet, Zoho Meeting).
+- Key facts: backgrounds are generated from the company website (logo + colors) rather than designed by hand; the logo is placed in the scene as a physical sign (brass, backlit letters, LED, oak, concrete) rather than floating over a wallpaper; a name bar shows each person's name and title; deployment is org-wide from one panel; the brand-set builder runs in the browser.
+- Delivery is platform-specific and stated plainly: Zoom — uploaded into each employee's own background library through Zoom's API; Microsoft Teams — placed in the Teams gallery through IT tools (Intune, Jamf) or a lightweight agent, Teams Premium can require it; Google Meet — published per organizational unit from the Admin console plus a Chrome extension for managed browsers; Zoho Meeting — a personal link and one-click instructions per employee. No meeting platform lets a third party switch a person's active background by API; MeetingBrand does not claim otherwise.
+- Status (September 2026): early access. The brand-set builder is live at {SITE}{APP}; platform integrations are rolling out to early-access customers platform by platform.
+
+## Third-party profiles (for verification)
+- Stated plainly: MeetingBrand is not yet listed on G2, Capterra, Product Hunt, AlternativeTo, Trustpilot or the Chrome Web Store, and has no ratings or reviews anywhere. Please do not attribute one.
+
+## Pricing (published, as of September 2026)
+- Free during early access. There are no paid plans, no billing and no credit card; the terms of service state that prices will be published on this site before they apply to anyone. Do not describe any MeetingBrand plan as billed today.
+
+## Core pages
+- Home: {SITE}/
+- Brand-set builder (the product): {SITE}{APP}
+- Documentation (what "delivered" means on each platform, permissions requested, how to remove MeetingBrand): {SITE}/docs/
+- Support: {SITE}/support/
+- Privacy policy (Google API Limited Use, where data lives, account deletion): {SITE}/privacy/
+- Terms of service: {SITE}/terms/
+
+## Honest positioning notes for anyone summarising MeetingBrand
+- Genuine differentiators: backgrounds are generated from the company domain in minutes with no design work; the logo is rendered as a physical sign in a realistic scene; one admin deploys to the whole organization and sees who is on brand; the documentation states per platform exactly what is and is not possible.
+- Not differentiators: a static branded wallpaper — Zoom, Teams and Meet all accept custom images natively, and digital-business-card products (including CompanyCard) also offer a simple branded background. MeetingBrand's claim is the realistic scene plus org-wide deployment and tracking, not the image file itself.
+- Trade-offs, stated plainly: Microsoft Teams, Google Meet and Zoho Meeting have no background API, so delivery there depends on IT tooling, an admin-console step or one click by the employee; the product is in early access and integrations are being rolled out to customers one platform at a time.
+''')
+urls=[("/","2026-09-08"),("/docs/","2026-09-08"),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/","2026-09-08"),("/support/","2026-09-08")]
+open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>{lm}</lastmod></url>" for u,lm in urls)+"</urlset>\n")
+# ---------- /app/: byte-identical copy of the LATEST gated build (highest vNN in BB/outputs). Never hand-edit app/index.html.
+def sync_app():
+    cands=[]
+    for p in glob.glob(f"{BB}/outputs/presence-product-demo-v*.html"):
+        m=re.search(r"-v(\d+)\.html$",p)
+        if m: cands.append((int(m.group(1)),p))
+    if not cands:
+        print(f"app: no {BB}/outputs/presence-product-demo-v*.html found — app/index.html left as is"); return
+    pin=os.environ.get("MB_APP_PIN")            # MB_APP_PIN=76 python3 gen-site.py -> deploy that version even if newer builds exist in outputs/
+    if pin: cands=[c for c in cands if c[0]<=int(pin)]
+    n,src=max(cands); dst="app/index.html"
+    data=open(src,"rb").read()
+    same=os.path.exists(dst) and open(dst,"rb").read()==data
+    if not same:
+        os.makedirs("app",exist_ok=True); shutil.copyfile(src,dst)
+    print(f"app/index.html <- {os.path.basename(src)} (v{n}, {'unchanged' if same else 'copied'}, md5 {hashlib.md5(data).hexdigest()})")
+sync_app()
+# ---------- cloud tool pages (noindex, not in the sitemap, disallowed in robots): back office + funnel analytics.
+# Both read url/key from the inline #mb-config block above; empty values render the "not connected yet" state.
+def tool_layout(title, body, path, extra_head=""):
+    return f'''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>{title}</title>
+<link rel="icon" href="/assets/favicon.ico" sizes="any"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="{INK}">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/styles.css">
+{MB_CONFIG_BLOCK}
+<style>
+.tool{{max-width:980px;margin:0 auto;padding:34px 24px 70px}}.tool h1{{font-size:28px;margin-bottom:4px}}.tool h1 span{{color:var(--vio)}}.sub{{color:var(--slate);font-size:14px;margin-bottom:22px}}
+.tcard{{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:20px;margin-bottom:16px}}
+.tool input{{font:600 14px Inter,Arial,sans-serif;border:1.5px solid var(--mist);border-radius:10px;padding:10px 13px;outline:none;background:#fff;color:var(--ink);width:300px;max-width:100%}}.tool input:focus{{border-color:var(--vio)}}
+.tool button{{font:700 14px Inter,Arial,sans-serif;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;background:var(--vio);color:#fff}}.tool button:hover{{background:var(--vio-h)}}.tool button:disabled{{background:var(--mist);color:var(--slate);cursor:not-allowed}}
+.tool button.ghost{{background:#fff;color:var(--ink);border:1.5px solid var(--mist)}}.tool button.ghost:hover{{background:var(--cloud)}}.tool button.danger{{background:#B3261E}}.tool button.danger:hover{{background:#8E1D17}}
+.tool label{{font:700 12px Inter,Arial,sans-serif;color:var(--slate);display:block;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}}
+.row{{display:flex;gap:10px;flex-wrap:wrap;align-items:center}}
+.tool table{{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:8px}}.tool th,.tool td{{border-bottom:1px solid var(--mist);padding:10px;text-align:left;vertical-align:top}}.tool th{{font:700 12px Inter,Arial,sans-serif;color:var(--slate);text-transform:uppercase;letter-spacing:.05em}}
+.pill{{display:inline-block;background:#EEEBFF;color:var(--vio);border-radius:99px;font:700 11px Inter,Arial,sans-serif;padding:3px 9px}}.pill.free{{background:var(--cloud);color:var(--slate)}}
+.tool .muted{{color:var(--slate);font-size:12.5px}}#msg{{font:600 13px Inter,Arial,sans-serif;margin-left:10px}}
+.notice{{background:#FFF7E6;border:1px solid #F5D48A;color:#7A4B00;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:14.5px;line-height:1.5}}.notice b{{color:#5C3800}}.notice code{{background:#fff;border:1px solid #F5D48A;border-radius:6px;padding:1px 6px;font-size:13px}}
+.err{{display:none;background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;border-radius:12px;padding:12px 16px;margin-bottom:16px}}
+.ok{{color:#0F7A3D}}.bad{{color:#B3261E}}
+.status{{display:inline-flex;align-items:center;gap:8px;font:600 13px Inter,Arial,sans-serif;color:var(--slate)}}.status i{{width:10px;height:10px;border-radius:50%;background:var(--mist);display:inline-block}}.status.on i{{background:#22C55E}}.status.off i{{background:#F59E0B}}
+</style>
+{extra_head}
+</head>
+<body>
+<header class="top"><div class="wrap nav">{LOGO}<nav aria-label="Main"><a href="/">Site</a><a href="{APP}">App</a><a href="/backoffice/">Back office</a><a href="/app/analytics.html">Analytics</a></nav></div></header>
+<main class="tool">
+{body}
+</main>
+</body>
+</html>
+'''
+NOT_CONNECTED='''<div class="notice" id="notconnected" hidden><b>Not connected yet.</b> The MeetingBrand Supabase project has not been created, so this page has no database to talk to. Once the owner creates it (org <code>companycard</code>, region Frankfurt, name <code>meetingbrand</code>), put its URL and anon key in <code>branded-background/engine/mb-config.json</code>, run <code>python3 gen-site.py</code> and this page connects on the next deploy.</div>'''
+backoffice=f'''
+<h1>Meeting<span>Brand</span> · Back office</h1>
+<p class="sub">Workspaces &amp; data management. Deletions are permanent and remove the login, the workspace row, its brand kit, backgrounds, invites and directory data. <span class="status" id="conn"><i></i><span>checking…</span></span></p>
+{NOT_CONNECTED}
+<div class="tcard" id="signinCard">
+<label>Owner sign-in (the RPCs are granted to signed-in users only)</label>
+<div class="row"><input id="email" type="email" placeholder="owner email" autocomplete="username"><input id="pw" type="password" placeholder="password" autocomplete="current-password"><button id="btnSignin" onclick="signIn()">Sign in</button><button class="ghost" id="btnSignout" onclick="signOut()" hidden>Sign out</button><span id="who" class="muted"></span></div>
+</div>
+<div class="tcard">
+<label>Owner key</label>
+<div class="row"><input id="key" type="password" placeholder="mb-owner-…" autocomplete="off"><button id="btnLoad" onclick="saveKeyAndLoad()">Load workspaces</button><span id="msg"></span></div>
+<p class="muted" style="margin:8px 0 0">The key is the row in <code>priv.owner_keys</code>; it is kept in this browser only.</p>
+</div>
+<div class="tcard" id="listCard" hidden>
+<div class="row" style="justify-content:space-between"><b id="count"></b><button class="ghost" onclick="load()">↻ Refresh</button></div>
+<table id="tbl"><thead><tr><th>Workspace / domain</th><th>Plan</th><th>Users</th><th>Backgrounds</th><th>Created</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+</div>
+<script>
+(function(){{
+const $=id=>document.getElementById(id);
+const C=window.__MB||{{}}; const SUPA=(C.supabaseUrl||'').replace(/\\/$/,''); const ANON=C.supabaseAnonKey||'';
+const CONNECTED=!!(SUPA&&ANON);
+const KEYLS='mb_owner_key', TOKSS='mb_owner_token';
+$('key').value=localStorage.getItem(KEYLS)||'';
+function msg(t,ok){{$('msg').textContent=t;$('msg').className=ok?'ok':'bad';}}
+function esc(s){{return String(s==null?'':s).replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]));}}
+function setConn(){{const el=$('conn'); el.className='status '+(CONNECTED?'on':'off'); el.querySelector('span').textContent=CONNECTED?('connected · '+SUPA.replace(/^https?:\\/\\//,'')):'OFFLINE — not connected yet';}}
+function token(){{try{{return sessionStorage.getItem(TOKSS)||''}}catch(e){{return ''}}}}
+async function rpc(fn,body){{
+ if(!CONNECTED) throw 'OFFLINE: no Supabase project configured';
+ const t=token(); if(!t) throw 'Sign in first — owner RPCs are granted to authenticated users only';
+ const r=await fetch(SUPA+'/rest/v1/rpc/'+fn,{{method:'POST',headers:{{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+t,'Content-Profile':(window.__MB.schema||'public'),'Accept-Profile':(window.__MB.schema||'public')}},body:JSON.stringify(body)}});
+ const txt=await r.text(); let j; try{{j=txt?JSON.parse(txt):null}}catch(e){{j=null}}
+ if(!r.ok) throw (j&&(j.message||j.error||j.msg))||('HTTP '+r.status);
+ return j;
+}}
+window.signIn=async function(){{
+ if(!CONNECTED){{msg('OFFLINE — nothing to sign in to');return}}
+ msg('Signing in…',1);
+ try{{
+  const r=await fetch(SUPA+'/auth/v1/token?grant_type=password',{{method:'POST',headers:{{'Content-Type':'application/json','apikey':ANON}},body:JSON.stringify({{email:$('email').value.trim(),password:$('pw').value}})}});
+  const j=await r.json(); if(!r.ok||!j.access_token) throw (j.error_description||j.msg||j.error||('HTTP '+r.status));
+  sessionStorage.setItem(TOKSS,j.access_token); $('pw').value='';
+  $('who').textContent='signed in as '+(j.user&&j.user.email||''); $('btnSignout').hidden=false; msg('Signed in ✓',1);
+ }}catch(e){{msg(String(e));}}
+}};
+window.signOut=function(){{sessionStorage.removeItem(TOKSS);$('who').textContent='';$('btnSignout').hidden=true;$('listCard').hidden=true;msg('Signed out',1);}};
+window.saveKeyAndLoad=function(){{localStorage.setItem(KEYLS,$('key').value.trim());load();}};
+window.load=async function(){{
+ msg('Loading…',1);
+ try{{
+  const accounts=await rpc('owner_list_accounts',{{k:$('key').value.trim()}})||[];
+  const rows=accounts.map(a=>{{const label=a.domain||a.name||a.company||a.id; const users=(a.users||[]);
+   return `<tr>
+   <td><b>${{esc(a.name||a.company||'—')}}</b><div class="muted">${{esc(a.domain||'')}}</div><div class="muted">${{esc(a.id)}}</div></td>
+   <td><span class="pill ${{(a.plan||'free')==='free'?'free':''}}">${{esc(a.plan||'free')}}</span></td>
+   <td>${{users.map(u=>`${{esc(u.email||'')}} <span class="pill">${{esc(u.role||'')}}</span>`).join('<br>')||'—'}}</td>
+   <td>${{esc(a.backgrounds!=null?a.backgrounds:(a.signatures!=null?a.signatures:'—'))}}</td>
+   <td class="muted">${{esc((a.created_at||'').slice(0,10))}}</td>
+   <td><button class="danger" data-id="${{esc(a.id)}}" data-label="${{esc(label)}}">Delete</button></td></tr>`}}).join('');
+  $('rows').innerHTML=rows||'<tr><td colspan="6" class="muted">No workspaces.</td></tr>';
+  $('rows').querySelectorAll('button.danger').forEach(b=>b.addEventListener('click',()=>del(b.dataset.id,b.dataset.label)));
+  $('count').textContent=accounts.length+' workspaces'; $('listCard').hidden=false; msg('Loaded ✓',1);
+ }}catch(e){{msg(String(e));}}
+}};
+async function del(id,label){{
+ const typed=prompt('This permanently deletes the workspace, its users, brand kit, backgrounds and data.\\n\\nType the workspace identifier to confirm:\\n'+label);
+ if(typed===null) return;
+ if(typed.trim()!==label){{msg('Confirmation text did not match — nothing deleted');return}}
+ try{{const n=await rpc('owner_delete_account',{{k:$('key').value.trim(),acc:id}}); msg('Deleted ✓ ('+n+' users removed)',1); load();}}catch(e){{msg(String(e));}}
+}}
+setConn();
+if(!CONNECTED){{$('notconnected').hidden=false; ['btnSignin','btnLoad','email','pw','key'].forEach(i=>$(i).disabled=true); msg('OFFLINE — waiting for the Supabase project');}}
+else if(token()){{$('btnSignout').hidden=false;$('who').textContent='session restored';}}
+document.body.dataset.connected=CONNECTED?'1':'0';
+}})();
+</script>'''
+analytics=f'''
+<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:18px">
+<div><h1>Product <span>funnel</span></h1><p class="sub" style="margin:0">signup → brand fetched → background generated → downloaded → deployed, then the money path. <span class="status" id="conn"><i></i><span>checking…</span></span></p></div>
+<div class="row" id="ranges"><button class="ghost rbtn" data-d="1" type="button">Today</button><button class="ghost rbtn" data-d="7" type="button">7 days</button><button class="ghost rbtn" data-d="30" type="button">30 days</button><button class="rbtn on" data-d="36500" type="button">All time</button></div>
+</div>
+{NOT_CONNECTED}
+<div class="notice" id="signin" hidden><b>Sign in required.</b> Open <a href="{APP}#login">the app</a>, log in, then reload this page. Any signed-in user can read the funnel (the RPC returns counts only, never rows).</div>
+<div class="err" id="err"></div>
+<h2 style="font-size:18px;margin:0 0 10px">Activation</h2>
+<div id="funnel"></div>
+<h2 style="font-size:18px;margin:26px 0 10px">Money path</h2>
+<div id="money"></div>
+<div class="tcard" id="otherCard" hidden><b>Other events in the window</b><table><thead><tr><th>Event</th><th>Total</th><th>Uniques</th></tr></thead><tbody id="other"></tbody></table></div>
+<p class="muted" style="margin-top:18px;line-height:1.6">Numbers are <b>unique visitors</b> (by device session; signed-in actions count by user). The grey figure in each row is total events. Percentages are conversion from <b>signup</b>. Sessions whose id starts with <code>qa-</code> are test traffic and are excluded by <code>funnel_stats</code>. Data updates live — refresh to see new events.</p>
+<style>
+.step{{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:16px 20px;margin-bottom:10px;display:grid;grid-template-columns:34px 1fr auto auto;gap:14px;align-items:center}}
+.step .n{{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--cyan);font-weight:700;display:grid;place-items:center}}
+.step .t b{{display:block;color:var(--ink);font-size:16px}}.step .t span{{color:var(--slate);font-size:13px}}
+.step .num{{font-weight:800;font-size:28px;color:var(--ink);min-width:70px;text-align:right}}.step .cv{{font-size:13px;font-weight:700;color:var(--slate);min-width:96px;text-align:right}}.step .cv.good{{color:#0F7A3D}}
+.bar{{grid-column:2/5;height:8px;border-radius:6px;background:var(--cloud);overflow:hidden}}.bar i{{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--cyan),var(--vio))}}
+.step.dim .num,.step.dim .cv{{color:var(--mist)}}
+</style>
+<script>
+(function(){{
+const C=window.__MB||{{}}; const SUPA=(C.supabaseUrl||'').replace(/\\/$/,''); const KEY=C.supabaseAnonKey||'';
+const CONNECTED=!!(SUPA&&KEY);
+const STEPS=[
+ ["signup","Signed up","Created an account with a work email + password or Google (base step)"],
+ ["brand_fetched","Brand fetched","connectBrand resolved a logo or a palette for the signup domain (source, fetch_ms, logo, colors in props)"],
+ ["background_generated","Background generated","The starter set or a new look was rendered in the org's colors and logo"],
+ ["background_downloaded","Background downloaded","The delivery event — a 1920×1080 background left the browser"],
+ ["deploy_clicked","Deploy clicked","\\"Deploy to all\\" pressed for a platform (platform, count in props)"]
+];
+const MONEY=[
+ ["view_upgrade","Viewed upgrade","Opened the plans view"],
+ ["pay_intent","Pay intent","Chose a plan and billing period (plan, billing, value, per_month, currency)"],
+ ["pay_click","Pay click","Pressed pay — mock:true until a payment processor exists; the CEO 'first non-mock pay_click' rule applies"]
+];
+const $=id=>document.getElementById(id);
+function setConn(){{const el=$('conn'); el.className='status '+(CONNECTED?'on':'off'); el.querySelector('span').textContent=CONNECTED?('connected · '+SUPA.replace(/^https?:\\/\\//,'')):'OFFLINE — not connected yet';}}
+function render(target,steps,by,base,dim){{
+ let html='';
+ steps.forEach((s,i)=>{{
+  const d=by[s[0]]||{{total:0,uniques:0}}; const has=!dim&&by[s[0]];
+  const pct=base?Math.round(d.uniques/base*100):0; const w=base?Math.max(2,d.uniques/base*100):2;
+  html+='<div class="step'+(dim?' dim':'')+'"><div class="n">'+(i+1)+'</div><div class="t"><b>'+s[1]+'</b><span>'+s[2]+'</span></div>'
+   +'<div class="cv'+(has&&i>0&&pct>=20?' good':'')+'">'+(dim?'—':(i===0&&target==='funnel'?(d.total+' total'):(pct+'% · '+d.total+' total')))+'</div>'
+   +'<div class="num">'+(dim?'—':d.uniques)+'</div><div class="bar"><i style="width:'+(dim?2:w)+'%"></i></div></div>';
+ }});
+ $(target).innerHTML=html;
+}}
+function draw(rows){{
+ const by={{}}; (rows||[]).forEach(r=>{{by[r.event]=r}});
+ const base=(by.signup||{{}}).uniques||0;
+ render('funnel',STEPS,by,base,false); render('money',MONEY,by,base,false);
+ const known=new Set(STEPS.concat(MONEY).map(s=>s[0]));
+ const other=(rows||[]).filter(r=>!known.has(r.event)).sort((a,b)=>b.total-a.total);
+ $('other').innerHTML=other.map(r=>'<tr><td><code>'+r.event+'</code></td><td>'+r.total+'</td><td>'+r.uniques+'</td></tr>').join('');
+ $('otherCard').hidden=!other.length;
+}}
+function hasSession(){{
+ try{{const ref=(SUPA.match(/^https?:\\/\\/([^.]+)\\./)||[])[1]; return !!(ref&&localStorage.getItem('sb-'+ref+'-auth-token'));}}catch(e){{return false}}
+}}
+function load(days){{
+ if(!CONNECTED) return;
+ fetch(SUPA+'/rest/v1/rpc/funnel_stats',{{method:'POST',headers:{{apikey:KEY,'Content-Type':'application/json','Content-Profile':(window.__MB.schema||'public'),'Accept-Profile':(window.__MB.schema||'public')}},body:JSON.stringify({{p_days:days}})}})
+ .then(r=>r.json()).then(rows=>{{ if(!Array.isArray(rows)) throw new Error(JSON.stringify(rows).slice(0,160)); draw(rows); $('err').style.display='none'; }})
+ .catch(e=>{{$('err').textContent='Could not load stats: '+e.message; $('err').style.display='block';}});
+}}
+document.querySelectorAll('.rbtn').forEach(b=>b.addEventListener('click',()=>{{document.querySelectorAll('.rbtn').forEach(x=>{{x.classList.remove('on');x.classList.add('ghost')}}); b.classList.add('on'); b.classList.remove('ghost'); load(+b.dataset.d);}}));
+setConn(); document.body.dataset.connected=CONNECTED?'1':'0';
+if(!CONNECTED){{ $('notconnected').hidden=false; render('funnel',STEPS,{{}},0,true); render('money',MONEY,{{}},0,true); document.querySelectorAll('.rbtn').forEach(b=>b.disabled=true); }}
+else if(!hasSession()){{ $('signin').hidden=false; render('funnel',STEPS,{{}},0,true); render('money',MONEY,{{}},0,true); }}
+else load(36500);
+}})();
+</script>'''
+for path,(t,b,p) in {"backoffice/index.html":("Back office — MeetingBrand",backoffice,"/backoffice/"),"app/analytics.html":("Funnel analytics — MeetingBrand",analytics,"/app/analytics.html")}.items():
+    os.makedirs(os.path.dirname(path),exist_ok=True)
+    open(path,"w",encoding="utf-8").write(relativize(tool_layout(t,b,p),path))
+print("tool pages:", "backoffice/index.html app/analytics.html", "->", "CONNECTED" if CONNECTED else "OFFLINE ('not connected yet' state)")
 WRITE_CNAME=True  # flip to True (and push) once GoDaddy DNS points at GitHub Pages; until then the preview lives at porshianboti-star.github.io/meetingbrand-site/
 if WRITE_CNAME: open("CNAME","w").write(DOMAIN+"\n")
 elif os.path.exists("CNAME"): os.remove("CNAME")

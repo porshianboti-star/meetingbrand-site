@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Back office — MeetingBrand</title>
+<link rel="icon" href="../assets/favicon.ico" sizes="any"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#031436">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<script id="mb-config">window.__MB={"supabaseUrl":"https://ohobtgbyrlczfdztzvqi.supabase.co","supabaseAnonKey":"sb_publishable_H3hDKJRE0oOH7dkg7496Rw_trmUMPW9","googleClientId":"","ga4Id":"","supabaseJs":"2.116.0","product":"meetingbrand","schema":"mb"};</script>
+<style>
+.tool{max-width:980px;margin:0 auto;padding:34px 24px 70px}.tool h1{font-size:28px;margin-bottom:4px}.tool h1 span{color:var(--vio)}.sub{color:var(--slate);font-size:14px;margin-bottom:22px}
+.tcard{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:20px;margin-bottom:16px}
+.tool input{font:600 14px Inter,Arial,sans-serif;border:1.5px solid var(--mist);border-radius:10px;padding:10px 13px;outline:none;background:#fff;color:var(--ink);width:300px;max-width:100%}.tool input:focus{border-color:var(--vio)}
+.tool button{font:700 14px Inter,Arial,sans-serif;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;background:var(--vio);color:#fff}.tool button:hover{background:var(--vio-h)}.tool button:disabled{background:var(--mist);color:var(--slate);cursor:not-allowed}
+.tool button.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--mist)}.tool button.ghost:hover{background:var(--cloud)}.tool button.danger{background:#B3261E}.tool button.danger:hover{background:#8E1D17}
+.tool label{font:700 12px Inter,Arial,sans-serif;color:var(--slate);display:block;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tool table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:8px}.tool th,.tool td{border-bottom:1px solid var(--mist);padding:10px;text-align:left;vertical-align:top}.tool th{font:700 12px Inter,Arial,sans-serif;color:var(--slate);text-transform:uppercase;letter-spacing:.05em}
+.pill{display:inline-block;background:#EEEBFF;color:var(--vio);border-radius:99px;font:700 11px Inter,Arial,sans-serif;padding:3px 9px}.pill.free{background:var(--cloud);color:var(--slate)}
+.tool .muted{color:var(--slate);font-size:12.5px}#msg{font:600 13px Inter,Arial,sans-serif;margin-left:10px}
+.notice{background:#FFF7E6;border:1px solid #F5D48A;color:#7A4B00;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:14.5px;line-height:1.5}.notice b{color:#5C3800}.notice code{background:#fff;border:1px solid #F5D48A;border-radius:6px;padding:1px 6px;font-size:13px}
+.err{display:none;background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.ok{color:#0F7A3D}.bad{color:#B3261E}
+.status{display:inline-flex;align-items:center;gap:8px;font:600 13px Inter,Arial,sans-serif;color:var(--slate)}.status i{width:10px;height:10px;border-radius:50%;background:var(--mist);display:inline-block}.status.on i{background:#22C55E}.status.off i{background:#F59E0B}
+</style>
+
+</head>
+<body>
+<header class="top"><div class="wrap nav"><a class="logo" href="../" aria-label="MeetingBrand home"><img src="../assets/logo.png" alt="MeetingBrand" width="170" height="33"></a><nav aria-label="Main"><a href="../">Site</a><a href="../app/">App</a><a href="../backoffice/">Back office</a><a href="../app/analytics.html">Analytics</a></nav></div></header>
+<main class="tool">
+
+<h1>Meeting<span>Brand</span> · Back office</h1>
+<p class="sub">Workspaces &amp; data management. Deletions are permanent and remove the login, the workspace row, its brand kit, backgrounds, invites and directory data. <span class="status" id="conn"><i></i><span>checking…</span></span></p>
+<div class="notice" id="notconnected" hidden><b>Not connected yet.</b> The MeetingBrand Supabase project has not been created, so this page has no database to talk to. Once the owner creates it (org <code>companycard</code>, region Frankfurt, name <code>meetingbrand</code>), put its URL and anon key in <code>branded-background/engine/mb-config.json</code>, run <code>python3 gen-site.py</code> and this page connects on the next deploy.</div>
+<div class="tcard" id="signinCard">
+<label>Owner sign-in (the RPCs are granted to signed-in users only)</label>
+<div class="row"><input id="email" type="email" placeholder="owner email" autocomplete="username"><input id="pw" type="password" placeholder="password" autocomplete="current-password"><button id="btnSignin" onclick="signIn()">Sign in</button><button class="ghost" id="btnSignout" onclick="signOut()" hidden>Sign out</button><span id="who" class="muted"></span></div>
+</div>
+<div class="tcard">
+<label>Owner key</label>
+<div class="row"><input id="key" type="password" placeholder="mb-owner-…" autocomplete="off"><button id="btnLoad" onclick="saveKeyAndLoad()">Load workspaces</button><span id="msg"></span></div>
+<p class="muted" style="margin:8px 0 0">The key is the row in <code>priv.owner_keys</code>; it is kept in this browser only.</p>
+</div>
+<div class="tcard" id="listCard" hidden>
+<div class="row" style="justify-content:space-between"><b id="count"></b><button class="ghost" onclick="load()">↻ Refresh</button></div>
+<table id="tbl"><thead><tr><th>Workspace / domain</th><th>Plan</th><th>Users</th><th>Backgrounds</th><th>Created</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const C=window.__MB||{}; const SUPA=(C.supabaseUrl||'').replace(/\/$/,''); const ANON=C.supabaseAnonKey||'';
+const CONNECTED=!!(SUPA&&ANON);
+const KEYLS='mb_owner_key', TOKSS='mb_owner_token';
+$('key').value=localStorage.getItem(KEYLS)||'';
+function msg(t,ok){$('msg').textContent=t;$('msg').className=ok?'ok':'bad';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function setConn(){const el=$('conn'); el.className='status '+(CONNECTED?'on':'off'); el.querySelector('span').textContent=CONNECTED?('connected · '+SUPA.replace(/^https?:\/\//,'')):'OFFLINE — not connected yet';}
+function token(){try{return sessionStorage.getItem(TOKSS)||''}catch(e){return ''}}
+async function rpc(fn,body){
+ if(!CONNECTED) throw 'OFFLINE: no Supabase project configured';
+ const t=token(); if(!t) throw 'Sign in first — owner RPCs are granted to authenticated users only';
+ const r=await fetch(SUPA+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+t,'Content-Profile':(window.__MB.schema||'public'),'Accept-Profile':(window.__MB.schema||'public')},body:JSON.stringify(body)});
+ const txt=await r.text(); let j; try{j=txt?JSON.parse(txt):null}catch(e){j=null}
+ if(!r.ok) throw (j&&(j.message||j.error||j.msg))||('HTTP '+r.status);
+ return j;
+}
+window.signIn=async function(){
+ if(!CONNECTED){msg('OFFLINE — nothing to sign in to');return}
+ msg('Signing in…',1);
+ try{
+  const r=await fetch(SUPA+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON},body:JSON.stringify({email:$('email').value.trim(),password:$('pw').value})});
+  const j=await r.json(); if(!r.ok||!j.access_token) throw (j.error_description||j.msg||j.error||('HTTP '+r.status));
+  sessionStorage.setItem(TOKSS,j.access_token); $('pw').value='';
+  $('who').textContent='signed in as '+(j.user&&j.user.email||''); $('btnSignout').hidden=false; msg('Signed in ✓',1);
+ }catch(e){msg(String(e));}
+};
+window.signOut=function(){sessionStorage.removeItem(TOKSS);$('who').textContent='';$('btnSignout').hidden=true;$('listCard').hidden=true;msg('Signed out',1);};
+window.saveKeyAndLoad=function(){localStorage.setItem(KEYLS,$('key').value.trim());load();};
+window.load=async function(){
+ msg('Loading…',1);
+ try{
+  const accounts=await rpc('owner_list_accounts',{k:$('key').value.trim()})||[];
+  const rows=accounts.map(a=>{const label=a.domain||a.name||a.company||a.id; const users=(a.users||[]);
+   return `<tr>
+   <td><b>${esc(a.name||a.company||'—')}</b><div class="muted">${esc(a.domain||'')}</div><div class="muted">${esc(a.id)}</div></td>
+   <td><span class="pill ${(a.plan||'free')==='free'?'free':''}">${esc(a.plan||'free')}</span></td>
+   <td>${users.map(u=>`${esc(u.email||'')} <span class="pill">${esc(u.role||'')}</span>`).join('<br>')||'—'}</td>
+   <td>${esc(a.backgrounds!=null?a.backgrounds:(a.signatures!=null?a.signatures:'—'))}</td>
+   <td class="muted">${esc((a.created_at||'').slice(0,10))}</td>
+   <td><button class="danger" data-id="${esc(a.id)}" data-label="${esc(label)}">Delete</button></td></tr>`}).join('');
+  $('rows').innerHTML=rows||'<tr><td colspan="6" class="muted">No workspaces.</td></tr>';
+  $('rows').querySelectorAll('button.danger').forEach(b=>b.addEventListener('click',()=>del(b.dataset.id,b.dataset.label)));
+  $('count').textContent=accounts.length+' workspaces'; $('listCard').hidden=false; msg('Loaded ✓',1);
+ }catch(e){msg(String(e));}
+};
+async function del(id,label){
+ const typed=prompt('This permanently deletes the workspace, its users, brand kit, backgrounds and data.\n\nType the workspace identifier to confirm:\n'+label);
+ if(typed===null) return;
+ if(typed.trim()!==label){msg('Confirmation text did not match — nothing deleted');return}
+ try{const n=await rpc('owner_delete_account',{k:$('key').value.trim(),acc:id}); msg('Deleted ✓ ('+n+' users removed)',1); load();}catch(e){msg(String(e));}
+}
+setConn();
+if(!CONNECTED){$('notconnected').hidden=false; ['btnSignin','btnLoad','email','pw','key'].forEach(i=>$(i).disabled=true); msg('OFFLINE — waiting for the Supabase project');}
+else if(token()){$('btnSignout').hidden=false;$('who').textContent='session restored';}
+document.body.dataset.connected=CONNECTED?'1':'0';
+})();
+</script>
+</main>
+</body>
+</html>

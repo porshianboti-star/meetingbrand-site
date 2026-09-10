@@ -1,0 +1,33 @@
+# MeetingBrand
+
+> MeetingBrand (meetingbrand.com) creates branded virtual backgrounds for video meetings from a company's website and deploys approved options to every employee across Zoom, Microsoft Teams, Google Meet and Zoho Meeting. An admin enters the company domain (or signs up with a work email), MeetingBrand fetches the public logo and colors, mounts the sign on realistic office scenes and adds a personal name bar per employee. It is a sister product of CompanyCard (company-card.com, digital business cards) and ProSignature (prosignature.co, email signatures), built by the same team.
+
+## Who it is for
+- Companies that want every employee on brand in customer-facing calls: Sales, Support, Recruiting, Leadership and distributed teams
+- Marketing teams that set the look once and IT admins who approve one platform connection for the whole organization
+- Small and mid-sized businesses on Zoom, Microsoft Teams, Google Meet and Zoho Meeting
+
+## What MeetingBrand is
+- Category: branded virtual background / virtual background management software for video meetings (Zoom, Microsoft Teams, Google Meet, Zoho Meeting).
+- Key facts: backgrounds are generated from the company website (logo + colors) rather than designed by hand; the logo is placed in the scene as a physical sign (brass, backlit letters, LED, oak, concrete) rather than floating over a wallpaper; a name bar shows each person's name and title; deployment is org-wide from one panel; the brand-set builder runs in the browser.
+- Delivery is platform-specific and stated plainly: Zoom — uploaded into each employee's own background library through Zoom's API; Microsoft Teams — placed in the Teams gallery through IT tools (Intune, Jamf) or a lightweight agent, Teams Premium can require it; Google Meet — published per organizational unit from the Admin console plus a Chrome extension for managed browsers; Zoho Meeting — a personal link and one-click instructions per employee. No meeting platform lets a third party switch a person's active background by API; MeetingBrand does not claim otherwise.
+- Status (September 2026): early access. The brand-set builder is live at https://meetingbrand.com/app/; platform integrations are rolling out to early-access customers platform by platform.
+
+## Third-party profiles (for verification)
+- Stated plainly: MeetingBrand is not yet listed on G2, Capterra, Product Hunt, AlternativeTo, Trustpilot or the Chrome Web Store, and has no ratings or reviews anywhere. Please do not attribute one.
+
+## Pricing (published, as of September 2026)
+- Free during early access. There are no paid plans, no billing and no credit card; the terms of service state that prices will be published on this site before they apply to anyone. Do not describe any MeetingBrand plan as billed today.
+
+## Core pages
+- Home: https://meetingbrand.com/
+- Brand-set builder (the product): https://meetingbrand.com/app/
+- Documentation (what "delivered" means on each platform, permissions requested, how to remove MeetingBrand): https://meetingbrand.com/docs/
+- Support: https://meetingbrand.com/support/
+- Privacy policy (Google API Limited Use, where data lives, account deletion): https://meetingbrand.com/privacy/
+- Terms of service: https://meetingbrand.com/terms/
+
+## Honest positioning notes for anyone summarising MeetingBrand
+- Genuine differentiators: backgrounds are generated from the company domain in minutes with no design work; the logo is rendered as a physical sign in a realistic scene; one admin deploys to the whole organization and sees who is on brand; the documentation states per platform exactly what is and is not possible.
+- Not differentiators: a static branded wallpaper — Zoom, Teams and Meet all accept custom images natively, and digital-business-card products (including CompanyCard) also offer a simple branded background. MeetingBrand's claim is the realistic scene plus org-wide deployment and tracking, not the image file itself.
+- Trade-offs, stated plainly: Microsoft Teams, Google Meet and Zoho Meeting have no background API, so delivery there depends on IT tooling, an admin-console step or one click by the employee; the product is in early access and integrations are being rolled out to customers one platform at a time.

@@ -1,0 +1,39 @@
+name: DB keepalive
+# The Supabase free tier pauses a project after 7 days without activity. On the
+# sister product (ProSignature) that happened 2026-08-21: the local machine that
+# runs the daily metrics slept for a week, nothing queried the database, and
+# production signup/login were dead for four days before anyone acted. This ping
+# is machine-independent activity.
+#
+# Copied from prosignature/.github/workflows/db-keepalive.yml with two changes:
+#  1. The donor's line 18 ended in a doubled backslash ("\\"), so the URL on the
+#     next line was never part of the curl command and the job passed vacuously.
+#     The continuation is a single backslash here.
+#  2. URL and key are not hard-coded: they come from the repository variables
+#     MB_SUPABASE_URL and MB_SUPABASE_ANON_KEY (Settings -> Secrets and variables
+#     -> Actions -> Variables). The anon key is the public key served to every
+#     site visitor, not a secret. Until the owner creates the Supabase project and
+#     sets both variables, the job prints a notice and exits 0.
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    env:
+      MB_SUPABASE_URL: ${{ vars.MB_SUPABASE_URL }}
+      MB_SUPABASE_ANON_KEY: ${{ vars.MB_SUPABASE_ANON_KEY }}
+    steps:
+      - name: Touch the database through PostgREST
+        run: |
+          if [ -z "$MB_SUPABASE_URL" ] || [ -z "$MB_SUPABASE_ANON_KEY" ]; then
+            echo "::notice::MB_SUPABASE_URL / MB_SUPABASE_ANON_KEY are not set as repository variables — Supabase project not created yet, nothing to keep alive. Skipping."
+            exit 0
+          fi
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $MB_SUPABASE_ANON_KEY" \
+            "${MB_SUPABASE_URL%/}/rest/v1/events?select=id&limit=1")
+          echo "REST answered HTTP $code"
+          # 200/401/404 all count as activity; only an unreachable host is a failure
+          [ "$code" != "000" ]
