@@ -1,4 +1,9 @@
 -- ============================================================
+-- MeetingBrand on the SHARED CompanyCard Supabase project (free plan, ref ohobtgbyrlczfdztzvqi)
+-- Everything lives in schema "mb". Only auth.users is shared with CompanyCard.
+-- Generated from ../00N-*.sql by transform (do not hand-edit; edit the source and re-run).
+-- ============================================================
+-- ============================================================
 -- MeetingBrand — 005 integrations (PHASE 2): connections, token vault, employee directory, push jobs
 -- Requires 001-core.sql (orgs, profiles, my_org(), my_role(), is_trusted()),
 --          002-brand.sql (backgrounds, touch_updated_at()), 004-deletion.sql (schema priv).
@@ -30,9 +35,9 @@
 -- ============================================================
 
 -- ---------- integrations ----------
-create table if not exists public.integrations (
+create table if not exists mb.integrations (
   id             uuid primary key default gen_random_uuid(),
-  org_id         uuid not null references public.orgs(id) on delete cascade,
+  org_id         uuid not null references mb.orgs(id) on delete cascade,
   platform       text not null check (platform in ('zoom','teams','meet','zoho')),
   status         text not null default 'disconnected'
                    check (status in ('connected','needs_reconnect','disconnected','error')),
@@ -47,15 +52,15 @@ create table if not exists public.integrations (
   updated_at     timestamptz not null default now(),
   unique (org_id, platform)
 );
-create index if not exists integrations_org_idx on public.integrations (org_id);
+create index if not exists integrations_org_idx on mb.integrations (org_id);
 
-drop trigger if exists integrations_touch on public.integrations;
-create trigger integrations_touch before update on public.integrations
-  for each row execute function public.touch_updated_at();
+drop trigger if exists integrations_touch on mb.integrations;
+create trigger integrations_touch before update on mb.integrations
+  for each row execute function mb.touch_updated_at();
 
 -- ---------- priv.integration_tokens (service role only) ----------
 create table if not exists priv.integration_tokens (
-  integration_id    uuid primary key references public.integrations(id) on delete cascade,
+  integration_id    uuid primary key references mb.integrations(id) on delete cascade,
   refresh_token_enc bytea,
   access_token_enc  bytea,
   access_expires_at timestamptz,
@@ -70,9 +75,9 @@ grant usage on schema priv to service_role;
 grant select, insert, update, delete on priv.integration_tokens to service_role;
 
 -- ---------- employees (platform directory) ----------
-create table if not exists public.employees (
+create table if not exists mb.employees (
   id          uuid primary key default gen_random_uuid(),
-  org_id      uuid not null references public.orgs(id) on delete cascade,
+  org_id      uuid not null references mb.orgs(id) on delete cascade,
   platform    text not null check (platform in ('zoom','teams','meet','zoho','csv')),
   ext_id      text not null,
   email       text,
@@ -87,19 +92,19 @@ create table if not exists public.employees (
   updated_at  timestamptz not null default now(),
   unique (org_id, platform, ext_id)
 );
-create index if not exists employees_org_idx   on public.employees (org_id);
-create index if not exists employees_email_idx on public.employees (org_id, lower(email));
+create index if not exists employees_org_idx   on mb.employees (org_id);
+create index if not exists employees_email_idx on mb.employees (org_id, lower(email));
 
-drop trigger if exists employees_touch on public.employees;
-create trigger employees_touch before update on public.employees
-  for each row execute function public.touch_updated_at();
+drop trigger if exists employees_touch on mb.employees;
+create trigger employees_touch before update on mb.employees
+  for each row execute function mb.touch_updated_at();
 
 -- admins may flip `active` and `assigned_bg`; every other column is server-owned
 -- (trigger order is alphabetical: employees_guard_columns runs before employees_touch)
-create or replace function public.guard_employee_columns()
-returns trigger language plpgsql set search_path = public as $$
+create or replace function mb.guard_employee_columns()
+returns trigger language plpgsql set search_path = mb, public as $$
 begin
-  if public.is_trusted() then return new; end if;
+  if mb.is_trusted() then return new; end if;
   if new.id         is distinct from old.id
   or new.org_id     is distinct from old.org_id
   or new.platform   is distinct from old.platform
@@ -114,24 +119,24 @@ begin
   end if;
   -- every assigned background must belong to this org (the push function trusts this list)
   if exists (select 1 from unnest(new.assigned_bg) as u(bg_id)
-             where not exists (select 1 from public.backgrounds b
+             where not exists (select 1 from mb.backgrounds b
                                where b.id = u.bg_id and b.org_id = new.org_id)) then
     raise exception 'assigned_bg may only reference backgrounds of this workspace';
   end if;
   return new;
 end $$;
 
-drop trigger if exists employees_guard_columns on public.employees;
+drop trigger if exists employees_guard_columns on mb.employees;
 create trigger employees_guard_columns
-  before update on public.employees
-  for each row execute function public.guard_employee_columns();
+  before update on mb.employees
+  for each row execute function mb.guard_employee_columns();
 
 -- ---------- pushes (PushJob state machine, PLAN-integrations §2) ----------
-create table if not exists public.pushes (
+create table if not exists mb.pushes (
   id              uuid primary key default gen_random_uuid(),
-  org_id          uuid not null references public.orgs(id) on delete cascade,
-  employee_id     uuid not null references public.employees(id) on delete cascade,
-  background_id   uuid not null references public.backgrounds(id) on delete cascade,
+  org_id          uuid not null references mb.orgs(id) on delete cascade,
+  employee_id     uuid not null references mb.employees(id) on delete cascade,
+  background_id   uuid not null references mb.backgrounds(id) on delete cascade,
   platform        text not null check (platform in ('zoom','teams','meet','zoho')),
   state           text not null default 'queued'
                     check (state in ('queued','pushing','pushed','awaiting_client',
@@ -144,71 +149,71 @@ create table if not exists public.pushes (
   updated_at      timestamptz not null default now(),
   created_at      timestamptz not null default now()
 );
-create index if not exists pushes_org_idx      on public.pushes (org_id, state);
-create index if not exists pushes_employee_idx on public.pushes (employee_id);
+create index if not exists pushes_org_idx      on mb.pushes (org_id, state);
+create index if not exists pushes_employee_idx on mb.pushes (employee_id);
 
-drop trigger if exists pushes_touch on public.pushes;
-create trigger pushes_touch before update on public.pushes
-  for each row execute function public.touch_updated_at();
+drop trigger if exists pushes_touch on mb.pushes;
+create trigger pushes_touch before update on mb.pushes
+  for each row execute function mb.touch_updated_at();
 
 -- a push may only pair an employee and a background of ITS OWN org, on the employee's
 -- platform — even the service role cannot hand one org's background to another org's user
-create or replace function public.guard_push_consistency()
-returns trigger language plpgsql set search_path = public as $$
+create or replace function mb.guard_push_consistency()
+returns trigger language plpgsql set search_path = mb, public as $$
 begin
-  if not exists (select 1 from public.employees e
+  if not exists (select 1 from mb.employees e
                  where e.id = new.employee_id and e.org_id = new.org_id and e.platform = new.platform) then
     raise exception 'pushes.employee_id must be an employee of this org on this platform';
   end if;
-  if not exists (select 1 from public.backgrounds b
+  if not exists (select 1 from mb.backgrounds b
                  where b.id = new.background_id and b.org_id = new.org_id) then
     raise exception 'pushes.background_id must be a background of this org';
   end if;
   return new;
 end $$;
 
-drop trigger if exists pushes_guard_consistency on public.pushes;
+drop trigger if exists pushes_guard_consistency on mb.pushes;
 create trigger pushes_guard_consistency
-  before insert or update of org_id, employee_id, background_id, platform on public.pushes
-  for each row execute function public.guard_push_consistency();
+  before insert or update of org_id, employee_id, background_id, platform on mb.pushes
+  for each row execute function mb.guard_push_consistency();
 
 -- ---------- Row Level Security ----------
-alter table public.integrations enable row level security;
-alter table public.employees    enable row level security;
-alter table public.pushes       enable row level security;
+alter table mb.integrations enable row level security;
+alter table mb.employees    enable row level security;
+alter table mb.pushes       enable row level security;
 
 -- integrations: members read; no client writes (no insert / update / delete policy)
-drop policy if exists integrations_select on public.integrations;
-create policy integrations_select on public.integrations
-  for select using (org_id = public.my_org());
+drop policy if exists integrations_select on mb.integrations;
+create policy integrations_select on mb.integrations
+  for select using (org_id = mb.my_org());
 
 -- employees: members read; admins update (columns guarded by trigger); no insert/delete
-drop policy if exists employees_admin_select on public.employees;    -- pre-review name, never applied
-drop policy if exists employees_select on public.employees;
-create policy employees_select on public.employees
-  for select using (org_id = public.my_org());
-drop policy if exists employees_admin_update on public.employees;
-create policy employees_admin_update on public.employees
-  for update using (org_id = public.my_org() and public.my_role() = 'admin')
-  with check (org_id = public.my_org());
+drop policy if exists employees_admin_select on mb.employees;    -- pre-review name, never applied
+drop policy if exists employees_select on mb.employees;
+create policy employees_select on mb.employees
+  for select using (org_id = mb.my_org());
+drop policy if exists employees_admin_update on mb.employees;
+create policy employees_admin_update on mb.employees
+  for update using (org_id = mb.my_org() and mb.my_role() = 'admin')
+  with check (org_id = mb.my_org());
 
 -- pushes: members read; everything else service role
-drop policy if exists pushes_admin_select on public.pushes;          -- pre-review name, never applied
-drop policy if exists pushes_select on public.pushes;
-create policy pushes_select on public.pushes
-  for select using (org_id = public.my_org());
+drop policy if exists pushes_admin_select on mb.pushes;          -- pre-review name, never applied
+drop policy if exists pushes_select on mb.pushes;
+create policy pushes_select on mb.pushes
+  for select using (org_id = mb.my_org());
 
 -- ---------- is_org_admin(p_org): the Edge Functions' admin check ----------
 -- Called with the caller's own JWT (anon key + Authorization: Bearer <access token>):
 --   POST /rest/v1/rpc/is_org_admin {"p_org": "<uuid>"} → true only when the caller is an
 -- admin of exactly that org. Reveals nothing about other orgs (false, never an error).
-create or replace function public.is_org_admin(p_org uuid) returns boolean
-language sql stable security definer set search_path = public as
+create or replace function mb.is_org_admin(p_org uuid) returns boolean
+language sql stable security definer set search_path = mb, public as
 $$ select p_org is not null
-      and exists (select 1 from public.profiles
+      and exists (select 1 from mb.profiles
                   where id = auth.uid() and org_id = p_org and role = 'admin') $$;
-revoke all on function public.is_org_admin(uuid) from public, anon;
-grant execute on function public.is_org_admin(uuid) to authenticated, service_role;
+revoke all on function mb.is_org_admin(uuid) from public, anon;
+grant execute on function mb.is_org_admin(uuid) to authenticated, service_role;
 
 -- ---------- token vault access (service_role only) ----------
 -- PostgREST exposes public/graphql_public/mb, never priv, so the Edge Functions reach the
@@ -216,23 +221,23 @@ grant execute on function public.is_org_admin(uuid) to authenticated, service_ro
 -- as service_role, which is the only API role holding privileges on priv — even if EXECUTE
 -- leaked, an anon/authenticated caller would still hit "permission denied for schema priv".
 -- Ciphertext travels as hex text (encode/decode) so no driver has to guess the bytea format.
-create or replace function public.integration_token_get(p_integration_id uuid)
+create or replace function mb.integration_token_get(p_integration_id uuid)
 returns table (refresh_token_hex text, access_token_hex text, access_expires_at timestamptz, rotated_at timestamptz)
-language sql stable set search_path = public as $$
+language sql stable set search_path = mb, public as $$
   select encode(t.refresh_token_enc, 'hex'), encode(t.access_token_enc, 'hex'),
          t.access_expires_at, t.rotated_at
   from priv.integration_tokens t
   where t.integration_id = p_integration_id
 $$;
-revoke all on function public.integration_token_get(uuid) from public, anon, authenticated;
-grant execute on function public.integration_token_get(uuid) to service_role;
+revoke all on function mb.integration_token_get(uuid) from public, anon, authenticated;
+grant execute on function mb.integration_token_get(uuid) to service_role;
 
 -- p_refresh_hex null = keep the stored refresh token (access-only refresh on platforms that
 -- do not rotate); non-null = rotate (rotated_at := now()). Access token is always replaced.
-create or replace function public.integration_token_set(
+create or replace function mb.integration_token_set(
   p_integration_id uuid, p_refresh_hex text, p_access_hex text, p_access_expires_at timestamptz)
 returns void
-language plpgsql set search_path = public as $$
+language plpgsql set search_path = mb, public as $$
 begin
   insert into priv.integration_tokens as t
     (integration_id, refresh_token_enc, access_token_enc, access_expires_at, rotated_at)
@@ -244,15 +249,15 @@ begin
         access_token_enc  = excluded.access_token_enc,
         access_expires_at = excluded.access_expires_at;
 end $$;
-revoke all on function public.integration_token_set(uuid, text, text, timestamptz) from public, anon, authenticated;
-grant execute on function public.integration_token_set(uuid, text, text, timestamptz) to service_role;
+revoke all on function mb.integration_token_set(uuid, text, text, timestamptz) from public, anon, authenticated;
+grant execute on function mb.integration_token_set(uuid, text, text, timestamptz) to service_role;
 
 -- disconnect / delete-on-disconnect (PLAN §8 item 5): drop the vault row, keep the connection row
-create or replace function public.integration_token_delete(p_integration_id uuid)
+create or replace function mb.integration_token_delete(p_integration_id uuid)
 returns void
-language plpgsql set search_path = public as $$
+language plpgsql set search_path = mb, public as $$
 begin
   delete from priv.integration_tokens where integration_id = p_integration_id;
 end $$;
-revoke all on function public.integration_token_delete(uuid) from public, anon, authenticated;
-grant execute on function public.integration_token_delete(uuid) to service_role;
+revoke all on function mb.integration_token_delete(uuid) from public, anon, authenticated;
+grant execute on function mb.integration_token_delete(uuid) to service_role;

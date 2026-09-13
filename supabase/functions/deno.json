@@ -1,0 +1,13 @@
+{
+  "//": "Local tooling only (deno check / deno test on this Mac). No import map: every module uses explicit npm:/jsr: specifiers so the Supabase bundler needs nothing from here. nodeModulesDir=none keeps npm packages in Deno's global cache instead of creating node_modules under the site repo.",
+  "nodeModulesDir": "none",
+  "lock": false,
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["deno.window"]
+  },
+  "tasks": {
+    "check": "deno check mb-oauth-zoom/index.ts mb-sync-zoom/index.ts mb-push-zoom/index.ts mb-integrations/index.ts",
+    "test": "deno test -A tests/"
+  }
+}

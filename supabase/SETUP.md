@@ -10,7 +10,8 @@ The SQL files in this folder are the **only** source of truth for the MeetingBra
 | `002-brand.sql` | yes | brands, brand_assets, backgrounds, `public_background(slug)`, storage buckets `brand-assets` / `exports` / `previews` + policies |
 | `003-events.sql` | yes | events (insert-only, server-stamped id/created_at), `funnel_stats(p_days)` |
 | `004-deletion.sql` | yes | `priv.owner_keys`, `delete_my_account`, `owner_list_accounts`, `owner_delete_account`, `owner_set_plan`, `signup_export(k)` (owner-key gated) |
-| `005-integrations.sql` | **NO — phase 2** | integrations, `priv.integration_tokens`, employees, pushes. Apply only when the first Edge Function adapter ships |
+| `005-integrations.sql` | **yes — applied 2026-09-13** (as `shared-cc/mb-005-integrations.sql`, with the Zoom Edge Functions) | integrations, `priv.integration_tokens`, employees, pushes, `is_org_admin`, `integration_token_get/set/delete` (service_role only) |
+| `006-token-lease.sql` | **yes — applied 2026-09-13** (as `shared-cc/mb-006-token-lease.sql`) | `refresh_lease_until` + `integration_token_begin_refresh/end_refresh` — single-flight Zoom token refresh |
 
 ---
 
@@ -37,7 +38,7 @@ The SQL files in this folder are the **only** source of truth for the MeetingBra
 3. `003-events.sql`
 4. `004-deletion.sql`
 
-Do **not** run `005-integrations.sql`. Every file is idempotent (`if not exists` / `drop … if exists`), so re-running after a fix is safe.
+5. `005-integrations.sql` and 6. `006-token-lease.sql` — applied 2026-09-13 together with the `mb-*` Edge Functions (see `functions/README-ZOOM.md`). Every file is idempotent (`if not exists` / `drop … if exists`), so re-running after a fix is safe.
 
 **HE** — דשבורד ← **SQL Editor** ← New query ← להדביק את כל הקובץ ← **Run**. לפי הסדר, קובץ אחד בכל הרצה, ולקרוא את חלון התוצאה בכל פעם (שורה אדומה = לעצור ולדווח, לא להמשיך):
 
@@ -46,7 +47,7 @@ Do **not** run `005-integrations.sql`. Every file is idempotent (`if not exists`
 3. `003-events.sql`
 4. `004-deletion.sql`
 
-**לא** להריץ את `005-integrations.sql`. כל קובץ אידמפוטנטי, ולכן הרצה חוזרת אחרי תיקון בטוחה.
+`005-integrations.sql` ו‑`006-token-lease.sql` הורצו ב‑2026-09-13 יחד עם פונקציות ה‑Edge של Zoom. כל קובץ אידמפוטנטי, ולכן הרצה חוזרת אחרי תיקון בטוחה.
 
 Quick check after 004 (SQL editor):
 ```sql
@@ -151,4 +152,4 @@ curl -s "$U/storage/v1/object/list/previews" -X POST -H "apikey: $K" -H "Content
 - No service_role key anywhere (deletion and the back office are SECURITY DEFINER RPCs).
 - No payment processor: `orgs.plan` changes only via `owner_set_plan` or a future Edge Function webhook (service role) — the client cannot self-grant Pro (the hole both sisters have).
 - No invite emails: invite links are copied to the clipboard (CompanyCard flow).
-- `005-integrations.sql` stays unapplied until phase 2.
+- `005-integrations.sql` + `006-token-lease.sql` are applied (2026-09-13); the Edge Functions `mb-oauth-zoom`, `mb-sync-zoom`, `mb-push-zoom`, `mb-integrations` are deployed with secrets `MB_TOKEN_KEY` + `MB_APP_URL` set. `ZOOM_CLIENT_ID` / `ZOOM_CLIENT_SECRET` are still missing until the owner creates the Zoom Marketplace app (README-ZOOM.md §2); until then the Zoom actions answer 503 `not_configured` and the Integrations tab shows "not configured".

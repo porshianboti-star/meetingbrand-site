@@ -1,0 +1,33 @@
+# Supabase CLI config for the MeetingBrand Edge Functions (shared CompanyCard project, schema mb).
+# Only the [functions.*] blocks matter here; deploy with
+#   SUPABASE_ACCESS_TOKEN=$(cat ~/.config/meetingbrand/supabase-token) \
+#   npx -y supabase@2 functions deploy mb-oauth-zoom mb-sync-zoom mb-push-zoom mb-integrations \
+#     --project-ref ohobtgbyrlczfdztzvqi --use-api
+# No Docker on this Mac → `--use-api` (bundles on Supabase's side). `functions serve` is unavailable.
+project_id = "ohobtgbyrlczfdztzvqi"
+
+# verify_jwt = false on ALL four — deliberately:
+#  * mb-oauth-zoom: Zoom redirects the admin's browser to /callback with no Supabase JWT at all.
+#  * the other three: this project signs user sessions with an ES256 key (Management API
+#    /config/auth/signing-keys on 2026-09-13: ES256 in_use, HS256 previously_used). Supabase's
+#    gateway verify_jwt only understands the legacy HS256 secret — "If you're using Edge Functions
+#    that have the Verify JWT setting … you will need to turn off this setting"
+#    (supabase.com/docs/guides/auth/signing-keys). With it on, every real user session is 401'd
+#    at the gateway before our code runs.
+# Every function still authenticates: requireUser() asks GoTrue (GET /auth/v1/user) to validate the
+# Bearer and refuses the anon/service keys as bearers; admin checks come from mb.profiles.
+[functions.mb-oauth-zoom]
+verify_jwt = false
+entrypoint = "./functions/mb-oauth-zoom/index.ts"
+
+[functions.mb-sync-zoom]
+verify_jwt = false
+entrypoint = "./functions/mb-sync-zoom/index.ts"
+
+[functions.mb-push-zoom]
+verify_jwt = false
+entrypoint = "./functions/mb-push-zoom/index.ts"
+
+[functions.mb-integrations]
+verify_jwt = false
+entrypoint = "./functions/mb-integrations/index.ts"
