@@ -2,13 +2,14 @@
 # Only the [functions.*] blocks matter here; deploy with
 #   SUPABASE_ACCESS_TOKEN=$(cat ~/.config/meetingbrand/supabase-token) \
 #   npx -y supabase@2 functions deploy mb-oauth-zoom mb-sync-zoom mb-push-zoom mb-integrations \
+#     mb-oauth-ms mb-sync-ms mb-oauth-google mb-sync-google mb-export-pack \
 #     --project-ref ohobtgbyrlczfdztzvqi --use-api
 # No Docker on this Mac → `--use-api` (bundles on Supabase's side). `functions serve` is unavailable.
 project_id = "ohobtgbyrlczfdztzvqi"
 
-# verify_jwt = false on ALL four — deliberately:
-#  * mb-oauth-zoom: Zoom redirects the admin's browser to /callback with no Supabase JWT at all.
-#  * the other three: this project signs user sessions with an ES256 key (Management API
+# verify_jwt = false on ALL nine — deliberately:
+#  * mb-oauth-zoom / mb-oauth-ms / mb-oauth-google: the platform redirects the admin's browser to /callback with no Supabase JWT at all.
+#  * the others: this project signs user sessions with an ES256 key (Management API
 #    /config/auth/signing-keys on 2026-09-13: ES256 in_use, HS256 previously_used). Supabase's
 #    gateway verify_jwt only understands the legacy HS256 secret — "If you're using Edge Functions
 #    that have the Verify JWT setting … you will need to turn off this setting"
@@ -31,3 +32,23 @@ entrypoint = "./functions/mb-push-zoom/index.ts"
 [functions.mb-integrations]
 verify_jwt = false
 entrypoint = "./functions/mb-integrations/index.ts"
+
+[functions.mb-oauth-ms]
+verify_jwt = false
+entrypoint = "./functions/mb-oauth-ms/index.ts"
+
+[functions.mb-sync-ms]
+verify_jwt = false
+entrypoint = "./functions/mb-sync-ms/index.ts"
+
+[functions.mb-oauth-google]
+verify_jwt = false
+entrypoint = "./functions/mb-oauth-google/index.ts"
+
+[functions.mb-sync-google]
+verify_jwt = false
+entrypoint = "./functions/mb-sync-google/index.ts"
+
+[functions.mb-export-pack]
+verify_jwt = false
+entrypoint = "./functions/mb-export-pack/index.ts"

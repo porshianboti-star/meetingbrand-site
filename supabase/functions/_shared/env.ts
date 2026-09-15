@@ -8,6 +8,12 @@
 //   ZOOM_REDIRECT_URI (optional)        — defaults to <SUPABASE_URL>/functions/v1/mb-oauth-zoom/callback
 //                                         (a PATH, not ?action=callback: Zoom staff confirm query params in
 //                                         redirect URLs are not supported — devforum.zoom.us/t/13765)
+//   MS_CLIENT_ID, MS_CLIENT_SECRET      — Entra ID app registration (multitenant, Graph application permission
+//                                         User.Read.All; README-INTEGRATIONS.md). Client-credentials only:
+//                                         no refresh token is ever stored, tokens are minted per call per tenant.
+//   MS_REDIRECT_URI (optional)          — defaults to <SUPABASE_URL>/functions/v1/mb-oauth-ms/callback
+//   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET — Google Cloud OAuth web client (scope admin.directory.user.readonly)
+//   GOOGLE_REDIRECT_URI (optional)      — defaults to <SUPABASE_URL>/functions/v1/mb-oauth-google/callback
 //
 // Nothing here throws at import time: a missing secret is reported as a 503 {error:"not_configured",
 // missing:[…]} by the caller (see `notConfigured`), never as a crash.
@@ -31,9 +37,27 @@ export interface ZoomEnv extends AppEnv {
   clientSecret: string;
 }
 
+/** Entra app credentials (Teams directory via Graph). */
+export interface MsEnv extends AppEnv {
+  clientId: string;
+  clientSecret: string;
+}
+/** Google Cloud OAuth client (Meet directory via the Admin SDK). */
+export interface GoogleEnv extends AppEnv {
+  clientId: string;
+  clientSecret: string;
+}
+
 export const APP_SECRET_NAMES = ["MB_TOKEN_KEY", "MB_APP_URL"] as const;
 export const ZOOM_CREDENTIAL_NAMES = ["ZOOM_CLIENT_ID", "ZOOM_CLIENT_SECRET"] as const;
 export const ZOOM_SECRET_NAMES = [...ZOOM_CREDENTIAL_NAMES, ...APP_SECRET_NAMES] as const;
+export const MS_CREDENTIAL_NAMES = ["MS_CLIENT_ID", "MS_CLIENT_SECRET"] as const;
+export const MS_SECRET_NAMES = [...MS_CREDENTIAL_NAMES, ...APP_SECRET_NAMES] as const;
+export const GOOGLE_CREDENTIAL_NAMES = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const;
+export const GOOGLE_SECRET_NAMES = [...GOOGLE_CREDENTIAL_NAMES, ...APP_SECRET_NAMES] as const;
+
+/** Which secret names each platform's actions need (the not_configured `missing` list is drawn from these, in this order). */
+export const PLATFORM_SECRET_NAMES = { zoom: ZOOM_SECRET_NAMES, teams: MS_SECRET_NAMES, meet: GOOGLE_SECRET_NAMES } as const;
 export const SUPABASE_SECRET_NAMES = ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"] as const;
 
 function read(name: string): string | undefined {
@@ -85,6 +109,18 @@ export function defaultRedirectUri(): string {
   return read("ZOOM_REDIRECT_URI") ?? `${sb}/functions/v1/mb-oauth-zoom/callback`;
 }
 
+/** Default Entra admin-consent redirect URI (a PATH under the functions gateway, like Zoom's). */
+export function defaultMsRedirectUri(): string {
+  const sb = read("SUPABASE_URL")?.replace(/\/+$/, "") ?? "";
+  return read("MS_REDIRECT_URI") ?? `${sb}/functions/v1/mb-oauth-ms/callback`;
+}
+
+/** Default Google OAuth redirect URI (must be registered verbatim on the OAuth client). */
+export function defaultGoogleRedirectUri(): string {
+  const sb = read("SUPABASE_URL")?.replace(/\/+$/, "") ?? "";
+  return read("GOOGLE_REDIRECT_URI") ?? `${sb}/functions/v1/mb-oauth-google/callback`;
+}
+
 /** Validation problems for MB_TOKEN_KEY / MB_APP_URL (present but unusable), in the same "NAME (why)" shape as `missing`. */
 function appEnvProblems(): string[] {
   const out: string[] = [];
@@ -114,6 +150,38 @@ export function zoomEnv(): { ok: true; env: ZoomEnv } | { ok: false; missing: st
       tokenKeyB64: read("MB_TOKEN_KEY")!,
       appUrl: read("MB_APP_URL")!,
       redirectUri: defaultRedirectUri(),
+    },
+  };
+}
+
+/** Entra + app secrets (Teams connector). `missing` lists every absent/invalid name. */
+export function msEnv(): { ok: true; env: MsEnv } | { ok: false; missing: string[] } {
+  const missing = [...missingSecrets(MS_SECRET_NAMES), ...appEnvProblems()];
+  if (missing.length) return { ok: false, missing: [...new Set(missing)] };
+  return {
+    ok: true,
+    env: {
+      clientId: read("MS_CLIENT_ID")!,
+      clientSecret: read("MS_CLIENT_SECRET")!,
+      tokenKeyB64: read("MB_TOKEN_KEY")!,
+      appUrl: read("MB_APP_URL")!,
+      redirectUri: defaultMsRedirectUri(),
+    },
+  };
+}
+
+/** Google + app secrets (Meet connector). `missing` lists every absent/invalid name. */
+export function googleEnv(): { ok: true; env: GoogleEnv } | { ok: false; missing: string[] } {
+  const missing = [...missingSecrets(GOOGLE_SECRET_NAMES), ...appEnvProblems()];
+  if (missing.length) return { ok: false, missing: [...new Set(missing)] };
+  return {
+    ok: true,
+    env: {
+      clientId: read("GOOGLE_CLIENT_ID")!,
+      clientSecret: read("GOOGLE_CLIENT_SECRET")!,
+      tokenKeyB64: read("MB_TOKEN_KEY")!,
+      appUrl: read("MB_APP_URL")!,
+      redirectUri: defaultGoogleRedirectUri(),
     },
   };
 }

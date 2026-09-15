@@ -627,8 +627,11 @@ Deno.test("integrations POST disconnect: revokes at Zoom, deletes the vault row,
 
   const member = router([gotrueUser(), profile("member")]);
   assertEquals((await integrationsHandler({ fetchImpl: member.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`, { method: "POST", body: JSON.stringify({ platform: "zoom", action: "disconnect" }) }))).status, 403);
-  const teams = router([gotrueUser(), profile("admin")]);
-  assertEquals((await integrationsHandler({ fetchImpl: teams.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`, { method: "POST", body: JSON.stringify({ platform: "teams", action: "disconnect" }) }))).status, 501);
+  // teams/meet are connectable since the v86 backend: with no connection row they answer 404; zoho stays 501 (no connector)
+  const teams = router([gotrueUser(), profile("admin"), { method: "GET", test: rest("integrations"), reply: () => j(200, []) }]);
+  assertEquals((await integrationsHandler({ fetchImpl: teams.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`, { method: "POST", body: JSON.stringify({ platform: "teams", action: "disconnect" }) }))).status, 404);
+  const zoho = router([gotrueUser(), profile("admin")]);
+  assertEquals((await integrationsHandler({ fetchImpl: zoho.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`, { method: "POST", body: JSON.stringify({ platform: "zoho", action: "disconnect" }) }))).status, 501);
   const bad = router([gotrueUser(), profile("admin")]);
   assertEquals((await integrationsHandler({ fetchImpl: bad.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`, { method: "POST", body: JSON.stringify({ platform: "slack", action: "disconnect" }) }))).status, 400);
 });
