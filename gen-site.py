@@ -43,11 +43,11 @@ def layout(title, desc, body, path="/", extra_head=""):
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="wrap nav">{LOGO}<nav aria-label="Main"><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="/docs/">Docs</a><a href="/support/">Support</a><a href="{APP}#login">Log in</a><a class="btn" href="{APP}">Create your brand set</a></nav></div></header>
+<header class="top"><div class="wrap nav">{LOGO}<nav aria-label="Main"><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="/docs/">Docs</a><a href="/support/">Support</a><a href="{APP}#login">Log in</a><a class="btn" href="{APP}">Create MeetingBrand</a></nav></div></header>
 <main id="main">
 {body}
 </main>
-<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="{APP}">Create your brand set</a><a href="/docs/">Documentation</a></div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC; Zoho Meeting of Zoho Corporation. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
+<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="{APP}">Create MeetingBrand</a><a href="/docs/">Documentation</a></div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC; Zoho Meeting of Zoho Corporation. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
 </body>
 </html>
 '''
@@ -63,7 +63,7 @@ home=f'''
   <p class="eyebrow">Branded virtual backgrounds at company scale</p>
   <h1>Every meeting.<br>On brand.</h1>
   <p class="lead">MeetingBrand creates realistic virtual backgrounds from your company website and deploys approved options across {PLATFORMS} — automatically.</p>
-  <div class="cta"><a class="btn big" href="{APP}">Create your brand set</a><a class="btn ghost big" href="#how">See how it works</a></div>
+  <div class="cta"><a class="btn big" href="{APP}">Create MeetingBrand</a><a class="btn ghost big" href="#how">See how it works</a></div>
   <p class="trust">No design work. No employee-by-employee setup. No off-brand calls.</p>
   </div>
   <div class="heroart" aria-hidden="true"><img src="/assets/scene-walnut-brass-logo.jpg" alt="" width="820" height="461"><span class="namebar"><b>Dana Levi</b><span>Head of Sales · Your company</span></span></div>
@@ -112,7 +112,7 @@ home=f'''
 <section id="early-access" class="band dark"><div class="wrap narrow center">
   <h2>Update once. Refresh everywhere.</h2>
   <p class="lead">Try the brand-set builder now, or write to us and we will set your company up personally during early access.</p>
-  <div class="cta center"><a class="btn big cyan" href="{APP}">Create your brand set</a><a class="btn ghost big onink" href="mailto:{SUPPORT}?subject=MeetingBrand%20early%20access&body=Company%3A%20%0AMeeting%20platform(s)%3A%20%0AEmployees%3A%20">Request early access</a></div>
+  <div class="cta center"><a class="btn big cyan" href="{APP}">Create MeetingBrand</a><a class="btn ghost big onink" href="mailto:{SUPPORT}?subject=MeetingBrand%20early%20access&body=Company%3A%20%0AMeeting%20platform(s)%3A%20%0AEmployees%3A%20">Request early access</a></div>
   <p class="muted small">We reply personally within two business days. No newsletter, no spam.</p>
 </div></section>
 '''
@@ -125,7 +125,7 @@ docs=f'''
 
 <h2 id="getting-started">Getting started</h2>
 <ol>
-<li><strong>Create your brand set</strong> — open <a href="{APP}">the builder</a>, enter your company domain; review the logo, colors, scenes and sign treatments; set the name bar fields (name, title, department, company). The builder runs in your browser; nothing is stored on our servers during early access.</li>
+<li><strong>Create MeetingBrand</strong> — open <a href="{APP}">the builder</a>, enter your company domain; review the logo, colors, scenes and sign treatments; set the name bar fields (name, title, department, company). The builder runs in your browser; nothing is stored on our servers during early access.</li>
 <li><strong>Connect a platform</strong> — Integrations → choose Zoom, Microsoft Teams, Google Meet or Zoho Meeting → sign in as an administrator and approve the permissions listed below. MeetingBrand then imports your people (name, email, title, department). Integrations are rolling out to early-access customers platform by platform; write to <a href="mailto:{SUPPORT}">{SUPPORT}</a> to be scheduled.</li>
 <li><strong>Assign and deploy</strong> — mark people or departments as active, choose their looks, and deploy. The People panel shows each person's status: delivered, waiting for a restart, needs the employee's one click, or blocked (with the reason).</li>
 </ol>
