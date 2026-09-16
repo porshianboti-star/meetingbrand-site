@@ -66,7 +66,7 @@ home=f'''
   <div class="cta"><a class="btn big" href="{APP}">Create MeetingBrand</a><a class="btn ghost big" href="#how">See how it works</a></div>
   <p class="trust">No design work. No employee-by-employee setup. No off-brand calls.</p>
   </div>
-  <div class="heroart" aria-hidden="true"><img src="/assets/scene-navystudy-prosignature.jpg" alt="" width="1600" height="900"><span class="namebar"><b>Dana Levi</b><span>Head of Sales · ProSignature</span></span></div>
+  <div class="heroart" aria-hidden="true"><img src="/assets/virtual-background-navy-study.jpg" alt="" width="1600" height="900"><span class="namebar"><b>Dana Levi</b><span>Head of Sales · ProSignature</span></span></div>
 </div></section>
 
 <section class="band"><div class="wrap">
@@ -76,9 +76,9 @@ home=f'''
     <div class="feature"><h2>Roll out once. Stay consistent everywhere.</h2><p>Publish approved backgrounds centrally and update the whole organization without sending files or setup instructions. Titles change? The name bar updates everywhere.</p></div>
   </div>
   <div class="scenes">
-    <figure><img src="/assets/scene-cornerloft-prosignature.jpg" alt="Company sign on a concrete wall in a corner office over the city — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Concrete corner loft</figcaption></figure>
-    <figure><img src="/assets/scene-tlvsunset-prosignature.jpg" alt="Company sign beside a sunset window over the Tel Aviv beach — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Tel Aviv sunset window</figcaption></figure>
-    <figure><img src="/assets/scene-marblelobby-prosignature.jpg" alt="Company sign on a marble reception wall — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Marble reception</figcaption></figure>
+    <figure><img src="/assets/virtual-background-corner-office-loft.jpg" alt="Company sign on a concrete wall in a corner office over the city — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Concrete corner loft</figcaption></figure>
+    <figure><img src="/assets/virtual-background-sunset-window.jpg" alt="Company sign beside a sunset window over the Tel Aviv beach — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Tel Aviv sunset window</figcaption></figure>
+    <figure><img src="/assets/virtual-background-marble-reception.jpg" alt="Company sign on a marble reception wall — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Marble reception</figcaption></figure>
   </div>
 </div></section>
 
@@ -323,7 +323,18 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Trade-offs, stated plainly: Microsoft Teams, Google Meet and Zoho Meeting have no background API, so delivery there depends on IT tooling, an admin-console step or one click by the employee; the product is in early access and integrations are being rolled out to customers one platform at a time.
 ''')
 urls=[("/","2026-09-08"),("/docs/","2026-09-08"),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/","2026-09-08"),("/support/","2026-09-08")]
-open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>{lm}</lastmod></url>" for u,lm in urls)+"</urlset>\n")
+# Image sitemap (Google Images eligibility) — the four branded-background scenes
+# shown on the home page are the site's only images and are exactly what should
+# rank for "branded/company/zoom/teams virtual background" image queries.
+PAGE_IMAGES={"/":[
+    ("virtual-background-corner-office-loft.jpg","Branded virtual background — company sign on a concrete wall in a corner office over the city","Concrete corner loft — a branded video-call background"),
+    ("virtual-background-sunset-window.jpg","Branded virtual background — company sign beside a sunset window over the Tel Aviv beach","Tel Aviv sunset window — a branded video-call background"),
+    ("virtual-background-marble-reception.jpg","Branded virtual background — company sign on a marble reception wall","Marble reception — a branded video-call background"),
+    ("virtual-background-navy-study.jpg","Branded virtual background — company sign in a navy study for a professional video call","Navy study — a branded video-call background"),
+]}
+def _sm_imgs(u):
+    return "".join(f"<image:image><image:loc>{SITE}/assets/{f}</image:loc><image:title>{t}</image:title><image:caption>{c}</image:caption></image:image>" for f,t,c in PAGE_IMAGES.get(u,[]))
+open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>{lm}</lastmod>{_sm_imgs(u)}</url>" for u,lm in urls)+"</urlset>\n")
 # ---------- /app/: byte-identical copy of the LATEST gated build (highest vNN in BB/outputs). Never hand-edit app/index.html.
 def sync_app():
     cands=[]
