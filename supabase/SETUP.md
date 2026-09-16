@@ -13,6 +13,7 @@ The SQL files in this folder are the **only** source of truth for the MeetingBra
 | `005-integrations.sql` | **yes — applied 2026-09-13** (as `shared-cc/mb-005-integrations.sql`, with the Zoom Edge Functions) | integrations, `priv.integration_tokens`, employees, pushes, `is_org_admin`, `integration_token_get/set/delete` (service_role only) |
 | `006-token-lease.sql` | **yes — applied 2026-09-13** (as `shared-cc/mb-006-token-lease.sql`) | `refresh_lease_until` + `integration_token_begin_refresh/end_refresh` — single-flight Zoom token refresh |
 | `007-export-kinds.sql` | **yes — applied 2026-09-15** (as `shared-cc/mb-007-export-kinds.sql`, with the Teams/Meet Edge Functions) | `brand_assets.kind` += `thumb` (280×158 PNG, Teams tile) / `export_jpg` (1920×1080 JPEG, Meet console); `backgrounds.thumb_asset_id` / `export_jpg_asset_id`; members may register both kinds — client-rendered, signed by `mb-export-pack` |
+| `008-employees-csv.sql` | **yes — applied 2026-09-15** (as `shared-cc/mb-008-employees-csv.sql`; verified live 2026-09-16: policy `employees_admin_insert_csv` + the CSV rule in `guard_employee_columns`) | the My-team CSV fallback (product v86): an **admin** may INSERT `mb.employees` rows with `platform = 'csv'` for their own org (PUT /api/employees upserts on `(org_id, platform, ext_id)`, ext_id = the e-mail or `name:<slug>`), and may edit email/name/title/dept of those CSV rows; synced rows (zoom/teams/meet/zoho) stay server-owned; no client DELETE |
 
 ---
 
