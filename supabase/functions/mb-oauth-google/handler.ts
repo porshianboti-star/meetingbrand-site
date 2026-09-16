@@ -11,7 +11,7 @@
 //   POST ?action=finish     Bearer <user access token>  {"code":"…","state":"…"}
 //                           → caller must be an admin AND match state.user_id / state.org_id
 //                           → exchange code → refresh + access token AES-256-GCM encrypted into priv.integration_tokens
-//                           → account_ext_id = the Workspace domain (`hd` claim of the id_token, else the e-mail domain)
+//                           → account_ext_id = the Workspace domain (`hd` claim of the id_token; no hd → 409 not_workspace)
 //                           → 200 {status:"connected", platform:"meet", account_ext_id, scopes}
 //
 // 503 {error:"not_configured",missing:[…]} until GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / MB_TOKEN_KEY / MB_APP_URL exist;
@@ -20,7 +20,7 @@
 import { appEnv, googleEnv, notConfiguredBody, supabaseEnv } from "../_shared/env.ts";
 import { HttpError, json, readJson, serveFn } from "../_shared/http.ts";
 import { requireOrgAdmin, requireUser, serviceClient } from "../_shared/auth.ts";
-import { deriveKeys, encryptToHex, signState, STATE_TTL_MS, verifyState } from "../_shared/crypto.ts";
+import { deriveKeys, encryptToHex, signState, stateForPlatform, STATE_TTL_MS, verifyState } from "../_shared/crypto.ts";
 import { authorizeUrl, DIRECTORY_SCOPE, exchangeCode, GOOGLE_SCOPES, idTokenClaims } from "../_shared/google.ts";
 import { vaultSet } from "../_shared/zoom.ts";
 import { recordEvent } from "../_shared/events.ts";
@@ -61,7 +61,7 @@ export function makeHandler(deps: Deps = {}) {
       const env = googleEnv();
       if (!env.ok) return json(req, 503, notConfiguredBody(env.missing));
       const keys = await deriveKeys(env.env.tokenKeyB64);
-      const state = await signState(keys, { org_id: admin.org_id, user_id: user.id, ts: now() });
+      const state = await signState(keys, { org_id: admin.org_id, user_id: user.id, ts: now(), platform: "meet" });
       log.info("start", { org_id: admin.org_id, user_id: user.id });
       return json(req, 200, {
         platform: "meet",
@@ -120,9 +120,9 @@ export function makeHandler(deps: Deps = {}) {
 
       const verdict = await verifyState(keys, stateToken, now());
       if (!verdict.ok) throw new HttpError(400, `state_${verdict.reason}`, `OAuth state ${verdict.reason.replace("_", " ")} — start the connection again`);
-      if (verdict.state.user_id !== user.id || verdict.state.org_id !== admin.org_id) {
-        log.warn("finish_state_mismatch", { org_id: admin.org_id, user_id: user.id, state_org: verdict.state.org_id, state_user: verdict.state.user_id });
-        throw new HttpError(403, "state_mismatch", "this Google authorization was started by a different user or workspace — start the connection again");
+      if (verdict.state.user_id !== user.id || verdict.state.org_id !== admin.org_id || !stateForPlatform(verdict.state, "meet")) {
+        log.warn("finish_state_mismatch", { org_id: admin.org_id, user_id: user.id, state_org: verdict.state.org_id, state_user: verdict.state.user_id, state_platform: verdict.state.platform ?? null });
+        throw new HttpError(403, "state_mismatch", "this Google authorization was started by a different user, workspace or connector — start the connection again");
       }
       const org_id = admin.org_id;
 
@@ -138,9 +138,11 @@ export function makeHandler(deps: Deps = {}) {
         throw new HttpError(409, "scope_not_granted", "the Google consent did not include the directory (users.readonly) scope — connect again and keep every box ticked", { granted });
       }
       const claims = idTokenClaims(tok.tokens.id_token);
-      const domain = claims.hd ?? (claims.email ? claims.email.split("@")[1] : null);
+      // `hd` is set only for Google Workspace / Cloud-organisation accounts. A consumer account with a custom-domain
+      // e-mail has no hd, so the e-mail domain is NOT a substitute (it would bind a "workspace" that has no directory).
+      const domain = claims.hd;
       if (!domain || CONSUMER_DOMAINS.has(domain)) {
-        throw new HttpError(409, "not_workspace", "the Google account that consented is not part of a Google Workspace domain — a Workspace admin must connect", { email_domain: domain });
+        throw new HttpError(409, "not_workspace", "the Google account that consented is not part of a Google Workspace domain — a Workspace admin must connect", { email_domain: domain ?? (claims.email ? claims.email.split("@")[1] : null) });
       }
 
       const t = now();

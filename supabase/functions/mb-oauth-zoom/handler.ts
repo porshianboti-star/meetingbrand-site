@@ -29,7 +29,7 @@
 import { appEnv, notConfiguredBody, supabaseEnv, zoomEnv } from "../_shared/env.ts";
 import { HttpError, json, readJson, serveFn } from "../_shared/http.ts";
 import { requireOrgAdmin, requireUser, serviceClient } from "../_shared/auth.ts";
-import { deriveKeys, encryptToHex, signState, STATE_TTL_MS, verifyState } from "../_shared/crypto.ts";
+import { deriveKeys, encryptToHex, signState, stateForPlatform, STATE_TTL_MS, verifyState } from "../_shared/crypto.ts";
 import { authorizeUrl, exchangeCode, REFRESH_TOKEN_LIFETIME_MS, vaultSet, ZoomApi, ZoomError } from "../_shared/zoom.ts";
 import { recordEvent } from "../_shared/events.ts";
 
@@ -90,7 +90,7 @@ export function makeHandler(deps: Deps = {}) {
       const zEnv = zoomEnv();
       if (!zEnv.ok) return json(req, 503, notConfiguredBody(zEnv.missing));
       const keys = await deriveKeys(zEnv.env.tokenKeyB64);
-      const state = await signState(keys, { org_id: admin.org_id, user_id: user.id, ts: now() });
+      const state = await signState(keys, { org_id: admin.org_id, user_id: user.id, ts: now(), platform: "zoom" });
       log.info("start", { org_id: admin.org_id, user_id: user.id });
       return json(req, 200, {
         url: authorizeUrl(zEnv.env, state),
@@ -150,9 +150,9 @@ export function makeHandler(deps: Deps = {}) {
       const verdict = await verifyState(keys, stateToken, now());
       if (!verdict.ok) throw new HttpError(400, `state_${verdict.reason}`, `OAuth state ${verdict.reason.replace("_", " ")} — start the connection again`);
       // The flow is bound to the session that started it: same user, same org, still an admin.
-      if (verdict.state.user_id !== user.id || verdict.state.org_id !== admin.org_id) {
-        log.warn("finish_state_mismatch", { org_id: admin.org_id, user_id: user.id, state_org: verdict.state.org_id, state_user: verdict.state.user_id });
-        throw new HttpError(403, "state_mismatch", "this Zoom authorization was started by a different user or workspace — start the connection again");
+      if (verdict.state.user_id !== user.id || verdict.state.org_id !== admin.org_id || !stateForPlatform(verdict.state, "zoom")) {
+        log.warn("finish_state_mismatch", { org_id: admin.org_id, user_id: user.id, state_org: verdict.state.org_id, state_user: verdict.state.user_id, state_platform: verdict.state.platform ?? null });
+        throw new HttpError(403, "state_mismatch", "this Zoom authorization was started by a different user, workspace or connector — start the connection again");
       }
       const org_id = admin.org_id;
       const user_id = user.id;

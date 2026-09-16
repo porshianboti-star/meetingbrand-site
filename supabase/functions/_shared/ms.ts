@@ -172,9 +172,15 @@ export class GraphApi {
     this.maxUsers = opts.maxUsers ?? MAX_USERS;
   }
 
-  /** GET with 429/5xx retries. `url` is absolute (nextLink) or a path under GRAPH_BASE. */
+  /**
+   * GET with 429/5xx retries. `url` is absolute (nextLink) or a path under GRAPH_BASE. An absolute URL must stay on
+   * graph.microsoft.com: the Bearer token goes into the request, so a nextLink pointing anywhere else is refused.
+   */
   async get(url: string): Promise<{ status: number; body: unknown; retryAfter: string | null }> {
-    const full = url.startsWith("http") ? url : `${GRAPH_BASE}${url}`;
+    const full = /^https?:/i.test(url) ? url : `${GRAPH_BASE}${url}`;
+    if (!full.startsWith("https://graph.microsoft.com/")) {
+      return { status: 0, body: { error: { code: "bad_next_link", message: "refusing to send the Graph token to a host other than graph.microsoft.com" } }, retryAfter: null };
+    }
     let attempt = 0;
     for (;;) {
       attempt++;
@@ -232,14 +238,40 @@ export class GraphApi {
     return { users: out.slice(0, this.maxUsers), truncated: truncated || out.length > this.maxUsers };
   }
 
+  /**
+   * The tenant behind this token: its id (GUID), display name and verified domain names (lower-case). This is what
+   * mb-oauth-ms binds — never the tenant string the client sent. Throws MsError when Graph refuses.
+   */
+  async organization(): Promise<GraphOrganization> {
+    const r = await this.get("/organization?$select=id,displayName,verifiedDomains");
+    if (r.status !== 200 || !r.body) throw new MsError(classifyGraphError(r.status, r.body, r.retryAfter), r.status);
+    const b = r.body as { value?: Array<{ id?: string; displayName?: string; verifiedDomains?: Array<{ name?: string; isVerified?: boolean }> }> };
+    const o = b.value?.[0];
+    const id = typeof o?.id === "string" ? o.id.trim().toLowerCase() : "";
+    if (!TENANT_GUID_RE.test(id)) throw new MsError({ kind: "failed", code: "graph_error", detail: "graph /organization returned no tenant id" }, r.status);
+    const domains = (Array.isArray(o?.verifiedDomains) ? o!.verifiedDomains! : [])
+      .filter((d) => d && typeof d.name === "string" && d.isVerified !== false)
+      .map((d) => d.name!.trim().toLowerCase())
+      .filter((n) => n.length > 0 && n.length <= 253);
+    return { id, displayName: clean(o?.displayName) ?? null, domains: [...new Set(domains)] };
+  }
+
   /** The tenant's organisation display name (used at connect time for a friendlier label). Null on any failure. */
   async organizationName(): Promise<string | null> {
-    const r = await this.get("/organization?$select=id,displayName,verifiedDomains");
-    if (r.status !== 200 || !r.body) return null;
-    const b = r.body as { value?: Array<{ displayName?: string }> };
-    return clean(b.value?.[0]?.displayName) ?? null;
+    try {
+      return (await this.organization()).displayName;
+    } catch {
+      return null;
+    }
   }
 }
+
+export interface GraphOrganization {
+  id: string; // tenant id, lower-case GUID
+  displayName: string | null;
+  domains: string[]; // verified domain names, lower-case (contoso.com, contoso.onmicrosoft.com, …)
+}
+export const TENANT_GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /** Graph user → employee row. Disabled accounts are skipped upstream by $filter; guests are kept (they have a UPN). */
 export function toEmployee(u: GraphUser): Employee | null {

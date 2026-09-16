@@ -84,3 +84,13 @@ Deno.test("state: expires after 10 minutes, rejects the future, rejects other ke
   const m = await verifyState(a, "a.b.c", t0);
   if (!m.ok) assertEquals(m.reason, "malformed");
 });
+
+Deno.test("state platform binding: a state minted for one connector cannot finish another; pre-v2 states (no platform) still pass", async () => {
+  const { stateForPlatform } = await import("../_shared/crypto.ts");
+  const keys = await deriveKeys(b64url(crypto.getRandomValues(new Uint8Array(32))));
+  const teams = await verifyState(keys, await signState(keys, { org_id: "o", user_id: "u", platform: "teams" }));
+  assert(teams.ok && teams.state.platform === "teams");
+  assert(teams.ok && stateForPlatform(teams.state, "teams") && !stateForPlatform(teams.state, "zoom"));
+  const legacy = await verifyState(keys, await signState(keys, { org_id: "o", user_id: "u" }));
+  assert(legacy.ok && legacy.state.platform === undefined && stateForPlatform(legacy.state, "meet"));
+});

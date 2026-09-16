@@ -37,6 +37,8 @@ export interface Deps {
 
 export const SIGNED_URL_TTL_S = 3600;
 export const MAX_EMPLOYEES = 2000;
+/** PostgREST filters travel in the URL and the gateway caps it around 16 KB → `in.(…)` lists are sent in chunks. */
+export const IN_CHUNK = 100;
 export const EXPORT_BUCKET = "mb-exports";
 export const TEAMS_THUMB = { width: 280, height: 158 } as const;
 export const EXPORT_SIZE = { width: 1920, height: 1080 } as const;
@@ -164,12 +166,20 @@ export function makeHandler(deps: Deps = {}) {
     const ready = missing.length === 0;
 
     // ---------------------------------------------------------------- employees (who the pack targets)
-    let q = sb.from("employees").select("id, ext_id, email, name, title, dept, active").eq("org_id", orgId).eq("platform", platform).limit(MAX_EMPLOYEES);
-    if (employeeIds) q = q.in("id", employeeIds);
-    else q = q.eq("active", true);
-    const { data: empRows, error: empErr } = await q;
-    if (empErr) throw new HttpError(500, "db_error", `employees lookup failed: ${empErr.message}`);
-    const employees = (empRows ?? []) as Array<{ id: string; ext_id: string; email: string | null; name: string | null; title: string | null; dept: string | null; active: boolean }>;
+    type EmpRow = { id: string; ext_id: string; email: string | null; name: string | null; title: string | null; dept: string | null; active: boolean };
+    const employees: EmpRow[] = [];
+    const empSelect = () => sb.from("employees").select("id, ext_id, email, name, title, dept, active").eq("org_id", orgId).eq("platform", platform);
+    if (employeeIds) {
+      for (let i = 0; i < employeeIds.length; i += IN_CHUNK) {
+        const { data: empRows, error: empErr } = await empSelect().in("id", employeeIds.slice(i, i + IN_CHUNK)).limit(IN_CHUNK);
+        if (empErr) throw new HttpError(500, "db_error", `employees lookup failed: ${empErr.message}`);
+        employees.push(...((empRows ?? []) as EmpRow[]));
+      }
+    } else {
+      const { data: empRows, error: empErr } = await empSelect().eq("active", true).limit(MAX_EMPLOYEES);
+      if (empErr) throw new HttpError(500, "db_error", `employees lookup failed: ${empErr.message}`);
+      employees.push(...((empRows ?? []) as EmpRow[]));
+    }
     const unknown = employeeIds ? employeeIds.filter((id) => !employees.some((e) => e.id === id)) : [];
 
     // ---------------------------------------------------------------- runbook + scripts

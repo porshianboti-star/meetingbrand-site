@@ -111,6 +111,7 @@ export interface OAuthState {
   user_id: string;
   nonce: string;
   ts: number; // unix ms when signed
+  platform?: string; // "zoom" | "teams" | "meet": a state minted for one connector cannot finish another (absent on pre-v2 states)
 }
 export const STATE_TTL_MS = 10 * 60 * 1000;
 
@@ -121,6 +122,7 @@ export async function signState(keys: VaultKeys, payload: Omit<OAuthState, "nonc
     user_id: payload.user_id,
     nonce: payload.nonce ?? b64url(crypto.getRandomValues(new Uint8Array(16))),
     ts: payload.ts ?? Date.now(),
+    ...(payload.platform ? { platform: payload.platform } : {}),
   };
   const body = b64url(enc.encode(JSON.stringify(st)));
   const mac = new Uint8Array(await crypto.subtle.sign("HMAC", keys.hmac, enc.encode(body)));
@@ -150,7 +152,13 @@ export async function verifyState(keys: VaultKeys, token: string, now = Date.now
   if (typeof st?.org_id !== "string" || typeof st?.user_id !== "string" || typeof st?.ts !== "number" || typeof st?.nonce !== "string") {
     return { ok: false, reason: "malformed" };
   }
+  if (st.platform !== undefined && typeof st.platform !== "string") return { ok: false, reason: "malformed" };
   if (st.ts > now + 60_000) return { ok: false, reason: "future" };
   if (now - st.ts > ttlMs) return { ok: false, reason: "expired" };
   return { ok: true, state: st };
+}
+
+/** True when the state may finish `platform`: minted for it, or minted before states carried a platform. */
+export function stateForPlatform(st: OAuthState, platform: string): boolean {
+  return st.platform === undefined || st.platform === platform;
 }

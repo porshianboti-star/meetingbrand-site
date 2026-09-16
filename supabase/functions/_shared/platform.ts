@@ -26,6 +26,7 @@ export interface IntegrationRow {
   platform: string;
   status: string;
   account_ext_id: string | null;
+  last_sync_at?: string | null;
 }
 
 /**
@@ -43,7 +44,7 @@ export const DELIVERY: Record<DirectoryPlatform, string> = {
 
 /** Load the org's integration row for one platform, or null. */
 export async function loadIntegration(sb: SupabaseClient, orgId: string, platform: string): Promise<IntegrationRow | null> {
-  const { data, error } = await sb.from("integrations").select("id, org_id, platform, status, account_ext_id").eq("org_id", orgId).eq("platform", platform).maybeSingle();
+  const { data, error } = await sb.from("integrations").select("id, org_id, platform, status, account_ext_id, last_sync_at").eq("org_id", orgId).eq("platform", platform).maybeSingle();
   if (error) throw new Error(`integrations lookup: ${error.message}`);
   return (data as IntegrationRow | null) ?? null;
 }
@@ -56,6 +57,17 @@ export function requireConnected(integ: IntegrationRow | null, platform: Directo
 }
 
 export const UPSERT_CHUNK = 500;
+
+/** Minimum spacing between two directory syncs of one connection (Graph / Admin SDK quota is ours, not the customer's). */
+export const SYNC_MIN_INTERVAL_MS = 30_000;
+
+/** 429 sync_too_soon when the connection synced less than SYNC_MIN_INTERVAL_MS ago. */
+export function requireSyncSpacing(integ: { last_sync_at?: string | null }, nowMs: number): void {
+  const last = integ.last_sync_at ? Date.parse(integ.last_sync_at) : NaN;
+  if (!Number.isFinite(last)) return;
+  const wait = SYNC_MIN_INTERVAL_MS - (nowMs - last);
+  if (wait > 0) throw new HttpError(429, "sync_too_soon", `this directory was synced ${Math.round((nowMs - last) / 1000)} s ago — try again in ${Math.ceil(wait / 1000)} s`, { retry_after_ms: wait });
+}
 
 export interface SyncSummary {
   imported: number;

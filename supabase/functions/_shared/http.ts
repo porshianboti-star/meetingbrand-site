@@ -72,9 +72,15 @@ export function makeLogger(fn: string, rid: string) {
 }
 export type Logger = ReturnType<typeof makeLogger>;
 
-/** Parse a JSON body; empty body → {}. Throws HttpError 400 on malformed JSON. */
+/** Largest JSON body any mb-* function accepts (the biggest legitimate one is ~2000 uuids ≈ 80 KB). */
+export const MAX_BODY_BYTES = 256 * 1024;
+
+/** Parse a JSON body; empty body → {}. Throws HttpError 400 on malformed JSON, 413 when larger than MAX_BODY_BYTES. */
 export async function readJson<T = Record<string, unknown>>(req: Request): Promise<T> {
+  const declared = Number(req.headers.get("content-length") ?? "");
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) throw new HttpError(413, "body_too_large", `request body must be at most ${MAX_BODY_BYTES} bytes`);
   const text = await req.text();
+  if (text.length > MAX_BODY_BYTES) throw new HttpError(413, "body_too_large", `request body must be at most ${MAX_BODY_BYTES} bytes`);
   if (!text.trim()) return {} as T;
   try {
     return JSON.parse(text) as T;

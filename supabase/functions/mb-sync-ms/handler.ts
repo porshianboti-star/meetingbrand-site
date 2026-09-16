@@ -16,7 +16,7 @@ import { msEnv, notConfiguredBody, supabaseEnv } from "../_shared/env.ts";
 import { HttpError, json, serveFn } from "../_shared/http.ts";
 import { requireOrgAdmin, requireUser, serviceClient } from "../_shared/auth.ts";
 import { clientCredentialsToken, GraphApi, isMsReconnectFailure, MsError, msErrorToHttp, toEmployee } from "../_shared/ms.ts";
-import { loadIntegration, requireConnected, upsertEmployees } from "../_shared/platform.ts";
+import { loadIntegration, requireConnected, requireSyncSpacing, upsertEmployees } from "../_shared/platform.ts";
 import { markNeedsReconnect } from "../_shared/zoom.ts";
 import { recordEvent } from "../_shared/events.ts";
 
@@ -44,6 +44,7 @@ export function makeHandler(deps: Deps = {}) {
 
     const integ = requireConnected(await loadIntegration(sb, admin.org_id, "teams"), "teams", "mb-oauth-ms?action=start");
     if (!integ.account_ext_id) throw new HttpError(409, "needs_reconnect", "no tenant stored for this connection — reconnect Microsoft");
+    requireSyncSpacing(integ, now());
 
     let users;
     let truncated = false;

@@ -115,6 +115,27 @@ npx -y supabase@2 secrets list --project-ref ohobtgbyrlczfdztzvqi   # names only
 Optional overrides: `MS_REDIRECT_URI`, `GOOGLE_REDIRECT_URI` (default to the two callback URLs above).
 No redeploy is needed after setting secrets — `mb-integrations GET` flips `configured:true` on the next call.
 
+## 4b. Security review 2026-09-16 — what the backend enforces (and the one gap only the owner can close)
+
+* **Teams tenant binding.** The admin-consent redirect carries no proof of *who* consented, and any tenant that ever
+  consented answers the client-credentials call. `mb-oauth-ms?action=finish` therefore (1) takes the tenant id and the
+  verified domains from Graph `GET /organization` — never from the request; (2) refuses when the finishing admin's
+  MeetingBrand sign-in e-mail is not on one of the tenant's verified domains (`403 tenant_not_yours`); (3) keeps one
+  tenant ↔ one workspace (`409 tenant_already_connected`); (4) refuses a hint that is neither the GUID nor a verified
+  domain (`409 tenant_mismatch`). **Residual:** (2) is as strong as the sign-in e-mail, and SETUP.md runs *Confirm
+  email* OFF — a stranger who signs up as `anything@customer.com` and whose tenant is not yet bound could still finish
+  it. Closing that needs either *Confirm email* ON (owner, dashboard) or a second Microsoft sign-in of the finishing admin
+  (`id_token.tid`) before the row is written — planned for the My-team tab, not built yet.
+* **Meet:** `hd` must be present (a consumer Google account with a custom-domain e-mail has no directory); the refresh
+  token is revoked through the form body, never a URL.
+* **OAuth state** now carries `platform`; a state minted for Zoom cannot finish Teams or Meet (pre-2026-09-16 states still verify).
+* **Graph pagination** follows `@odata.nextLink` only on `https://graph.microsoft.com/` (the Bearer never goes elsewhere).
+* **Caps:** JSON bodies ≤ 256 KB (`413 body_too_large`); one directory sync per 30 s per connection (`429 sync_too_soon`);
+  `mb-export-pack` looks employee ids up in chunks of 100 (the gateway caps URLs at ~16 KB).
+* **CSV rows (009):** a BEFORE INSERT guard pins client inserts to `platform='csv'`, forces `synced_at` null, caps text
+  lengths, checks `assigned_bg` against the org and keeps ≤ 5000 CSV rows per workspace — verified live with a QA admin
+  (zoom/teams inserts refused, foreign `assigned_bg` refused, re-platforming refused).
+
 ## 5. Deploy / verify (orchestrator)
 
 ```bash

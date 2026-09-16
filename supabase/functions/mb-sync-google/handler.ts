@@ -16,7 +16,7 @@ import { HttpError, json, serveFn } from "../_shared/http.ts";
 import { requireOrgAdmin, requireUser, serviceClient } from "../_shared/auth.ts";
 import { deriveKeys } from "../_shared/crypto.ts";
 import { DirectoryApi, getGoogleAccessToken, googleErrorToHttp, isGoogleReconnectFailure, toEmployee } from "../_shared/google.ts";
-import { loadIntegration, requireConnected, upsertEmployees } from "../_shared/platform.ts";
+import { loadIntegration, requireConnected, requireSyncSpacing, upsertEmployees } from "../_shared/platform.ts";
 import { markNeedsReconnect } from "../_shared/zoom.ts";
 import { recordEvent } from "../_shared/events.ts";
 
@@ -42,6 +42,7 @@ export function makeHandler(deps: Deps = {}) {
     if (!env.ok) return json(req, 503, notConfiguredBody(env.missing));
 
     const integ = requireConnected(await loadIntegration(sb, admin.org_id, "meet"), "meet", "mb-oauth-google?action=start");
+    requireSyncSpacing(integ, now());
     const keys = await deriveKeys(env.env.tokenKeyB64);
 
     let users;

@@ -10,10 +10,18 @@
 //                           the consent (login-CSRF, same reasoning as mb-oauth-zoom). Only the session that
 //                           started the flow may finish it.
 //   POST ?action=finish     Bearer <user access token>  {"tenant":"…","state":"…"}
-//                           → caller must be an admin AND match state.user_id / state.org_id
+//                           → caller must be an admin AND match state.user_id / state.org_id (+ state.platform = teams)
 //                           → mint a client-credentials token for that tenant (proves the consent exists)
-//                           → GET /organization for a display name (best effort)
-//                           → upsert mb.integrations {platform:'teams', status:'connected', account_ext_id:<tenant>, scopes:['User.Read.All']}
+//                           → GET /organization (REQUIRED): the tenant id + verified domains come from Graph, never from the body
+//                           → TENANT BINDING (security review 2026-09-16): the admin-consent redirect carries no proof of who
+//                             consented and any tenant that ever consented answers the client-credentials call, so without
+//                             these checks an admin of org A could type tenant B's id (or contoso.com) and import B's directory:
+//                               1. the body's tenant must be that tenant's GUID or one of its verified domains (409 tenant_mismatch)
+//                               2. the caller's sign-in e-mail domain must be a verified domain of the tenant (403 tenant_not_yours)
+//                               3. one tenant ↔ one workspace: another org already bound to it → 409 tenant_already_connected
+//                             (2) is as strong as the product's e-mail trust — SETUP.md runs Confirm-email OFF; the real proof
+//                             would be an OIDC sign-in of the finishing admin (id_token.tid) — noted in README-INTEGRATIONS.md.
+//                           → upsert mb.integrations {platform:'teams', status:'connected', account_ext_id:<tenant GUID>, scopes:['User.Read.All']}
 //                           NOTHING goes to priv.integration_tokens: client-credentials tokens are minted per call
 //                           from MS_CLIENT_ID/MS_CLIENT_SECRET + the tenant id; there is no refresh token to vault.
 //
@@ -24,8 +32,8 @@
 import { appEnv, msEnv, notConfiguredBody, supabaseEnv } from "../_shared/env.ts";
 import { HttpError, json, readJson, serveFn } from "../_shared/http.ts";
 import { requireOrgAdmin, requireUser, serviceClient } from "../_shared/auth.ts";
-import { deriveKeys, signState, STATE_TTL_MS, verifyState } from "../_shared/crypto.ts";
-import { adminConsentUrl, clientCredentialsToken, GraphApi, MS_SCOPES, TENANT_RE } from "../_shared/ms.ts";
+import { deriveKeys, signState, stateForPlatform, STATE_TTL_MS, verifyState } from "../_shared/crypto.ts";
+import { adminConsentUrl, clientCredentialsToken, GraphApi, MS_SCOPES, msErrorToHttp, TENANT_RE } from "../_shared/ms.ts";
 import { recordEvent } from "../_shared/events.ts";
 
 export interface Deps {
@@ -34,7 +42,7 @@ export interface Deps {
 }
 
 export const CALLBACK_REASONS = ["denied", "missing_params", "consent_not_granted", "state_malformed", "state_bad_signature", "state_expired", "state_future"] as const;
-export const FINISH_ERRORS = ["bad_request", "state_malformed", "state_bad_signature", "state_expired", "state_future", "state_mismatch", "consent_missing", "entra_error", "db_error"] as const;
+export const FINISH_ERRORS = ["bad_request", "state_malformed", "state_bad_signature", "state_expired", "state_future", "state_mismatch", "consent_missing", "entra_error", "tenant_mismatch", "tenant_not_yours", "tenant_already_connected", "db_error"] as const;
 
 const STATE_RE = /^[A-Za-z0-9_-]{16,4096}\.[A-Za-z0-9_-]{16,128}$/;
 
@@ -61,7 +69,7 @@ export function makeHandler(deps: Deps = {}) {
       const env = msEnv();
       if (!env.ok) return json(req, 503, notConfiguredBody(env.missing));
       const keys = await deriveKeys(env.env.tokenKeyB64);
-      const state = await signState(keys, { org_id: admin.org_id, user_id: user.id, ts: now() });
+      const state = await signState(keys, { org_id: admin.org_id, user_id: user.id, ts: now(), platform: "teams" });
       log.info("start", { org_id: admin.org_id, user_id: user.id });
       return json(req, 200, {
         platform: "teams",
@@ -121,9 +129,9 @@ export function makeHandler(deps: Deps = {}) {
 
       const verdict = await verifyState(keys, stateToken, now());
       if (!verdict.ok) throw new HttpError(400, `state_${verdict.reason}`, `consent state ${verdict.reason.replace("_", " ")} — start the connection again`);
-      if (verdict.state.user_id !== user.id || verdict.state.org_id !== admin.org_id) {
-        log.warn("finish_state_mismatch", { org_id: admin.org_id, user_id: user.id, state_org: verdict.state.org_id, state_user: verdict.state.user_id });
-        throw new HttpError(403, "state_mismatch", "this Microsoft consent was started by a different user or workspace — start the connection again");
+      if (verdict.state.user_id !== user.id || verdict.state.org_id !== admin.org_id || !stateForPlatform(verdict.state, "teams")) {
+        log.warn("finish_state_mismatch", { org_id: admin.org_id, user_id: user.id, state_org: verdict.state.org_id, state_user: verdict.state.user_id, state_platform: verdict.state.platform ?? null });
+        throw new HttpError(403, "state_mismatch", "this Microsoft consent was started by a different user, workspace or connector — start the connection again");
       }
       const org_id = admin.org_id;
 
@@ -136,7 +144,39 @@ export function makeHandler(deps: Deps = {}) {
         throw new HttpError(502, "entra_error", tok.cls.detail, { code: tok.cls.code });
       }
       const api = new GraphApi(tok.accessToken, { fetchImpl, log });
-      const orgName = await api.organizationName().catch(() => null);
+
+      // Which tenant is this really? Graph answers with the token — the body's `tenant` is only a lookup hint.
+      let tenantOrg;
+      try {
+        tenantOrg = await api.organization();
+      } catch (e) {
+        log.warn("finish_organization_failed", { org_id, tenant, message: e instanceof Error ? e.message : String(e) });
+        throw msErrorToHttp(e, log);
+      }
+      const tenantId = tenantOrg.id;
+      const orgName = tenantOrg.displayName;
+      if (tenant !== tenantId && !tenantOrg.domains.includes(tenant)) {
+        log.warn("finish_tenant_mismatch", { org_id, tenant, tenant_id: tenantId });
+        throw new HttpError(409, "tenant_mismatch", "the tenant Microsoft answered for is not the one in the request — start the connection again");
+      }
+      // The finishing admin must belong to the tenant: their sign-in e-mail domain is one of its verified domains.
+      const callerDomain = (user.email ?? "").split("@")[1]?.trim().toLowerCase() ?? "";
+      if (!callerDomain || !tenantOrg.domains.includes(callerDomain)) {
+        log.warn("finish_tenant_not_yours", { org_id, user_id: user.id, tenant_id: tenantId, caller_domain: callerDomain || null, verified_domains: tenantOrg.domains.length });
+        throw new HttpError(
+          403,
+          "tenant_not_yours",
+          `sign in to MeetingBrand with an e-mail address of the Microsoft tenant you are connecting (your address is not on one of its verified domains${callerDomain ? `: ${callerDomain}` : ""})`,
+          { caller_domain: callerDomain || null },
+        );
+      }
+      // One tenant ↔ one workspace: a tenant already bound to another org cannot be re-bound here.
+      const { data: others, error: oErr } = await sb.from("integrations").select("org_id").eq("platform", "teams").eq("account_ext_id", tenantId).neq("org_id", org_id).limit(1);
+      if (oErr) throw new HttpError(500, "db_error", `integrations lookup failed: ${oErr.message}`);
+      if ((others ?? []).length) {
+        log.warn("finish_tenant_already_connected", { org_id, tenant_id: tenantId });
+        throw new HttpError(409, "tenant_already_connected", "this Microsoft tenant is already connected to another MeetingBrand workspace — disconnect it there first (or contact support)");
+      }
 
       const t = now();
       const { data: integ, error: upErr } = await sb
@@ -146,7 +186,7 @@ export function makeHandler(deps: Deps = {}) {
             org_id,
             platform: "teams",
             status: "connected",
-            account_ext_id: tenant,
+            account_ext_id: tenantId,
             scopes: [...MS_SCOPES],
             connected_by: user.id,
             connected_at: new Date(t).toISOString(),
@@ -163,8 +203,8 @@ export function makeHandler(deps: Deps = {}) {
       }
 
       await recordEvent(sb, "integration_connected", user.id, { platform: "teams", org_id, tenant_named: !!orgName });
-      log.info("connected", { org_id, user_id: user.id, integration_id: integ.id, tenant, org_name: orgName });
-      return json(req, 200, { platform: "teams", status: "connected", account_ext_id: tenant, tenant_name: orgName, scopes: MS_SCOPES, expires_at: null });
+      log.info("connected", { org_id, user_id: user.id, integration_id: integ.id, tenant: tenantId, org_name: orgName });
+      return json(req, 200, { platform: "teams", status: "connected", account_ext_id: tenantId, tenant_name: orgName, scopes: MS_SCOPES, expires_at: null });
     }
 
     throw new HttpError(400, "bad_action", "action must be start, callback or finish");

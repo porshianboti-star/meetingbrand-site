@@ -144,3 +144,25 @@ Deno.test("toEmployee: mail over UPN, display name fallback to the UPN local par
   });
   assertEquals(toEmployee({ id: "" } as never), null);
 });
+
+Deno.test("GraphApi.get: an absolute nextLink off graph.microsoft.com is refused without a request (the Bearer never leaves Graph)", async () => {
+  let called = 0;
+  const api = new GraphApi("tok", { fetchImpl: async () => { called++; return new Response("{}", { status: 200 }); }, maxRetries: 0 });
+  const r = await api.get("https://evil.example/v1.0/users");
+  assertEquals(r.status, 0);
+  assertEquals(called, 0);
+  const r2 = await api.get("HTTPS://graph.microsoft.com.evil.example/x");
+  assertEquals(r2.status, 0);
+  assertEquals(called, 0);
+  const ok = await api.get("https://graph.microsoft.com/v1.0/users?$skiptoken=x");
+  assertEquals(ok.status, 200);
+  assertEquals(called, 1);
+});
+
+Deno.test("GraphApi.organization: lower-cased GUID + verified domain names only; missing id → MsError", async () => {
+  const api = new GraphApi("tok", { fetchImpl: async () => new Response(JSON.stringify({ value: [{ id: "72F988BF-86F1-41AF-91AB-2D7CD011DB47", displayName: " Acme ", verifiedDomains: [{ name: "ACME.com", isVerified: true }, { name: "x.acme.com", isVerified: false }, { name: "acme.onmicrosoft.com" }] }] }), { status: 200 }) });
+  const o = await api.organization();
+  assertEquals(o, { id: "72f988bf-86f1-41af-91ab-2d7cd011db47", displayName: "Acme", domains: ["acme.com", "acme.onmicrosoft.com"] });
+  const bad = new GraphApi("tok", { fetchImpl: async () => new Response(JSON.stringify({ value: [{ displayName: "x" }] }), { status: 200 }) });
+  await assertRejects(() => bad.organization(), MsError);
+});

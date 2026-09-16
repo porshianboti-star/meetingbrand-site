@@ -132,12 +132,23 @@ Deno.test("oauth-ms callback: tenant+state+admin_consent=True → pending redire
   assertEquals(fake.seen.length, 0, "the unauthenticated callback must not touch Microsoft or the DB");
 });
 
-function msFinishRoutes(tokenReply: () => Response = () => j(200, { token_type: "Bearer", expires_in: 3599, access_token: "graph-token" })): Route[] {
+function msFinishRoutes(
+  tokenReply: () => Response = () => j(200, { token_type: "Bearer", expires_in: 3599, access_token: "graph-token" }),
+  opts: { tenantPath?: string; domains?: Array<{ name: string; isVerified?: boolean }>; boundElsewhere?: boolean } = {},
+): Route[] {
+  const domains = opts.domains ?? [{ name: "Acme.com", isVerified: true }, { name: "acme.onmicrosoft.com", isVerified: true }, { name: "pending.acme.com", isVerified: false }];
   return [
     gotrueUser(),
     profile("admin"),
-    { method: "POST", test: (u) => u.hostname === "login.microsoftonline.com" && u.pathname === `/${TENANT}/oauth2/v2.0/token`, reply: tokenReply },
-    { method: "GET", test: (u) => u.hostname === "graph.microsoft.com" && u.pathname === "/v1.0/organization", reply: (req) => (req.headers.get("authorization") === "Bearer graph-token" ? j(200, { value: [{ id: TENANT, displayName: "Acme Ltd" }] }) : j(401, {})) },
+    { method: "POST", test: (u) => u.hostname === "login.microsoftonline.com" && u.pathname === `/${opts.tenantPath ?? TENANT}/oauth2/v2.0/token`, reply: tokenReply },
+    { method: "GET", test: (u) => u.hostname === "graph.microsoft.com" && u.pathname === "/v1.0/organization", reply: (req) => (req.headers.get("authorization") === "Bearer graph-token" ? j(200, { value: [{ id: TENANT.toUpperCase(), displayName: "Acme Ltd", verifiedDomains: domains }] }) : j(401, {})) },
+    { method: "GET", test: rest("integrations"), reply: (_r, u) => {
+      // the one-tenant-one-workspace lookup: platform=eq.teams & account_ext_id=eq.<guid> & org_id=neq.<mine>
+      assertEquals(u.searchParams.get("platform"), "eq.teams");
+      assertEquals(u.searchParams.get("account_ext_id"), `eq.${TENANT}`);
+      assertEquals(u.searchParams.get("org_id"), `neq.${ORG}`);
+      return j(200, opts.boundElsewhere ? [{ org_id: "88888888-8888-4888-8888-888888888888" }] : []);
+    } },
     { method: "POST", test: rest("integrations"), reply: () => j(201, { id: INTEG }) },
     eventsOk,
   ];
@@ -164,12 +175,67 @@ Deno.test("oauth-ms finish: proves the consent with a client-credentials token, 
   const row = JSON.parse(up.body);
   assertEquals(row.platform, "teams");
   assertEquals(row.org_id, ORG);
-  assertEquals(row.account_ext_id, TENANT, "tenant is lower-cased");
+  assertEquals(row.account_ext_id, TENANT, "the GUID Graph answered with, lower-cased");
   assertEquals(row.status, "connected");
   assertEquals(row.scopes, ["User.Read.All"]);
   assertEquals(row.connected_by, USER);
   assertEquals(fake.calls("POST", "/rest/v1/rpc/").length, 0, "client-credentials: nothing to vault");
   assert(!fake.seen.some((s) => s.path.startsWith("/rest/") && s.body.includes("graph-token")), "the Graph token never reaches the DB");
+
+  // a verified domain name works as the lookup hint; what gets stored is still the GUID
+  const byDomain = router(msFinishRoutes(undefined, { tenantPath: "acme.com" }));
+  const rd = await oauthMs({ fetchImpl: byDomain.fetchImpl, now: () => t0 })(msFinish("ACME.com", state));
+  assertEquals(rd.status, 200, await rd.clone().text());
+  assertEquals(JSON.parse(byDomain.calls("POST", "/rest/v1/integrations")[0].body).account_ext_id, TENANT);
+});
+
+Deno.test("oauth-ms finish: tenant binding — an admin of org A cannot bind tenant B: caller domain not verified in the tenant → 403; tenant already bound to another workspace → 409; hint that is not the tenant → 409; Graph /organization refused → no row", async () => {
+  configure();
+  const keys = await deriveKeys(TOKEN_KEY);
+  const state = await signState(keys, { org_id: ORG, user_id: USER, platform: "teams" });
+
+  // 1. admin@acme.com (gotrueUser) finishing a tenant whose verified domains are contoso.* → 403 tenant_not_yours, nothing written
+  const foreign = router(msFinishRoutes(undefined, { domains: [{ name: "contoso.com", isVerified: true }, { name: "contoso.onmicrosoft.com" }] }));
+  const r1 = await oauthMs({ fetchImpl: foreign.fetchImpl })(msFinish(TENANT, state));
+  assertEquals(r1.status, 403, await r1.clone().text());
+  const b1 = await r1.json();
+  assertEquals(b1.error, "tenant_not_yours");
+  assertEquals(b1.caller_domain, "acme.com");
+  assertEquals(foreign.calls("POST", "/rest/v1/integrations").length, 0);
+  // an unverified domain entry does not count either
+  const unverified = router(msFinishRoutes(undefined, { domains: [{ name: "acme.com", isVerified: false }, { name: "contoso.onmicrosoft.com" }] }));
+  assertEquals((await oauthMs({ fetchImpl: unverified.fetchImpl })(msFinish(TENANT, state))).status, 403);
+
+  // 2. the tenant is already bound to another workspace → 409 tenant_already_connected, nothing written
+  const bound = router(msFinishRoutes(undefined, { boundElsewhere: true }));
+  const r2 = await oauthMs({ fetchImpl: bound.fetchImpl })(msFinish(TENANT, state));
+  assertEquals(r2.status, 409, await r2.clone().text());
+  assertEquals((await r2.json()).error, "tenant_already_connected");
+  assertEquals(bound.calls("POST", "/rest/v1/integrations").length, 0);
+
+  // 3. the body's tenant is neither the GUID nor a verified domain of what Graph answered → 409 tenant_mismatch
+  const alias = router(msFinishRoutes(undefined, { tenantPath: "evil.example" }));
+  const r3 = await oauthMs({ fetchImpl: alias.fetchImpl })(msFinish("evil.example", state));
+  assertEquals(r3.status, 409, await r3.clone().text());
+  assertEquals((await r3.json()).error, "tenant_mismatch");
+  assertEquals(alias.calls("POST", "/rest/v1/integrations").length, 0);
+
+  // 4. Graph /organization refused (403) → 409 needs_reconnect-class error, no row: the tenant id is never taken from the body
+  const noOrg = router([
+    ...msFinishRoutes().filter((r) => !(r.method === "GET" && r.test(new URL("https://graph.microsoft.com/v1.0/organization")))),
+    { method: "GET", test: (u) => u.hostname === "graph.microsoft.com" && u.pathname === "/v1.0/organization", reply: () => j(403, { error: { code: "Authorization_RequestDenied", message: "Insufficient privileges" } }) },
+  ]);
+  const r4 = await oauthMs({ fetchImpl: noOrg.fetchImpl })(msFinish(TENANT, state));
+  assertEquals(r4.status, 409, await r4.clone().text());
+  assertEquals(noOrg.calls("POST", "/rest/v1/integrations").length, 0);
+
+  // 5. a state minted for another connector (zoom) cannot finish teams
+  const zoomState = await signState(keys, { org_id: ORG, user_id: USER, platform: "zoom" });
+  const cross = router(msFinishRoutes());
+  const r5 = await oauthMs({ fetchImpl: cross.fetchImpl })(msFinish(TENANT, zoomState));
+  assertEquals(r5.status, 403);
+  assertEquals((await r5.json()).error, "state_mismatch");
+  assertEquals(cross.calls("POST", /oauth2/).length, 0, "no Microsoft call for a foreign-connector state");
 });
 
 Deno.test("oauth-ms finish: no consent in the tenant → 409 consent_missing; state of another user/org → 403 before any Microsoft call; bad input → 400", async () => {
@@ -358,6 +424,13 @@ Deno.test("oauth-google finish: exchanges the code, binds the Workspace domain, 
   const r2 = await oauthGoogle({ fetchImpl: gmail.fetchImpl })(gFinish("4/0Acode-1234", state));
   assertEquals(r2.status, 409);
   assertEquals((await r2.json()).error, "not_workspace");
+  // a consumer Google account signed up with a custom-domain e-mail has no `hd` → refused as well (no directory behind it)
+  const noHdId = `h.${b64url(new TextEncoder().encode(JSON.stringify({ email: "owner@smallbiz.example" })))}.s`;
+  const noHd = router(googleFinishRoutes(() => j(200, { access_token: "g-at", expires_in: 3600, refresh_token: "g-rt", scope: "openid email https://www.googleapis.com/auth/admin.directory.user.readonly", id_token: noHdId })));
+  const r2b = await oauthGoogle({ fetchImpl: noHd.fetchImpl })(gFinish("4/0Acode-1234", state));
+  assertEquals(r2b.status, 409);
+  assertEquals((await r2b.json()).error, "not_workspace");
+  assertEquals(noHd.calls("POST", "/rest/v1/integrations").length, 0);
 
   const noRefresh = router(googleFinishRoutes(() => j(200, { access_token: "g-at", expires_in: 3600, scope: "openid email https://www.googleapis.com/auth/admin.directory.user.readonly" })));
   assertEquals((await oauthGoogle({ fetchImpl: noRefresh.fetchImpl })(gFinish("4/0Acode-1234", state))).status, 502);
@@ -498,7 +571,7 @@ Deno.test("integrations POST disconnect teams: no token to revoke, row marked di
     gotrueUser(), profile("admin"), integrationRow("meet"), eventsOk, patchOk("integrations"),
     { method: "POST", test: rpc("integration_token_get"), reply: async () => j(200, [{ refresh_token_hex: await encryptToHex(keys, "g-rt"), access_token_hex: await encryptToHex(keys, "g-at"), access_expires_at: null, rotated_at: null }]) },
     { method: "POST", test: rpc("integration_token_delete"), reply: () => new Response(null, { status: 204 }) },
-    { method: "POST", test: (u) => u.hostname === "oauth2.googleapis.com" && u.pathname === "/revoke", reply: (_r, u) => { assertEquals(u.searchParams.get("token"), "g-rt"); return j(200, {}); } },
+    { method: "POST", test: (u) => u.hostname === "oauth2.googleapis.com" && u.pathname === "/revoke", reply: (_r, u, body) => { assertEquals(u.search, "", "the token never travels in the URL"); assertEquals(new URLSearchParams(body).get("token"), "g-rt"); return j(200, {}); } },
   ]);
   const r2 = await integrations({ fetchImpl: meet.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`, { method: "POST", body: JSON.stringify({ platform: "meet", action: "disconnect" }) }));
   assertEquals(await r2.json(), { platform: "meet", status: "disconnected", revoked: true, purged: { employees: 0, pushes: 0 } });
@@ -629,4 +702,65 @@ Deno.test("export-pack meet: JPEG only (PNG export alone → missing export_jpg)
   assertEquals(b2.ready, false);
   assertEquals(b2.missing[0].kind, "export_jpg");
   assertEquals(pngOnly.seen.filter((s) => s.path.startsWith("/storage/")).length, 0, "nothing signed when the JPEG is absent");
+});
+
+// ------------------------------------------------------------------ security review 2026-09-16: caps + host pins
+Deno.test("sync-ms / sync-google: a second sync within 30 s answers 429 sync_too_soon before any platform call", async () => {
+  configure();
+  const t0 = Date.parse("2026-09-16T10:00:00Z");
+  const recent = new Date(t0 - 10_000).toISOString();
+  const ms = router([gotrueUser(), profile("admin"), integrationRow("teams", "connected", { last_sync_at: recent })]);
+  const r = await syncMs({ fetchImpl: ms.fetchImpl, now: () => t0 })(authed(`${SB_URL}/functions/v1/mb-sync-ms`, { method: "POST" }));
+  assertEquals(r.status, 429, await r.clone().text());
+  const b = await r.json();
+  assertEquals(b.error, "sync_too_soon");
+  assertEquals(b.retry_after_ms, 20_000);
+  assertEquals(ms.seen.filter((s) => /microsoft/.test(s.url.hostname)).length, 0);
+  const g = router([gotrueUser(), profile("admin"), integrationRow("meet", "connected", { last_sync_at: recent })]);
+  const r2 = await syncGoogle({ fetchImpl: g.fetchImpl, now: () => t0 })(authed(`${SB_URL}/functions/v1/mb-sync-google`, { method: "POST" }));
+  assertEquals(r2.status, 429);
+  assertEquals(g.calls("POST", "/rest/v1/rpc/").length, 0, "the vault is not even read");
+  // 31 s later it runs (and fails on the fake's unrouted Graph call — anything but 429 proves the gate opened)
+  const later = router([gotrueUser(), profile("admin"), integrationRow("teams", "connected", { last_sync_at: recent }), patchOk("integrations")]);
+  const r3 = await syncMs({ fetchImpl: later.fetchImpl, now: () => t0 + 31_000 })(authed(`${SB_URL}/functions/v1/mb-sync-ms`, { method: "POST" }));
+  assert(r3.status !== 429, `expected the gate to open, got ${r3.status}`);
+  await r3.text();
+});
+
+Deno.test("request bodies: > 256 KB answers 413 body_too_large (declared or actual), never a 500", async () => {
+  configure();
+  const fake = router([gotrueUser(), profile("admin")]);
+  const big = JSON.stringify({ background_id: BG, platform: "teams", employee_ids: Array.from({ length: 7000 }, (_, i) => EMP(i)) });
+  assert(big.length > 256 * 1024);
+  const r = await exportPack({ fetchImpl: fake.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-export-pack`, { method: "POST", body: big }));
+  assertEquals(r.status, 413, await r.clone().text());
+  assertEquals((await r.json()).error, "body_too_large");
+  const declared = await integrations({ fetchImpl: fake.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`, { method: "POST", body: "{}", headers: { "content-length": String(10 * 1024 * 1024) } }));
+  assertEquals(declared.status, 413);
+  await declared.text();
+});
+
+Deno.test("export-pack: employee_ids are looked up in chunks of 100 (the gateway caps the URL), every chunk org-pinned", async () => {
+  configure();
+  const ids = Array.from({ length: 250 }, (_, i) => EMP(i));
+  const fake = router([
+    gotrueUser(), profile("admin"), eventsOk,
+    { method: "GET", test: rest("backgrounds"), reply: (_r, u) => j(200, u.searchParams.has("org_id") ? [{ id: BG, label: "L", slug: "l", export_asset_id: null }] : [{ thumb_asset_id: null, export_jpg_asset_id: null }]) },
+    { method: "GET", test: rest("employees"), reply: (_r, u) => {
+      assertEquals(u.searchParams.get("org_id"), `eq.${ORG}`);
+      assertEquals(u.searchParams.get("platform"), "eq.teams");
+      const inList = u.searchParams.get("id") ?? "";
+      const n = inList.replace(/^in\.\(|\)$/g, "").split(",").filter(Boolean);
+      assert(n.length <= 100, `chunk of ${n.length}`);
+      return j(200, n.map((id) => ({ id, ext_id: id, email: null, name: null, title: null, dept: null, active: true })));
+    } },
+  ]);
+  const r = await exportPack({ fetchImpl: fake.fetchImpl })(packReq({ background_id: BG, platform: "teams", employee_ids: ids }));
+  const text = await r.text();
+  assertEquals(r.status, 200, text);
+  const b = JSON.parse(text);
+  assertEquals(b.employees.length, 250);
+  assertEquals(b.unknown_employee_ids, []);
+  assertEquals(fake.calls("GET", "/rest/v1/employees").length, 3);
+  for (const s of fake.calls("GET", "/rest/v1/employees")) assert(s.path.length < 8000, `URL ${s.path.length} chars`);
 });

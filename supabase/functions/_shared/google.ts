@@ -113,10 +113,10 @@ export function refreshTokens(env: GoogleEnv, refreshToken: string, fetchImpl: t
   return tokenCall(env, { grant_type: "refresh_token", refresh_token: refreshToken }, fetchImpl);
 }
 
-/** Best-effort revoke on disconnect. Never throws. */
+/** Best-effort revoke on disconnect. Never throws. The token goes in the form body (Google accepts both) so it never lands in a URL/log line. */
 export async function revokeToken(token: string, fetchImpl: typeof fetch = fetch): Promise<{ ok: boolean; status: number }> {
   try {
-    const res = await fetchImpl(`${GOOGLE_REVOKE_URL}?token=${encodeURIComponent(token)}`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" } });
+    const res = await fetchImpl(GOOGLE_REVOKE_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ token }).toString() });
     await res.text().catch(() => "");
     return { ok: res.ok, status: res.status };
   } catch {
