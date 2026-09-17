@@ -16,7 +16,10 @@
 //                     → 200 {deviceToken, tokenExpiresAt, agentId, employee:{id,email,name,active}|null, state, pollSeconds}
 //                     401 bad key · 410 revoked key · 429 rate-limited (per key: 60/min; per source IP: 30 refused
 //                     keys per 10 min, counted in this isolate only — see FailureLimiter)
-//   GET  /assignments Bearer <deviceToken>   [?platform=teams|meet — default: meet for chrome/edge devices, teams otherwise]
+//   GET  /assignments Bearer <deviceToken>   [?platform=teams|meet — must be the device's own platform: meet for
+//                     chrome/edge devices, teams for windows/macos; absent = that platform; another → 400. A browser
+//                     cannot write Teams tiles and an OS agent cannot composite Meet, so neither may queue or move
+//                     the other kind's pushes rows]
 //                     platform meet (the extension): ONE item — the first wanted background (assigned_bg in order, else the
 //                       org's starters) that has a 1920×1080 export, JPEG (export_jpg_asset_id) preferred over PNG
 //                       (export_asset_id; Meet's native upload accepts both — the JPEG-only rule was the admin-console
@@ -43,8 +46,9 @@
 //                     extension states (platform meet): applied|unavailable|error, evidence {url, technique, meetVersionHint,
 //                       browser, fps, segMs, message} → applied → selected (rung A), unavailable → pushed + the reason,
 //                       error → failed; events carry {platform:'meet', via:'extension'}
-//                     an item for a pair that was never assigned (on that platform) is rejected per item; a state that the
-//                     device's kind may not report is rejected per item; 422 when nothing in the batch was accepted
+//                     an item for a pair that was never assigned (on that platform) is rejected per item; an item whose
+//                     platform is not the device's own (a browser saying platform:'teams', an OS agent 'meet') is rejected
+//                     per item, and so is a state outside the device kind's vocabulary; 422 when nothing was accepted
 //   POST /heartbeat   Bearer  {version?, teamsRunning?}  → last_seen_at + version
 //
 // Auth is the device token only (no user session): every table write goes through the service role, every row
@@ -296,7 +300,7 @@ export function makeHandler(deps: Deps = {}) {
     if (action === "assignments") {
       const nowIso = new Date(now()).toISOString();
       const orgId = agent.org_id;
-      const platform = deliveryPlatform(url.searchParams.get("platform"), agent.os);
+      const platform = ownPlatform(url.searchParams.get("platform"), agent.os);
       let employee: EmployeeRow | null = null;
       if (agent.employee_id) {
         const { data, error } = await sb.from("employees").select("id, platform, email, name, active, assigned_bg").eq("id", agent.employee_id).eq("org_id", orgId).limit(1);
@@ -500,9 +504,9 @@ export function makeHandler(deps: Deps = {}) {
         const state = typeof it.state === "string" ? it.state : "";
         let platform: DeliveryPlatform;
         try {
-          platform = deliveryPlatform(typeof it.platform === "string" ? it.platform : null, agent.os);
-        } catch {
-          results.push({ backgroundId: bgId || "?", ok: false, error: "platform must be teams or meet" });
+          platform = ownPlatform(typeof it.platform === "string" ? it.platform : null, agent.os);
+        } catch (e) {
+          results.push({ backgroundId: bgId || "?", ok: false, error: e instanceof HttpError ? e.message : "platform must be teams or meet" });
           continue;
         }
         const allowed = reportStatesFor(platform);
@@ -569,6 +573,18 @@ export function deliveryPlatform(v: string | null | undefined, os: string): Deli
   if (!p) return platformForOs(os);
   if (p === TEAMS_PLATFORM || p === MEET_PLATFORM) return p;
   throw new HttpError(400, "bad_request", "platform must be teams or meet");
+}
+
+/**
+ * The platform this device may act on: its own and nothing else (a chrome/edge device → meet, windows/macos → teams).
+ * A device token authenticates a device kind; letting a browser queue or report Teams rows (or an OS agent Meet rows)
+ * would let one device forge the other channel's delivery status for its employee.
+ */
+export function ownPlatform(v: string | null | undefined, os: string): DeliveryPlatform {
+  const p = deliveryPlatform(v, os);
+  const own = platformForOs(os);
+  if (p !== own) throw new HttpError(400, "bad_request", `this device delivers platform ${own} only (os ${os})`);
+  return p;
 }
 
 /** Signed URL + sha256 (computed and stored on the asset row once) for one export asset; null when it is unusable. */

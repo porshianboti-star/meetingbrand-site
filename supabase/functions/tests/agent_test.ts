@@ -27,7 +27,7 @@ import {
   TOKEN_TTL_MS,
   uuidV5,
 } from "../_shared/agent.ts";
-import { actionOf, deliveryPlatform, ENROLL_FAILS_PER_WINDOW, escapeLike, FailureLimiter, makeHandler, sourceIp } from "../mb-agent/handler.ts";
+import { actionOf, deliveryPlatform, ENROLL_FAILS_PER_WINDOW, escapeLike, FailureLimiter, makeHandler, ownPlatform, sourceIp } from "../mb-agent/handler.ts";
 import { ASSET, BG, configure, EMP, eventsOk, j, JPG, ORG, patchOk, rest, router, rpc, SB_URL, THUMB, type Route } from "./_fake.ts";
 
 // ------------------------------------------------------------------ pure rules
@@ -645,6 +645,15 @@ Deno.test("extension: os + platform rules, meet push key, report vocabularies, e
   let threw = 0;
   try { deliveryPlatform("zoom", "chrome"); } catch { threw++; }
   assertEquals(threw, 1);
+  // what a device may act on: its own platform only
+  assertEquals(ownPlatform(null, "chrome"), "meet");
+  assertEquals(ownPlatform("meet", "edge"), "meet");
+  assertEquals(ownPlatform(null, "macos"), "teams");
+  assertEquals(ownPlatform("teams", "windows"), "teams");
+  for (const [v, os] of [["teams", "chrome"], ["meet", "macos"], ["zoom", "windows"]]) {
+    try { ownPlatform(v, os); threw++; } catch { /* expected */ }
+  }
+  assertEquals(threw, 1, "a browser may not act on teams, an OS agent not on meet");
   assertEquals(pushKey(ORG, EMP(1), BG, "meet"), `${ORG}:${EMP(1)}:${BG}:meet`);
   assertEquals(pushKey(ORG, EMP(1), BG), `${ORG}:${EMP(1)}:${BG}:teams`, "default stays teams (the agent's rows keep their keys)");
   assertEquals(reportStatesFor("meet"), ["applied", "unavailable", "error"]);
@@ -696,7 +705,7 @@ Deno.test("extension: shapeMeetAssignment — one look, JPEG over PNG, PNG when 
   assertEquals(m.queue, [], "an already-selected row is not re-queued");
 });
 
-Deno.test("mb-agent /enroll + /assignments for a chrome device: platform meet by default, JPEG preferred, queued 'meet' push, ?platform=teams still works, bad platform 400", async () => {
+Deno.test("mb-agent /enroll + /assignments for a chrome device: platform meet by default, JPEG preferred, queued 'meet' push, ?platform=teams refused (400), bad platform 400", async () => {
   configure();
   const st = fresh();
   st.backgrounds[0].export_jpg_asset_id = JPG;
@@ -743,17 +752,19 @@ Deno.test("mb-agent /enroll + /assignments for a chrome device: platform meet by
   assertStringIncludes(b2.assignments[0].imageUrl, `${STARTER}.png?token=sig`);
   assertEquals(st.pushes.length, 1, "same pair, same key: no second row");
 
-  // the same device may ask for the Teams shape explicitly (the pushes rows are separate per platform)
-  const bt = await (await h(get("assignments?platform=teams", eb.deviceToken))).json();
-  assertEquals(bt.platform, "teams");
-  assertEquals(bt.assignments[0].action, "write");
-  assertEquals(st.pushes.length, 2);
-  assertEquals(st.pushes[1].platform, "teams");
+  // a browser device cannot write Teams tiles: asking for the Teams shape is refused and queues nothing
+  const bt = await h(get("assignments?platform=teams", eb.deviceToken));
+  assertEquals(bt.status, 400);
+  assertStringIncludes(JSON.stringify(await bt.json()), "meet only");
+  assertEquals(st.pushes.length, 1, "no teams row was queued by a browser device");
+  assertEquals((await h(get("assignments?platform=meet", eb.deviceToken))).status, 200, "its own platform explicitly is fine");
   assertEquals((await h(get("assignments?platform=zoom", eb.deviceToken))).status, 400);
 
-  // the meet answer never lists the teams row as a remove (rows are read per platform)
+  // a teams row of the same pair (written by an OS agent) is never listed as a remove (rows are read per platform)
+  st.pushes.push({ id: "t-other", org_id: ORG, employee_id: EMP(1), background_id: STARTER, platform: "teams", state: "available", idempotency_key: pushKey(ORG, EMP(1), STARTER, "teams") });
   const b3 = await (await h(get("assignments", eb.deviceToken))).json();
   assertEquals(b3.assignments.map((x: { action: string }) => x.action), ["apply"]);
+  st.pushes.pop();
 
   // another look assigned → the old one is a remove, the new one an apply
   const OTHER = "0aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -769,7 +780,7 @@ Deno.test("mb-agent /enroll + /assignments for a chrome device: platform meet by
   assertEquals((await rv.json()).action, "remove_all");
 });
 
-Deno.test("mb-agent /report from a chrome device: applied → selected, unavailable → pushed + reason, error → failed; agent-only states rejected; teams device cannot say 'applied'; events via extension", async () => {
+Deno.test("mb-agent /report from a chrome device: applied → selected, unavailable → pushed + reason, error → failed; agent-only states rejected; a browser cannot touch teams rows, an OS agent cannot touch meet rows; events via extension", async () => {
   configure();
   const st = fresh();
   st.pushes.push({ id: "m1", org_id: ORG, employee_id: EMP(1), background_id: STARTER, platform: "meet", state: "queued", idempotency_key: pushKey(ORG, EMP(1), STARTER, "meet") });
@@ -810,15 +821,22 @@ Deno.test("mb-agent /report from a chrome device: applied → selected, unavaila
   assertEquals(st.pushes[0].state, "failed");
   assertEquals(st.events.filter((e) => e.event === "push_failed").length, 1);
 
-  // explicit platform teams from a browser device: the teams row, agent vocabulary
-  await h(post("report", { items: [{ backgroundId: STARTER, state: "written", platform: "teams" }] }, tok));
-  assertEquals(st.pushes[1].state, "available");
+  // explicit platform teams from a browser device: refused per item — the teams row of the same pair never moves
+  const cross = await h(post("report", { items: [{ backgroundId: STARTER, state: "written", platform: "teams" }] }, tok));
+  assertEquals(cross.status, 422);
+  assertStringIncludes((await cross.json()).results[0].error, "meet only");
+  assertEquals(st.pushes[1].state, "queued", "a browser device cannot forge Teams delivery");
   assertEquals((await h(post("report", { items: [{ backgroundId: STARTER, state: "applied", platform: "zoom" }] }, tok))).status, 422);
 
-  // an OS agent cannot report the extension's states
+  // an OS agent cannot report the extension's states, nor touch the meet row even with the right vocabulary
   const tok2 = newDeviceToken();
   st.agents.push({ id: "77777777-7777-4777-8777-777777777778", org_id: ORG, employee_id: EMP(1), device_id: "mac-1", os: "macos", version: "0.1.0", token_hash: await sha256Hex(tok2), token_expires_at: "2099-01-01T00:00:00Z", revoked_at: null });
   const bad = await h(post("report", { items: [{ backgroundId: STARTER, state: "applied" }] }, tok2));
   assertEquals(bad.status, 422);
   assertStringIncludes((await bad.json()).results[0].error, "platform teams");
+  const before = st.pushes[0].state;
+  const bad2 = await h(post("report", { items: [{ backgroundId: STARTER, state: "applied", platform: "meet" }] }, tok2));
+  assertEquals(bad2.status, 422);
+  assertStringIncludes((await bad2.json()).results[0].error, "teams only");
+  assertEquals(st.pushes[0].state, before, "an OS agent cannot forge Meet delivery");
 });
