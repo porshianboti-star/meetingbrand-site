@@ -602,6 +602,52 @@ Deno.test("integrations GET: every platform row with counts; member may read", a
   assertEquals(b.last_pushes.length, 1);
 });
 
+Deno.test("integrations GET (v88): agents — every enrolled device without a hash column in the select — and pushes_by_employee = the latest push per (employee, platform); a failing agents read leaves [] (never a 500)", async () => {
+  configure();
+  const AG = "77777777-7777-4777-8777-777777777777";
+  const pushes = [
+    { id: "p3", employee_id: EMP(1), background_id: BG, platform: "teams", state: "available", error: null, remote_file_id: null, attempts: 1, updated_at: "2026-09-17T10:00:00Z", created_at: "2026-09-17T09:00:00Z" },
+    { id: "p2", employee_id: EMP(1), background_id: BG, platform: "teams", state: "queued", error: null, remote_file_id: null, attempts: 0, updated_at: "2026-09-17T09:00:00Z", created_at: "2026-09-17T09:00:00Z" },
+    { id: "p1", employee_id: EMP(1), background_id: BG, platform: "zoom", state: "awaiting_client", error: null, remote_file_id: "f", attempts: 1, updated_at: "2026-09-10T00:00:00Z", created_at: "2026-09-10T00:00:00Z" },
+    { id: "p0", employee_id: EMP(2), background_id: BG, platform: "teams", state: "blocked", error: "EPERM — grant Full Disk Access", remote_file_id: null, attempts: 1, updated_at: "2026-09-16T00:00:00Z", created_at: "2026-09-16T00:00:00Z" },
+  ];
+  const fake = router([
+    gotrueUser(), profile("admin"), integrationRow("connected"),
+    { method: "HEAD", test: rest("employees"), reply: () => new Response(null, { status: 200, headers: { "content-range": "*/2" } }) },
+    { method: "HEAD", test: rest("pushes"), reply: () => new Response(null, { status: 200, headers: { "content-range": "*/0" } }) },
+    { method: "GET", test: rest("pushes"), reply: (_r, u) => j(200, u.search.includes("limit=20") ? pushes.slice(0, 1) : pushes) },
+    { method: "GET", test: rest("agents"), reply: () => j(200, [{ id: AG, employee_id: EMP(1), device_id: "dev-1", os: "macos", hostname: "jane-mbp", version: "0.1.1", enrolled_at: "2026-09-17T08:00:00Z", last_seen_at: "2026-09-17T10:00:00Z", revoked_at: null }]) },
+  ]);
+  const r = await integrationsHandler({ fetchImpl: fake.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`));
+  const b = await r.json();
+  assertEquals(r.status, 200);
+  assertEquals(b.agents, [{ id: AG, employee_id: EMP(1), device_id: "dev-1", os: "macos", hostname: "jane-mbp", version: "0.1.1", enrolled_at: "2026-09-17T08:00:00Z", last_seen_at: "2026-09-17T10:00:00Z", revoked_at: null }]);
+  const agentsSel = fake.calls("GET", "/rest/v1/agents")[0];
+  assert(agentsSel, "agents were read");
+  const cols = decodeURIComponent((agentsSel.path.match(/[?&]select=([^&]*)/) ?? [])[1] ?? "");
+  assert(!/hash/.test(cols), `the agents select must never name a hash column: ${cols}`);
+  assertStringIncludes(agentsSel.path, `org_id=eq.${ORG}`);
+  assertEquals(b.pushes_by_employee, {
+    [EMP(1)]: { teams: { state: "available", error: null, background_id: BG, updated_at: "2026-09-17T10:00:00Z" }, zoom: { state: "awaiting_client", error: null, background_id: BG, updated_at: "2026-09-10T00:00:00Z" } },
+    [EMP(2)]: { teams: { state: "blocked", error: "EPERM — grant Full Disk Access", background_id: BG, updated_at: "2026-09-16T00:00:00Z" } },
+  });
+  const wide = fake.calls("GET", "/rest/v1/pushes").find((c) => c.path.includes("limit=5000"));
+  assert(wide && wide.path.includes(`org_id=eq.${ORG}`) && wide.path.includes("order=updated_at.desc"), "the per-employee fold reads the org's pushes newest first");
+  // agents unreadable → [] and {} stay honest, status still 200
+  const broken = router([
+    gotrueUser(), profile("member"), integrationRow("connected"),
+    { method: "HEAD", test: rest("employees"), reply: () => new Response(null, { status: 200, headers: { "content-range": "*/0" } }) },
+    { method: "HEAD", test: rest("pushes"), reply: () => new Response(null, { status: 200, headers: { "content-range": "*/0" } }) },
+    { method: "GET", test: rest("pushes"), reply: () => j(200, []) },
+    { method: "GET", test: rest("agents"), reply: () => j(500, { message: "boom" }) },
+  ]);
+  const r2 = await integrationsHandler({ fetchImpl: broken.fetchImpl })(authed(`${SB_URL}/functions/v1/mb-integrations`));
+  const b2 = await r2.json();
+  assertEquals(r2.status, 200);
+  assertEquals(b2.agents, []);
+  assertEquals(b2.pushes_by_employee, {});
+});
+
 Deno.test("integrations POST disconnect: revokes at Zoom, deletes the vault row, marks disconnected; member 403; purge deletes rows", async () => {
   configure();
   const mk = async () => router([

@@ -3,7 +3,11 @@
 //   GET   Bearer <user access token>  (any member of the org)
 //         → {org_id, connect: {zoom|teams|meet: {configured, missing, start_url, redirect_uri, delivery, sync_url,
 //            push_url|pack_url}}, integrations: [{platform, status, …, employees:{total,active}, pushes:{by_state}}],
-//            last_pushes: [...20], employees: {total, active, by_platform}}
+//            last_pushes: [...20], employees: {total, active, by_platform},
+//            agents: [{id, employee_id, device_id, os, hostname, version, enrolled_at, last_seen_at, revoked_at}]   (v88: every
+//                     device enrolled through mb-agent — never a token hash; the product's My-team chips read it),
+//            pushes_by_employee: {<employee_id>: {<platform>: {state, error, background_id, updated_at}}}   (v88: the LATEST
+//                     push per (employee, platform) — a CSV person delivered by the agent has a 'teams' entry)}
 //         Works BEFORE any platform secrets exist (the My-team tab must render "Coming soon" rather than fail):
 //         connect.<p>.configured=false + missing=[…] until that platform's client id/secret + MB_TOKEN_KEY / MB_APP_URL are set.
 //         `delivery` is the one honest sentence per platform (PLAN §3) the product shows next to "Delivered".
@@ -104,6 +108,30 @@ export function makeHandler(deps: Deps = {}) {
         .limit(20);
       if (pErr) log.warn("last_pushes_failed", { message: pErr.message });
 
+      // v88: the agent's side of the roster — enrolled devices (mb.agents, hash columns never selected) and the latest
+      // push per (employee, platform). Both are best effort: a failure logs and leaves the key empty, never a 500
+      // (the read model must render before anything else exists).
+      const { data: agentRows, error: aErr } = await sb
+        .from("agents")
+        .select("id, employee_id, device_id, os, hostname, version, enrolled_at, last_seen_at, revoked_at")
+        .eq("org_id", orgId)
+        .order("last_seen_at", { ascending: false, nullsFirst: false })
+        .limit(2000);
+      if (aErr) log.warn("agents_failed", { message: aErr.message });
+      const { data: allPushes, error: apErr } = await sb
+        .from("pushes")
+        .select("employee_id, background_id, platform, state, error, updated_at")
+        .eq("org_id", orgId)
+        .order("updated_at", { ascending: false })
+        .limit(5000);
+      if (apErr) log.warn("pushes_by_employee_failed", { message: apErr.message });
+      const pushesByEmployee: Record<string, Record<string, { state: string; error: string | null; background_id: string; updated_at: string | null }>> = {};
+      for (const p of (allPushes ?? []) as Array<{ employee_id: string; background_id: string; platform: string; state: string; error: string | null; updated_at: string | null }>) {
+        if (!p?.employee_id || !p.platform) continue;
+        const m = (pushesByEmployee[p.employee_id] ??= {});
+        if (!m[p.platform]) m[p.platform] = { state: p.state, error: p.error ?? null, background_id: p.background_id, updated_at: p.updated_at ?? null };
+      }
+
       const fn = (name: string) => `${sbEnv.env.url}/functions/v1/${name}`;
       const byPlatform: Record<string, { total: number; active: number }> = {};
       for (const r of rows) byPlatform[r.platform] = r.employees;
@@ -150,6 +178,8 @@ export function makeHandler(deps: Deps = {}) {
         integrations: rows,
         employees: { ...totals, by_platform: byPlatform },
         last_pushes: lastPushes ?? [],
+        agents: agentRows ?? [],
+        pushes_by_employee: pushesByEmployee,
       });
     }
 
