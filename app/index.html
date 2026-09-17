@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MeetingBrand — Product Demo v85</title>
+<title>MeetingBrand — Product Demo v87</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAADsAAAA7AF5KHG9AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA7xJREFUWIXFl0tMnFUUx3/n+755YMcWGAKUsTyHgK222pratD4wLExsl0YSkq7aVYN1YWNQ6qouGqNsutHExGVjNTEtdGUXjcQEW1KtRgKC9CF0OuBH6TA4D775rgs7tMxcYECw/+U5557//577OleUUmQhFfsqrIw67goHBcLAJtYHcwpGDMVFx5QzKtofXeDMCrDK97ah5AsgsE6kS2EWUUedySvnFgQ8ID8LyAaTZ6EQ2pzJH78Wyl+sMF01ysbPPBezGdMKm5Y/9AFC65rTeDyoHTugrg6ZtsFxCh3pM12VslzhUMF1LypC1ddDQwOqthaqq1Fbq8Ay//XbNuaHJ8GeLiidK+qQJVCv9VoWqrkZmppQdfWo2hooKwNZRm4wiNq/H+npLUiAQNhCt/bBIJmuLgiFCkq0CD7/aqIDls7qHj6cRy6DgzA6Co/cG1oMD69GAFoBKty4mPzCBSq/HeKpQCsrn9RtUP4GAH87E/w5e4m5+burE5DL4bl4iQNVZzHFtwJ5Pp4uPcLPk93ciPVo/UYhSTwpWRM5gCledle8R9C/U+vXV2AFuOIwXnpzkXxv2kfl/W3aeMGgseRN7Mgv6yPgu9Y+ZloW7xOUYtfn12ke36UdU+xr1toLWoJcPDFj5p+GVJpAYunbfD5zX2tfUwVeHngFBlY35s7cD1r7miqwWsRSY4zMfPV4BMRSN7g80YHjJh6PgM2+Ol6q+gSv+eTGCHj+9SE6PxunpX1wyZhS/3b2lHdqfWvahFl4fXDi5HZM0+C5nfDr9zb2+BZtbCjwKpu99cTSY4vs/6kC82kYGr4DQOTuNHF7uR5WKCvKvw31FUgmCxKgFJzuCFLVNEz0jxCpxPIFNcWTZ9NWwOjrK0hASe0Ixz+O8P7pEO922zTs+23Z+Hup0TybVrKcP4/hZHBfa4HiEtC0AKW1v9P9ZRi/zwtA8ZYAz3xaTec7V7k1sDsvfjZ9GztxXSsgTm5XpBTS24PZ++AJNYN5A9s7jAXyBeEiHDtRQ2e7QrkP33THTXA1egqFm5smZigYy7XmIpmZxk4+fMkMI8MLe/StZE11BaVVdnYm/JX4icvjx5hO5h9TBWNiBfd+pISulUSImAT9z2KIB9NSbK2LLxk7NbGJxJxLPH2TZObe0jmRU9mPyQigv6o2DrGMNR82VLQ/iqijaLfahkEhckRFrk0ZAM7klXMIbcDs/0AeQ+QtZ7L/G3jkdwwglQfKLSfztivqoEAj6/dfjCsYMZBex0qfUZFrU1nHP1lhPr2nXjwYAAAAAElFTkSuQmCC">
 <!-- ================= PRESENCE DEMO STATE =================
-version: v85 (2026-09-15)
+version: v87 (2026-09-16)
 source of truth: this block. Any session resuming work MUST read it before editing.
 constraint: INTERNAL PREVIEW ONLY - never published to a production domain without the owner's go.
-gate: jsdom regression (regress.js, 519 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
+gate: jsdom regression (regress.js, 547 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
 
 MODULES (verified v39):
 - Views: Overview, Brand, Backgrounds, Campaigns, People, Analytics
@@ -29,6 +29,8 @@ MODULES (verified v39):
 - v83: the owner's flow + the CRITICAL OWNER DIRECTIVE (PROJECT.md 2026-09-13): the legacy demo brand is gone entirely. (A) The gate card reads 'Create MeetingBrand' (heading + primary button #mbSignup) with the sub-line 'We use your work email to fetch your company's brand.' (B) The chain is unchanged: signup -> the 4-step loader (Reading the company website / Fetching your logo / Extracting brand colors / Rendering your first backgrounds) -> connectBrand -> 3 starter looks; the gate mounts at boot. (C) The fetched brand lands on the Brand tab (renderBrandUI writes #domIn = brand.domain; the gate writes the attempted domain for a fallback so Connect retries it). (D) The fallback brand is MeetingBrand's OWN brand — mbBrand(): the kit symbol as a data-URI SVG logo ({src,ok,safe,w,r}, MB_LOGO_SRC), name/wallText 'MeetingBrand', #5739FB/#00BDDF, domain '', source 'fallback' — plus fallbackFor=<email> (and missDomain/blocked when a fetch was attempted). It replaces the hashed starter kit for a free-mail signup that skips the website step, a scrape miss (source fallback, no logo) and a blocked fetch; the swap happens before the starter set renders so the 3 starters carry the mark; a restored draft / server row is re-hydrated with it (hydrateBuiltin / brandFromRow, since data: URLs are never stored). The boot brand (after 'Continue without an account (demo)') is the same object without fallbackFor; every rendering path (sign styles incl. brass/led/illuminated/plaque, mask stack, exports, name bar, bake prompt) treats it like any fetched brand. Deleted: the boot logo flag and every branch on it, the two-triangle inline SVGs (mark, mask, seam ring, tile), the canvas triangle painters (wallpaper/plaque/glass/sign/name-bar exports, the mask-stack vector path), the three legacy colour tokens (demo bar, toast, selected chips and the default sign ink now use Deep Ink --navy), the font-preview / people / prompt fallbacks (now 'MeetingBrand'; the AI prompt says 'Recreate the brand mark from the second image'). Generalised: BRANDKB entries may carry a built-in data-URI mark (connectBrand skips the network for them): meetingbrand.com (kit symbol), company-card.com (cc-work logo-icon.svg; its colours came from an old README and were corrected to the live #C6A15B/#1A1814 in v84), prosignature.co (prosignature-mark.svg, #E8604C/#F5C64E); the legacy entry is dropped. Sidebar slot: 'MeetingBrand · meetingbrand.com · brand connected' (brand.site when there is no domain). Plaque/glass exports now draw the brand's logo image before the text (the DOM already did) with the text size fitted to the remaining plate width. Gates: build guards + regress absence tests + ship.sh 'legacy brand trace' grep fail on any case-insensitive occurrence of the legacy word or its symbols.
 - v84: the v83 live-E2E / verifier findings. (1) Built-in marks survive a reload, a login and a draft restore: a 'library' brand whose domain carries a built-in mark (meetingbrand.com / company-card.com / prosignature.co) came back without its logo because brands.logo_opts stores remote URLs only and the v83 hydrators re-hydrated only source fallback|blocked. The app bridge exposes kbLogo(domain) (BRANDKB lookup, www. stripped -> {logo: builtinLogo(k.logo,200), opts:[{src,label,w:200}]} or null) and both hydrators — mb-cloud brandFromRow (server row) and mb-gate hydrateBuiltin (draft) — take a domain branch BEFORE the fallback branch: kbLogo(b.domain) && !(b.logo && b.logo.src) -> logo/logoOpts restored, logoMiss false. (2) A fallback brand reloaded from the server or a draft gets brand.site back ('meetingbrand.com'), so the sidebar slot reads 'meetingbrand.com · brand connected', not 'starter kit'. (3) The CompanyCard library entry matches the LIVE company-card.com brand: gold tile #C6A15B + black double-C, ink #1A1814 (its favicon assets/logo-icon.svg is the built-in mark) — the indigo pair from an old README is gone. (4) The last legacy hexes are purged from the whole file: the ribbon 'Magenta' preset + the #ribBgPick default are Signal Violet #5739FB ('Violet'), the meetwin traffic-light dot is #FF5F57 (the standard macOS red), the v72 PROMPT LESSON names 'the legacy brand hex', and the legacy secondary blue (UI accents: hover/selected borders, crop rectangle, crop-mode toggle, the 'Aa' font button) is #5739FB with rgba(87,57,251,…) shadows; the build guard scans the whole file. (5) Demo reload: sessionStorage mb-demo was written by demoContinue() but never read, so a reload in demo mode mounted the OFFLINE gate again over the restored draft; the gate boot now skips the gate when the page is OFFLINE and mb-demo==='1' (the draft is restored, the demo toast shows). Online / invite / no flag: unchanged.
 - v85: the owner's four notes after his first real signup as boti@prosignature.co (2026-09-15). (1) The signed-in person is the first employee: viewerFrom(user) = profiles.full_name or the title-cased email local part ('boti@…' -> 'Boti'; dots/underscores -> spaces) + profiles.title or 'Admin'; setViewer() puts that person first in EMPLOYEES (id 0, you:true), selects them for the name bar / Overview / every 'View as' selector, and the mock roster is marked as sample people; the signup card has an optional 'Your name' field (prefilled from the email, sent as signUp metadata full_name); the People tab has a 'You' editor whose Save fires the 'viewer' bridge event -> mb-cloud persistProfile -> PUT /api/profile (loadSession sets the viewer silently, never writing back). (2) Library brands (BRANDKB with a built-in mark) run the same site scrape as everyone (microlink meta logo, site <img>/CSS logos, apple-touch/manifest icons, the logo/icon APIs; same timeouts) and MERGE: built-in mark first and selected, scraped candidates deduped after it, cap 6 for everyone (renderLogoOpts, Linked/Cropped/Uploaded, brandPayload); name/colours/source stay 'library'; the gate's summary says 'logo ✓ · N marks found'. (3) Clear logo background, per the live diagnosis on the real ProSignature files: transparent pixels are never counted as cleared (no false 'Background lifted'), a badly-fitting matte keeps the pixel opaque (residual > 40), a uniform coloured badge/disc that most of the remaining mark sits on is peeled like the near-white tile (coverage >= 0.35, compactness > 0.02: the coral disc lifts, the P + flourish stay), enclosed pockets of the backdrop colour are cleared on the badge path with a 0.3/0.05 cap and after the border flood too; an uploaded SVG data URI is rasterised at >= 1024 on its long edge with the aspect from width/height/viewBox before matting; the toggle says 'This logo already has a transparent background' and stays OFF when nothing was lifted from a transparent image; the pixel-access failure note offers Upload; the uploaded logo + the cleared result persist in this browser (IndexedDB 'brand' store, restored at boot / on the first matching applyBrand, cleared by connectBrand and sign-out) — NOT yet uploaded to Storage (cross-device). (4) DEFAULT_SETUP = the owner's 12 saved backgrounds (engine/default-setup.json) seeded into every fresh built-in scene before the first render and before any persist (sc._adjDefault); a saved server row or a local IndexedDB record always replaces the default, never the reverse; the starter set renders with it.
+- v86: MY TEAM (owner spec 2026-09-15: 'The People tab is called My team; first state 0% brand cover, no data, one big button Upload users; clicking it connects the customer's system — Meet / Teams / Zoom — which brings the employee list AND the permission to inject the templates'). The tab is 'My team' (sub 'Everyone who should be on brand'; route id 'people'). Every mock KPI is gone: the Overview ring, the counters, the topbar dot and Analytics derive from GET /api/team (mb-cloud: the deployed mb-integrations read model + mb.employees + the latest mb.pushes row per person, cached 60 s) and read 0% · 0 of 0 people / 0 / '—' / 'No directory connected' when nothing is imported; no meeting telemetry exists, so 'Meetings on brand' is 0 until it does. Empty state: the ring at 0%, 'Connect your meeting platform to import your people and push branded backgrounds to them.' and one primary 'Upload users' button (56 px, Signal Violet). Upload users -> 'Where does your team meet?' with Google Meet / Microsoft Teams / Zoom cards, each carrying the platform's honest delivery sentence (from the backend's platform.ts: Zoom uploads into each person's own library and they pick it once; Teams has no background API -> Intune/Jamf script or the agent; Meet has no background API and no memory -> JPEG + admin-console runbook or the force-installed extension), plus 'Upload a CSV instead' (name, email, title, department; parsed here; PUT /api/employees -> mb.employees platform csv, mb-008 admin INSERT policy). A platform whose app credentials the owner has not created yet reads 'Coming soon — we are completing the <Platform> listing' with 'Notify me' (event integration_interest); a configured one runs the OAuth start with the Bearer and navigates; the return (#integrations=<p>&status=pending) finishes the connection, syncs the directory and lands on My team with the people (name, email, title, dept, platform badge, active toggle -> PATCH /api/employee, status chip). Push: per row and 'Push to all active' — Zoom renders the current look at 1920x1080 through the export sink, uploads PNG + 280x158 thumb + JPEG to mb-exports (persistExports) and POSTs mb-push-zoom; chips from pushes.state (Queued / Delivered · pick it once in Zoom / On brand / Blocked · reason / Failed). Teams and Meet: 'Get delivery pack' -> mb-export-pack -> the runbook steps, the signed download links and the Intune/macOS scripts in a modal. Coverage = active people whose latest push is pushed, awaiting_client, available or selected ÷ active people. Demo mode (no server): Upload users -> Zoom imports the 5-person sample team (labelled 'Sample data'), pushes complete locally, Teams/Meet are 'Coming soon'.
+- v87: My team reads the live read model right after a fresh signup (the v86 live E2E defect, reproduced twice: finishSignup -> runMachine -> Backgrounds on the same page never called teamLoad — only loadSession on login/reload did — so state.team stayed null and connectModel() fell back to the demo's connectable Zoom; the chooser read 'Connect Zoom' instead of the honest 'Coming soon'). Now: the gate's finishSignup hands teamLoad({silent:true}) to the app as soon as the account exists (before any route); go('people') runs teamEnsure() — a throttled read (state.teamAt, 60 s like the cloud cache) when signed in and state.team is null or stale; connectModel() is null while signed in until the read model arrives (never DEMO_CONNECT) — the chooser shows 'Checking which platforms are ready…', fetches and re-renders itself, or the error with 'Try again'; the empty card's note reads 'Loading your team…' meanwhile. PUT /api/join-org drops the cached read model. The empty card shows '0 of 0 people' under the 0% ring (#covSub0).
 - Placement: per-scene wall segments (x1,x2,y1,y2,ry,rz) -> nearest-segment snap, perspective foreshortening, per-scene adj {x,y,s,ry,rz,dep} persisted to 'adj' store
 - Signage: 13 treatments (sign, sticker, silver, brass, wood, black, illum, glass, plaque, backlit, acrylic, led, wallpaper)
 - Lighting engine (v40): per-scene photometric detector (96x54, gamma-linear) = sign-anchored local gradient (median profiles, fg-masked, band trimmed of near-black rows) + downlight fingerprint (bottom-brighter & dark-above & warm => from-top) + global source centroid (top-2% brightness, 1/d^1.8 to sign) + elevation prior; outputs sc._lt {ang,amt,hard,lum,warm}. lightOf(sc) merges per-scene overrides adj.la/adj.li and derives shadow vector S (gravity-biased), shadow alpha (ambient-scaled), penumbra blur (hardness), emissive gain (room darkness). Rendering: extrusion body direction via --ex/--ey from E (3D angle adj.da; defaults to S so untouched scenes are pixel-identical); bevel highlight via --sx/--sy from S; 3-tier contact/mid/far drop-shadow penumbra (DOM castCSS + export castPass); letters-only face-shading gradient along the light axis (export offscreen source-in); led/illum cast elliptical wall glow scaled by eGain. UI: Lighting sliders (Light -180..180, 3D -180..180, Power 20..160) + Auto light in the wall-fit panel, persisted per scene. Debug: window.__PRESENCE_DEBUG {lt,light,sample}.
@@ -43,6 +45,8 @@ MODULES (verified v39):
 DORMANT (kept intentionally, no UI): bake stack since v74 (geminiBake, localBake, BAKEWOOD, __bmSet, bake mode/species state), WASHES beyond 'none' (brand wash removed per owner, pipeline retained), TEMPLATES/template mode (renderTpls/renderSw/syncStudio stubs; artCV still used by the export fallback), recolorAll (awaits scenes carrying recolor metadata)
 
 CHANGELOG:
+v87 2026-09-16 My team reads the live read model right after signup (no reload); empty card shows 0 of 0
+v86 2026-09-15 My team: 0% first state, Upload users → Meet/Teams/Zoom chooser → connect → import people → push per platform (Zoom API; Teams/Meet delivery packs); mock KPIs removed.
 v85 2026-09-15 owner feedback: signed-in user is the first employee (name from the account), library brands also scrape for more marks (up to 6), clear-logo-background fixed for uploads/SVG, the owner's background setup is the default for new users.
 v84 2026-09-15 built-in marks survive reload/login/draft; CompanyCard library brand matches the live site; last legacy hex purged; demo reload keeps the gate closed.
 v83 2026-09-13 owner flow: Create MeetingBrand CTA, signup popup → loader → auto-brand; MeetingBrand is the boot and fallback brand; legacy demo brand removed entirely; gates fail on any trace.
@@ -294,6 +298,23 @@ input[type=color]{width:44px;height:32px;border:1px solid var(--border);border-r
 .pillst.on{color:var(--green-t);background:var(--green-bg)}
 .pillst.pend{color:var(--amber-t);background:var(--amber-bg)}
 .pillst.pend i{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 1.6s infinite}
+/* v86: My team */
+.pillst.off{color:#667085;background:#F5F7FB}.pillst.bad{color:#B42318;background:#FEE4E2}.pillst.plat{color:#031436;background:#EEF1F7}
+.live-dot[data-state="none"]{color:#667085;background:#F5F7FB}.live-dot[data-state="none"] i{background:#AFB9CC;animation:none}
+.live-dot[data-state="sample"]{color:#5739FB;background:#EFEBFF}.live-dot[data-state="sample"] i{background:#5739FB;animation:none}
+.teamEmpty{text-align:center;padding:36px 24px 28px}
+.btn.btn-team{display:flex;width:100%;min-height:56px;justify-content:center;font-size:16px;font-weight:600;background:#5739FB;border-radius:12px;box-sizing:border-box}.btn.btn-team:hover{background:#4528E8}
+.tcMask{position:fixed;inset:0;background:rgba(3,20,54,.42);z-index:72;display:flex;align-items:center;justify-content:center;padding:20px}
+.tcBox{background:#fff;border-radius:18px;max-width:940px;width:100%;padding:24px;border:1px solid #DDE3EE;box-shadow:0 42px 90px -30px rgba(3,20,54,.55);font-family:'Poppins',sans-serif;color:#031436}
+.tcGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.tc{text-align:left;border:1.5px solid #DDE3EE;border-radius:14px;padding:18px;background:#fff;font-family:inherit;display:flex;flex-direction:column;gap:8px;min-height:190px}
+.tc .tn{font-size:16px;font-weight:600;color:#031436;display:flex;align-items:center;gap:8px}.tc .td{font-size:12px;line-height:1.55;color:#667085;flex:1}
+.tc .tcb{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;min-height:44px;border-radius:10px;border:none;background:#5739FB;color:#fff;font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer}.tc .tcb:hover{background:#4528E8}
+.tc[data-soon] .tcb{background:#fff;color:#5739FB;border:1px solid #DDE3EE}.tc[data-soon] .tcb:hover{background:#F5F7FB}.tc .soon{font-size:12.5px;font-weight:500;color:#031436}
+.tc .tcb[disabled]{opacity:.6;cursor:default}
+.pkStep{display:flex;gap:10px;margin:8px 0;font-size:12.5px;line-height:1.55;color:#031436}.pkStep b{flex:none;width:22px;height:22px;border-radius:50%;background:#EFEBFF;color:#5739FB;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.pkFiles a{display:inline-flex;align-items:center;gap:6px;margin:4px 8px 4px 0;font-size:12.5px;color:#5739FB;text-decoration:none;border:1px solid #DDE3EE;border-radius:8px;padding:6px 10px}.pkFiles a:hover{border-color:#5739FB}
+.pkScript{width:100%;box-sizing:border-box;font-family:ui-monospace,Menlo,monospace;font-size:11px;min-height:120px;border:1px solid #DDE3EE;border-radius:8px;padding:8px;color:#031436;background:#F9FAFC}
 table{width:100%;border-collapse:collapse;font-size:13px}
 td,th{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border)}
 th{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:500}
@@ -341,7 +362,7 @@ tr.flip td{animation:flip .5s ease}
 </style>
 </head>
 <body>
-<div class="demo-bar"><b>BETA PREVIEW v85</b> · MeetingBrand · early access</div>
+<div class="demo-bar"><b>BETA PREVIEW v87</b> · MeetingBrand · early access</div>
 
 <div class="shell">
 <aside>
@@ -355,7 +376,7 @@ tr.flip td{animation:flip .5s ease}
     <button data-v="brandtab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="12" cy="7.5" r="1.2"/><circle cx="15.5" cy="10" r="1.2"/><path d="M12 21c-1.5-2 .5-3.5 2.5-3.5H17a4 4 0 0 0 4-4"/></svg>Brand</button>
     <button data-v="backgrounds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 15l-5-5-8 8"/></svg>Backgrounds</button>
     <button data-v="campaigns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l14-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Campaigns</button>
-    <button data-v="people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.4 3.4-5 6.5-5s5.7 1.6 6.5 5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M15.5 14.6c2.9.1 5.2 1.5 6 4.9"/></svg>People</button>
+    <button data-v="people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.4 3.4-5 6.5-5s5.7 1.6 6.5 5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M15.5 14.6c2.9.1 5.2 1.5 6 4.9"/></svg>My team</button>
     <button data-v="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Analytics</button>
   </nav>
   <button class="navmin-btn" id="navMin" title="Collapse menu" aria-label="Collapse menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 6l-6 6 6 6"/></svg></button>
@@ -370,7 +391,7 @@ tr.flip td{animation:flip .5s ease}
 <main>
   <div class="topbar">
     <div><h1 id="tTitle">Overview</h1><p id="tSub">Your brand, live in every meeting</p></div>
-    <span class="live-dot"><i></i>Directory synced · just now</span>
+    <span class="live-dot" id="syncDot" data-state="none"><i></i>No directory connected</span>
   </div>
 
   <section class="view active" id="v-overview">
@@ -386,9 +407,9 @@ tr.flip td{animation:flip .5s ease}
             <text x="60" y="76" text-anchor="middle" font-size="8.5" fill="#7A879B" font-weight="400">on brand</text>
           </svg>
           <div>
-            <div class="stat"><div class="v" id="covN">0</div><div class="k">of <span id="covT">1,300</span> people</div></div>
+            <div class="stat"><div class="v" id="covN">0</div><div class="k">of <span id="covT">0</span> people</div></div>
             <div style="height:12px"></div>
-            <button class="btn" id="goDeploy">Deploy to pending<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button class="btn" id="goDeploy">Open My team<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
           </div>
         </div>
       </div>
@@ -401,9 +422,9 @@ tr.flip td{animation:flip .5s ease}
     </div>
     <div style="height:16px"></div>
     <div class="grid g3">
-      <div class="card stat hover"><div class="k">Meetings on brand</div><div class="v" id="stMeet">0</div><div class="s">last 30 days</div></div>
+      <div class="card stat hover"><div class="k">Meetings on brand</div><div class="v" id="stMeet">0</div><div class="s" id="stMeetS">no meeting telemetry yet</div></div>
       <div class="card stat hover"><div class="k">Active campaign</div><div class="v" id="stCampN" style="font-size:17px;line-height:1.3;margin:4px 0">—</div><div class="s" id="stCampD">—</div></div>
-      <div class="card stat hover"><div class="k">Platforms live</div><div class="v">3</div><div class="s">Zoom · Meet · Teams</div></div>
+      <div class="card stat hover"><div class="k">Platforms live</div><div class="v" id="stPlat">—</div><div class="s" id="stPlatS">connect a platform in My team</div></div>
     </div>
   </section>
 
@@ -670,10 +691,27 @@ tr.flip td{animation:flip .5s ease}
   </section>
 
   <section class="view" id="v-people">
-    <div class="grid g3" style="margin-bottom:16px">
-      <div class="card stat"><div class="k">Brand coverage</div><div class="v" id="covPct2">—</div><div class="s" id="covSub2">—</div></div>
-      <div class="card stat"><div class="k">Pending</div><div class="v" id="pendN">—</div><div class="s">will comply on deploy</div></div>
-      <div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:8px"><button class="btn" id="deployBtn">Deploy to all pending</button><span class="note" style="margin:0">Pushes the approved background to everyone not yet on brand</span></div>
+    <div class="card teamEmpty" id="teamEmpty">
+      <div class="ringwrap" style="justify-content:center">
+        <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="Brand coverage ring" style="width:118px;height:118px">
+          <circle class="bgc" cx="60" cy="60" r="52" fill="none" stroke-width="10"/>
+          <circle class="fgc" id="ringFg2" cx="60" cy="60" r="52" fill="none" stroke-width="10" transform="rotate(-90 60 60)"/>
+          <text id="ringTxt2" x="60" y="59" text-anchor="middle" font-size="23">0%</text>
+          <text x="60" y="76" text-anchor="middle" font-size="8.5" fill="#7A879B" font-weight="400">on brand</text>
+        </svg>
+      </div>
+      <p class="note" id="covSub0" style="margin:8px 0 0">0 of 0 people</p>
+      <h3 style="margin:10px 0 4px">Brand coverage 0%</h3>
+      <p class="sub" id="teamEmptySub" style="max-width:520px;margin:0 auto 18px">Connect your meeting platform to import your people and push branded backgrounds to them.</p>
+      <button class="btn btn-team" id="uploadUsers">Upload users</button>
+      <p class="note" id="teamEmptyNote" style="margin:12px 0 0"></p>
+    </div>
+    <div id="teamFull" hidden>
+      <div class="grid g3" style="margin-bottom:16px">
+        <div class="card stat"><div class="k">Brand coverage</div><div class="v" id="covPct2">—</div><div class="s" id="covSub2">—</div></div>
+        <div class="card stat"><div class="k">Pending</div><div class="v" id="pendN">—</div><div class="s" id="pendS">active people without a delivered background</div></div>
+        <div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:8px"><button class="btn" id="deployBtn">Push to all active</button><span class="note" id="deployNote" style="margin:0">Uploads the current look into each active person’s Zoom library — they pick it once.</span></div>
+      </div>
     </div>
     <div class="card" id="meCard" style="margin-bottom:16px">
       <h3 style="margin:0 0 4px">You</h3>
@@ -684,35 +722,45 @@ tr.flip td{animation:flip .5s ease}
         <button class="btn-quiet" id="meSave">Save</button>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="teamCard" hidden>
       <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
-        <div><h3 style="margin:0">People</h3><p class="note" id="peopleNote" style="margin:2px 0 0">The signed-in person comes first; the rest are sample people until your directory is connected.</p></div>
-        <input type="search" id="search" placeholder="Search people" style="max-width:220px" aria-label="Search people">
+        <div><h3 style="margin:0">My team</h3><p class="note" id="peopleNote" style="margin:2px 0 0"></p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span id="teamPlats"></span>
+          <button class="btn-quiet" id="uploadUsers2">Upload users</button>
+          <input type="search" id="search" placeholder="Search people" style="max-width:200px" aria-label="Search people">
+        </div>
       </div>
+      <p class="note" id="teamBusy" style="margin:0 0 10px" hidden></p>
       <div class="chipsrow" id="depts" style="margin-bottom:10px"></div>
-      <table aria-label="Employee status">
-        <thead><tr><th>Name</th><th>Title</th><th>Platform</th><th>Status</th><th></th></tr></thead>
+      <div style="overflow-x:auto">
+      <table aria-label="Team status" id="teamTable">
+        <thead><tr><th>Name</th><th>Title</th><th>Department</th><th>Platform</th><th>Active</th><th>Status</th><th></th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
+      </div>
+      <p class="note" id="teamFoot" style="margin:10px 0 0"></p>
     </div>
   </section>
 
   <section class="view" id="v-analytics">
     <div class="grid g3" style="margin-bottom:16px">
       <div class="card stat hover"><div class="k">Brand coverage</div><div class="v" id="covPct3">—</div><div class="s">org-wide</div></div>
-      <div class="card stat hover"><div class="k">Campaign impressions</div><div class="v" id="stImp">0</div><div class="s">meetings + email, this quarter</div></div>
-      <div class="card stat hover"><div class="k">Avg time to comply</div><div class="v">1.4d</div><div class="s">from template publish</div></div>
+      <div class="card stat hover"><div class="k">People imported</div><div class="v" id="stImp">0</div><div class="s" id="stImpS">from your meeting platforms and CSV</div></div>
+      <div class="card stat hover"><div class="k">Active people</div><div class="v" id="stAct">0</div><div class="s" id="stActS">toggle per person in My team</div></div>
     </div>
     <div class="grid g2">
       <div class="card">
-        <h3>Meetings on brand, weekly</h3>
+        <h3>Coverage by department</h3>
+        <p class="sub">Active people with a delivered background, per department</p>
         <div class="bars" id="bars"></div>
+        <p class="note" id="barsNote" style="margin-top:0"></p>
       </div>
       <div class="card">
         <h3>Coverage by platform</h3>
-        <p class="sub">Where employees are wearing the approved background</p>
+        <p class="sub">Where your people have the approved background</p>
         <div id="hbars"></div>
-        <p class="note">Demo data. In production this reads deployment telemetry per platform.</p>
+        <p class="note" id="hbarsNote"></p>
       </div>
     </div>
   </section>
@@ -720,6 +768,26 @@ tr.flip td{animation:flip .5s ease}
 </main>
 </div>
 
+<div class="tcMask" id="teamChooser" style="display:none" role="dialog" aria-modal="true" aria-labelledby="tcTitle">
+  <div class="tcBox">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+      <div><h3 id="tcTitle" style="margin:0 0 4px">Where does your team meet?</h3><p class="sub" style="margin:0">Connecting brings the list of people in that system and the permission to place your branded backgrounds for them.</p></div>
+      <button class="btn-quiet" id="tcClose" aria-label="Close">✕</button>
+    </div>
+    <div class="tcGrid" id="tcGrid" style="margin-top:16px"></div>
+    <p class="note" style="margin:16px 0 0"><a href="#" id="csvLink">Upload a CSV instead</a> — columns <b>name, email, title, department</b> (header row optional). People from a CSV have no platform to push to; they get the download link.</p>
+    <input type="file" id="csvFile" accept=".csv,text/csv,text/plain" hidden aria-label="CSV file">
+  </div>
+</div>
+<div class="tcMask" id="packModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="pkTitle">
+  <div class="tcBox" style="max-width:820px;max-height:92vh;overflow:auto">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+      <div><h3 id="pkTitle" style="margin:0 0 4px">Delivery pack</h3><p class="sub" id="pkSub" style="margin:0"></p></div>
+      <button class="btn-quiet" id="pkClose" aria-label="Close">✕</button>
+    </div>
+    <div id="pkBody" style="margin-top:14px"></div>
+  </div>
+</div>
 <div class="cropmask" id="cropModal" style="display:none" role="dialog" aria-modal="true" aria-label="Crop logo">
   <div class="cropbox">
     <h3 style="margin:0 0 6px">Crop the logo</h3>
@@ -909,17 +977,16 @@ const CC_LOGO_SRC="data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="htt
 const PS_LOGO_SRC="data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="30" fill="#E8604C"></rect><path d="M24 46 L24 18 L36 18 C 42 18, 45 21.5, 45 26 C 45 30.5, 42 34, 36 34 L24 34" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 50 C 26 46, 40 46, 48 49" fill="none" stroke="#F5C64E" stroke-width="3" stroke-linecap="round"></path></svg>');
 function builtinLogo(src,w){return {src:src,ok:true,safe:true,w:w||200,r:1,builtin:true}}
 function mbBrand(){return {domain:"",site:"meetingbrand.com",name:"MeetingBrand",wallText:"MeetingBrand",primary:"#5739FB",secondary:"#00BDDF",logo:builtinLogo(MB_LOGO_SRC,200),siteImages:[],logoOpts:[{src:MB_LOGO_SRC,label:"MeetingBrand",w:200}],source:"fallback",blocked:false,logoMiss:false,fetchMs:0}}
-const EMPLOYEES=[
- {id:1,name:"Dana Levi",title:"Head of Sales",dept:"Sales",plat:"Meet",st:"on"},
- {id:2,name:"Noa Barak",title:"Account Executive",dept:"Sales",plat:"Zoom",st:"on"},
- {id:3,name:"Tom Adler",title:"Support Lead",dept:"Support",plat:"Meet",st:"on"},
- {id:4,name:"Mia Chen",title:"Finance Manager",dept:"Finance",plat:"Teams",st:"pend"},
- {id:5,name:"Yossi Peretz",title:"VP Marketing",dept:"Marketing",plat:"Meet",st:"on"},
- {id:6,name:"Sara Cohen",title:"Customer Success",dept:"Support",plat:"Zoom",st:"on"},
- {id:7,name:"Amit Shah",title:"Solutions Engineer",dept:"Sales",plat:"Teams",st:"pend"},
- {id:8,name:"Lena Fischer",title:"Brand Designer",dept:"Marketing",plat:"Meet",st:"on"}
+/* v86: no mock roster. SAMPLE_TEAM is the DEMO's 5-person 'Sample data' team — it is imported only by the demo's Upload users -> Zoom
+   (never shown as data before that, never in a signed-in session: setTeam() drops sample rows). The signed-in person (setViewer) is first. */
+const SAMPLE_TEAM=[
+ {id:"s1",name:"Dana Levi",title:"Head of Sales",dept:"Sales",email:"dana@sample.example"},
+ {id:"s2",name:"Noa Barak",title:"Account Executive",dept:"Sales",email:"noa@sample.example"},
+ {id:"s3",name:"Tom Adler",title:"Support Lead",dept:"Support",email:"tom@sample.example"},
+ {id:"s4",name:"Mia Chen",title:"Finance Manager",dept:"Finance",email:"mia@sample.example"},
+ {id:"s5",name:"Yossi Peretz",title:"VP Marketing",dept:"Marketing",email:"yossi@sample.example"}
 ];
-EMPLOYEES.forEach(e=>{e.sample=true});   /* v85: the mock roster is sample people until a directory is connected; the signed-in person (setViewer) is inserted first */
+const EMPLOYEES=SAMPLE_TEAM.map(p=>({id:p.id,name:p.name,title:p.title,dept:p.dept,email:p.email,plat:"Zoom",platform:"zoom",st:"pend",sample:true,imported:false,active:false,push:null}));
 /* v85 (1): the signed-in person is the first employee. viewerFrom({name|full_name,title,email}) -> {name,title,email,guessed}:
    name = full_name, or the email's local part title-cased ('boti@prosignature.co' -> 'Boti', 'dana.levi_x@…' -> 'Dana Levi X'); title = profile title or 'Admin'. */
 function viewerFrom(u){u=u||{};const em=String(u.email||"").trim().toLowerCase(),given=String(u.name||u.full_name||"").trim();
@@ -929,11 +996,11 @@ function viewerFrom(u){u=u||{};const em=String(u.email||"").trim().toLowerCase()
  return {name,title:(String(u.title||"").trim()||"Admin").slice(0,120),email:em,guessed:!given}}
 function setViewer(u,o){o=o||{};const v=viewerFrom(u);if(!v)return null;
  let me=EMPLOYEES.find(e=>e.you);
- if(!me){me={id:0,you:true,dept:"",plat:"Meet",st:"on"};EMPLOYEES.unshift(me)}
+ if(!me){me={id:0,you:true,dept:"",plat:"Zoom",platform:"",st:"on",active:true,push:null,imported:false};EMPLOYEES.unshift(me)}
  me.name=v.name;me.title=v.title||"Admin";if(v.email)me.email=v.email;me.guessed=!!v.guessed;
  state.viewer={name:me.name,title:me.title,email:me.email||"",guessed:me.guessed};
  state.emp=0;
- try{renderEmpSel();renderDepts();renderPeople();renderTiles();renderMe()}catch(e){}
+ try{renderEmpSel();renderDepts();renderTeam();renderTiles();renderMe()}catch(e){}
  if(!o.silent)__mbFire("viewer",{name:me.name,title:me.title,email:me.email||""});
  return me}
 function renderMe(){const v=state.viewer,n=$("#meName"),t=$("#meTitle");if(!n||!t)return;
@@ -1053,12 +1120,13 @@ async function geminiBake(){const sc=effScene();
   toast("Photoreal render added to the library.")
  }catch(e){toast("Bake failed: "+((e&&e.message)||"unknown error"))}
  btn.disabled=false;btn.textContent=old}
-const state={emp:1,viewer:null,ribBg:null,gemKey:null,gemModel:"gemini-3-pro-image-preview",localUrl:"http://127.0.0.1:8188",localOk:null,bakeWood:"oak",bakeMode:"studio",policy:"locked",bar:{on:true,size:"md",logo:true,bg:"#FFFFFF",f:{name:true,title:true,dept:false,company:true}},mode:"scene",scene:{id:"cornerloft",wash:"none",logo:"sign"},tpl:"boardroom",accent:"#5739FB",org:{on:1248,total:1300},meet:7412,imp:21480,counted:{},brand:null,accents:["#5739FB","#00BDDF","#031436","#00A76F"]};
+const state={emp:1,viewer:null,ribBg:null,gemKey:null,gemModel:"gemini-3-pro-image-preview",localUrl:"http://127.0.0.1:8188",localOk:null,bakeWood:"oak",bakeMode:"studio",policy:"locked",bar:{on:true,size:"md",logo:true,bg:"#FFFFFF",f:{name:true,title:true,dept:false,company:true}},mode:"scene",scene:{id:"cornerloft",wash:"none",logo:"sign"},tpl:"boardroom",accent:"#5739FB",org:{on:0,total:0},meet:0,imp:0,counted:{},team:null,teamBusy:"",teamAt:0,brand:null,accents:["#5739FB","#00BDDF","#031436","#00A76F"]};
 const __mbH={};function __mbFire(k,a){(__mbH[k]||[]).forEach(f=>{try{f(a)}catch(e){}})}
 /* v80: every product event goes through window.MBTrack (mb-cloud); a missing MBTrack (file:// before the cloud block) is a silent no-op */
 function __mbTrack(n,p){try{if(typeof window.MBTrack==="function")window.MBTrack(n,p||{})}catch(e){}}
-window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m)=>toast(m),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a)};
-const emp=()=>EMPLOYEES.find(e=>e.id===state.emp);
+window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m)=>toast(m),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a)};
+const EMP_PLACEHOLDER={id:-1,name:"Your name",title:"Your title",dept:"",plat:"Zoom",platform:"zoom",st:"pend",placeholder:true,active:false,push:null};
+const emp=()=>EMPLOYEES.find(e=>String(e.id)===String(state.emp))||EMPLOYEES.find(e=>e.you)||EMPLOYEES[0]||EMP_PLACEHOLDER;   /* v86: ids may be uuids; an empty roster renders a placeholder person */
 const tpl=()=>TEMPLATES.find(t=>t.id===state.tpl)||TEMPLATES[0];
 const scene=()=>SCENES.find(s=>s.id===state.scene.id)||SCENES[0];
 const effScene=()=>{const e=emp();if(state.policy==="choice"&&e&&e.sceneId){const s=SCENES.find(x=>x.id===e.sceneId);if(s)return s}return scene()};
@@ -2080,7 +2148,7 @@ function renderTiles0(){const e=emp(),c=camp(),bbg=barBG(),light=isLightHex(bbg)
    <div class="avatar" style="background:${light?"#FFFFFF":"#16243D"};color:${light?"#16243D":"#FFFFFF"};${sceneMode?"display:none":""}">${initials(e.name)}</div>
    ${showBar?`<div class="lower" style="background:${bbg};padding:${S.pad};border-radius:${S.r}"><div>${B.f.name?`<div class="nm" style="color:${light?"#16243D":"#FFFFFF"};font-size:${S.nm}">${esc(e.name)}</div>`:""}${line2?`<div class="tt" style="color:${light?"#7A879B":"#AFB9CC"};font-size:${S.tt}">${esc(line2)}</div>`:""}</div>${B.logo?brandChipHTML(S.chip):""}</div>`:""}`;
  });
- $("#ovWho").textContent=e.name+" · "+e.title;
+ $("#ovWho").textContent=e.name+" · "+e.title+(e.sample?" · sample":"");
  $("#platChip").innerHTML=`<span class="pillst ${e.plat==="Teams"?"pend":"on"}">${e.plat==="Teams"?"<i></i>":""}${e.plat} · ${e.plat==="Meet"?"extension":e.plat==="Zoom"?"app":"portal"}</span>`;
  $("#mwLabel").textContent=(e.plat==="Meet"?"Google Meet":e.plat==="Zoom"?"Zoom":"Microsoft Teams")+" · live preview";
 }
@@ -2341,35 +2409,218 @@ $("#emPick").onclick=e=>{const b=e.target.closest("[data-es]");if(!b)return;emp(
 $("#emDl").onclick=()=>$("#dl").onclick();
 
 let deptFilter="All";
-function renderDepts(){const ds=["All",...new Set(EMPLOYEES.map(e=>e.dept).filter(Boolean))];
- $("#depts").innerHTML=ds.map(d=>`<button class="${d===deptFilter?"sel":""}" data-d="${d}">${d}</button>`).join("")}
-$("#depts").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;deptFilter=b.dataset.d;renderDepts();renderPeople()};
-function renderPeople(flipIds){const q=($("#search").value||"").toLowerCase();
- const list=EMPLOYEES.filter(e=>(deptFilter==="All"||e.dept===deptFilter)&&(e.name+e.title+e.dept).toLowerCase().includes(q));
- $("#rows").innerHTML=list.map(e=>`<tr class="${flipIds&&flipIds.includes(e.id)?"flip":""}"${e.you?' data-you="1"':e.sample?' data-sample="1"':""}><td style="color:#16243D;font-weight:500"><span class="rowav">${initials(e.name)}</span>${esc(e.name)}${e.you?' <span class="pillst on" style="margin-left:6px">You</span>':e.sample?' <span class="note" style="margin-left:6px;font-size:11px">sample</span>':""}</td><td>${e.title}</td><td>${e.plat}</td><td><span class="pillst ${e.st==="on"?"on":"pend"}">${e.st==="on"?"On brand":"<i></i>Pending"}</span></td><td><button class="btn-quiet" data-p="${e.id}">Preview</button></td></tr>`).join("");
- const pend=EMPLOYEES.filter(e=>e.st==="pend").length;
- $("#pendN").textContent=pend;$("#deployBtn").disabled=pend===0;$("#goDeploy").disabled=pend===0&&state.org.on>=state.org.total;
- const pct=Math.round(state.org.on/state.org.total*100);
- $("#covPct2").textContent=pct+"%";$("#covPct3").textContent=pct+"%";
- $("#covSub2").textContent=state.org.on.toLocaleString()+" of "+state.org.total.toLocaleString()+" people";
+function renderDepts(){const ds=["All",...new Set(teamPeople().map(e=>e.dept).filter(Boolean))];
+ $("#depts").innerHTML=ds.map(d=>`<button class="${d===deptFilter?"sel":""}" data-d="${esc(d)}">${esc(d)}</button>`).join("")}
+$("#depts").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;deptFilter=b.dataset.d;renderDepts();renderTeam()};
+/* ===================== v86: MY TEAM (build-v86.py header) ===================== */
+const PLAT_NAME={zoom:"Zoom",teams:"Microsoft Teams",meet:"Google Meet",csv:"CSV"},PLAT_SHORT={zoom:"Zoom",teams:"Teams",meet:"Meet",csv:"CSV"};
+const DELIVERY={"zoom":"MeetingBrand uploads the background into each employee's own Zoom virtual-background library by API; Zoom has no API to activate it, so the employee signs out/in and picks it once, then it stays.","teams":"Teams has no background API: MeetingBrand imports the directory from Microsoft Graph and hands you an Intune/Jamf script (or the MeetingBrand agent) that drops <GUID>.png + <GUID>_thumb.png into each employee's new-Teams gallery folder — the employee picks it once after restarting Teams; only a Teams Premium customization policy can force it.","meet":"Google Meet has no background API and does not remember a choice: MeetingBrand imports the directory from the Admin SDK and hands you a 1920×1080 JPEG plus the admin-console runbook (≤15 images per OU, Drive-hosted, up to 24 h to appear) — employees re-select it per browser; only the force-installed MeetingBrand Chrome extension applies it automatically."};   /* the verified per-platform delivery sentences — read by the build from the backend's _shared/platform.ts (one voice) */
+const DEMO_MISSING={teams:["MS_CLIENT_ID","MS_CLIENT_SECRET"],meet:["GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET"]};
+const DEMO_CONNECT={zoom:{configured:true,demo:true,delivery:DELIVERY.zoom,push_api:true},teams:{configured:false,missing:DEMO_MISSING.teams,delivery:DELIVERY.teams,push_api:false},meet:{configured:false,missing:DEMO_MISSING.meet,delivery:DELIVERY.meet,push_api:false}};
+const DELIVERED=["pushed","awaiting_client","available","selected"];
+const cloud=()=>window.__MB_CLOUD||null;
+function teamMode(){const c=cloud();return (c&&c.signed&&!c.noProfile)?"signed":"demo"}
+function teamPeople(){return EMPLOYEES.filter(e=>e.imported&&!e.you)}
+function delivered(e){return !!(e.push&&DELIVERED.includes(e.push.state))}
+function errMsg(e){if(!e)return "error";if(e.code==="not_configured")return "not configured yet";if(e==="OFFLINE")return "no server connected";return String(e.detail||e.message||e).slice(0,140)}
+var TEAM_FRESH_MS=60000,__teamP=null;   /* v87: the app-side cache window = the cloud layer's TEAM_TTL_MS (var: go('people') may run before this module's consts) */
+function connectModel(){const t=state.team;if(teamMode()!=="signed")return DEMO_CONNECT;return (t&&t.connect&&Object.keys(t.connect).length)?t.connect:null}   /* v87: signed in = the live read model, or null while it has not arrived — never the demo's connectable Zoom */
+function teamStale(){return !state.team||!!state.team.demo||(Date.now()-(state.teamAt||0))>=TEAM_FRESH_MS}
+function teamEnsure(o){o=o||{};if(teamMode()!=="signed")return Promise.resolve(state.team);
+ if(!o.force&&!teamStale())return Promise.resolve(state.team);
+ if(__teamP)return __teamP;
+ const force=!!o.force||!state.team||!!(state.team&&state.team.demo);   /* nothing usable on this side -> the cloud cache is not asked either */
+ __teamP=teamLoad({silent:true,force}).then(r=>{__teamP=null;return r},()=>{__teamP=null;return null});return __teamP}
+function teamStats(){const ppl=teamPeople(),act=ppl.filter(e=>e.active),on=act.filter(delivered),byPlat={};
+ ppl.forEach(e=>{const k=e.platform||"csv";const o=byPlat[k]=byPlat[k]||{total:0,active:0,on:0};o.total++;if(e.active){o.active++;if(delivered(e))o.on++}});
+ const ints=((state.team&&state.team.integrations)||[]).filter(i=>i&&i.status==="connected");
+ const last=ints.map(i=>Date.parse(i.last_sync_at||"")||0).reduce((a,b)=>Math.max(a,b),0);
+ return {total:ppl.length,active:act.length,on:on.length,pending:act.length-on.length,pct:act.length?Math.round(on.length/act.length*100):0,platforms:ints.map(i=>i.platform),lastSync:last,byPlat,demo:!!(state.team&&state.team.demo)}}
+function rowFrom(r){return {id:String(r.id),name:String(r.name||r.email||"—"),title:String(r.title||""),dept:String(r.dept||""),email:String(r.email||""),platform:String(r.platform||"csv"),plat:PLAT_SHORT[r.platform]||String(r.platform||""),active:!!r.active,push:r.push||null,imported:true,ext_id:r.ext_id||"",st:"on"}}
+function dropSamples(){for(let i=EMPLOYEES.length-1;i>=0;i--)if(EMPLOYEES[i].sample)EMPLOYEES.splice(i,1);if(!EMPLOYEES.some(e=>String(e.id)===String(state.emp)))state.emp=EMPLOYEES.length?EMPLOYEES[0].id:null}
+function setTeam(d){state.team=d;const you=EMPLOYEES.find(e=>e.you);EMPLOYEES.length=0;if(you)EMPLOYEES.push(you);
+ (d&&d.employees||[]).forEach(r=>{if(r&&r.id)EMPLOYEES.push(rowFrom(r))});
+ if(!EMPLOYEES.some(e=>String(e.id)===String(state.emp)))state.emp=EMPLOYEES.length?EMPLOYEES[0].id:null;
+ renderAll()}
+function renderAll(){try{renderEmpSel();renderDepts();renderTeam();renderTiles();ring(true);renderBars();renderHbars()}catch(e){}}
+async function teamLoad(o){o=o||{};
+ if(teamMode()!=="signed"){renderTeam();return state.team}
+ const c=cloud();
+ try{const d=await c.api("/api/team","GET",{force:!!o.force});state.teamAt=Date.now();setTeam(d);return d}
+ catch(e){const msg=errMsg(e);dropSamples();state.teamAt=0;   /* v87: a failed read is never cached — the next My team visit / chooser retries */
+  if(!state.team||state.team.demo)state.team={error:msg,employees:[],connect:{},integrations:[],demo:false};else state.team.error=msg;
+  renderAll();if(!o.silent)toast("Couldn’t load your team: "+msg);return null}}
+function ago(t){if(!t)return "";const s=Math.max(0,(Date.now()-t)/1000);if(s<90)return "moments ago";if(s<3600)return Math.round(s/60)+" min ago";if(s<86400)return Math.round(s/3600)+" h ago";return Math.round(s/86400)+" d ago"}
+function chipFor(e){if(!e.active)return `<span class="pillst off">Inactive</span>`;
+ const s=e.push&&e.push.state;
+ if(s==="selected")return `<span class="pillst on">On brand</span>`;
+ if(s==="pushed"||s==="awaiting_client"||s==="available")return `<span class="pillst on">Delivered · pick it once in ${esc(PLAT_SHORT[e.platform]||"the app")}</span>`;
+ if(s==="queued"||s==="pushing")return `<span class="pillst pend"><i></i>Queued</span>`;
+ if(s==="blocked")return `<span class="pillst bad" title="${esc(e.push.error||"")}">Blocked · ${esc((e.push.error||"see Zoom").slice(0,60))}</span>`;
+ if(s==="failed")return `<span class="pillst bad" title="${esc(e.push.error||"")}">Failed${e.push.error?" · "+esc(String(e.push.error).slice(0,50)):""}</span>`;
+ if(e.platform==="teams"||e.platform==="meet")return e._packAt?`<span class="pillst pend"><i></i>In the delivery pack · ${e.platform==="teams"?"picks it once in Teams":"re-selects it in Meet"}</span>`:`<span class="pillst pend"><i></i>Not delivered</span>`;
+ if(e.platform==="csv")return `<span class="pillst off">No platform · download only</span>`;
+ return `<span class="pillst pend"><i></i>Not delivered</span>`}
+function actionFor(e){const busy=!!state.teamBusy;
+ if(e.platform==="zoom")return `<button class="btn-quiet" data-push="${esc(String(e.id))}" ${busy||!e.active?"disabled":""}>Push</button>`;
+ if(e.platform==="teams"||e.platform==="meet")return `<button class="btn-quiet" data-pack="${e.platform}" data-pack-id="${esc(String(e.id))}" ${busy||!e.active?"disabled":""}>Get delivery pack</button>`;
+ return ``}
+function renderTeam(){
+ const st=teamStats(),ppl=teamPeople(),mode=teamMode(),q=(($("#search")||{}).value||"").toLowerCase();
+ state.org.on=st.on;state.org.total=st.active;
+ const empty=ppl.length===0;
+ $("#teamEmpty").hidden=!empty;$("#teamFull").hidden=empty;$("#teamCard").hidden=empty;
+ const fg2=$("#ringFg2");if(fg2){fg2.style.strokeDasharray=C;fg2.style.strokeDashoffset=C}$("#ringTxt2").textContent="0%";
+ const en=$("#teamEmptyNote");if(en)en.textContent=state.team&&state.team.error?"Couldn’t load your team ("+state.team.error+") — try again in a moment.":(mode==="signed"?(state.team?"":"Loading your team…"):"Demo mode — no server connected: Zoom imports a 5-person sample team.");
+ $("#covPct2").textContent=st.pct+"%";$("#covPct3").textContent=st.pct+"%";
+ $("#covSub2").textContent=st.on.toLocaleString()+" of "+st.active.toLocaleString()+" active people";
+ const cs0=$("#covSub0");if(cs0)cs0.textContent=st.on.toLocaleString()+" of "+st.active.toLocaleString()+" people";   /* v87: the empty card carries the same line */
+ $("#covT").textContent=st.active.toLocaleString();
+ $("#pendN").textContent=st.pending.toLocaleString();
+ const zoomTargets=ppl.filter(e=>e.active&&e.platform==="zoom"&&!delivered(e));
+ $("#deployBtn").disabled=!zoomTargets.length||!!state.teamBusy;$("#deployBtn").textContent=state.teamBusy?"Working…":"Push to all active";
+ $("#deployNote").textContent=zoomTargets.length?"Uploads the current look ("+(scene()?scene().name:"")+") into "+zoomTargets.length+" active Zoom "+(zoomTargets.length===1?"person’s library":"people’s libraries")+" — each picks it once.":(st.byPlat.teams||st.byPlat.meet?"Teams and Meet have no push API — use Get delivery pack per person or per platform below.":"Everyone active on Zoom already has the background.");
+ const gd=$("#goDeploy");gd.disabled=false;gd.firstChild.textContent=zoomTargets.length?"Push to all active":"Open My team";
+ $("#stImp").textContent=st.total.toLocaleString();$("#stImpS").textContent=st.total?"across "+Object.keys(st.byPlat).map(k=>PLAT_SHORT[k]||k).join(" · "):"from your meeting platforms and CSV";
+ $("#stAct").textContent=st.active.toLocaleString();
+ $("#stPlat").textContent=st.platforms.length?String(st.platforms.length):"—";$("#stPlatS").textContent=st.platforms.length?st.platforms.map(p=>PLAT_SHORT[p]||p).join(" · ")+(st.demo?" · sample":""):"connect a platform in My team";
+ $("#stMeetS").textContent="no meeting telemetry yet";
+ const dot=$("#syncDot");if(dot){if(st.demo){dot.dataset.state="sample";dot.lastChild.textContent="Sample data · Zoom (demo)"}else if(st.platforms.length){dot.dataset.state="on";dot.lastChild.textContent="Directory synced · "+(st.lastSync?ago(st.lastSync):"pending")}else{dot.dataset.state="none";dot.lastChild.textContent="No directory connected"}}
+ const pn=$("#peopleNote");pn.textContent=st.demo?"Sample data — a 5-person demo team; nothing is saved on a server.":(st.platforms.length?"Imported from "+st.platforms.map(p=>PLAT_NAME[p]||p).join(" and ")+(st.lastSync?" · synced "+ago(st.lastSync):"")+".":"People from your CSV. Connect a meeting platform to push backgrounds.");
+ const tp=$("#teamPlats");tp.innerHTML=st.platforms.map(p=>`<button class="btn-quiet" data-sync="${p}" ${state.teamBusy?"disabled":""} title="Import the ${esc(PLAT_NAME[p]||p)} directory again">${esc(PLAT_SHORT[p]||p)} · Sync</button>`).join("")+(st.byPlat.teams&&st.byPlat.teams.active?`<button class="btn-quiet" data-packall="teams" ${state.teamBusy?"disabled":""}>Teams delivery pack</button>`:"")+(st.byPlat.meet&&st.byPlat.meet.active?`<button class="btn-quiet" data-packall="meet" ${state.teamBusy?"disabled":""}>Meet delivery pack</button>`:"");
+ const tb=$("#teamBusy");tb.hidden=!state.teamBusy;tb.textContent=state.teamBusy||"";
+ const list=ppl.filter(e=>(deptFilter==="All"||e.dept===deptFilter)&&(e.name+" "+e.title+" "+e.dept+" "+e.email).toLowerCase().includes(q));
+ $("#rows").innerHTML=list.map(e=>`<tr data-id="${esc(String(e.id))}"${e.sample?' data-sample="1"':""} data-platform="${esc(e.platform)}"><td style="color:#16243D;font-weight:500"><span class="rowav">${initials(e.name)}</span>${esc(e.name)}${e.sample?' <span class="note" style="margin-left:6px;font-size:11px">sample</span>':""}${e.email?`<div class="note" style="margin:0;font-size:11px">${esc(e.email)}</div>`:""}</td><td>${esc(e.title)}</td><td>${esc(e.dept)}</td><td><span class="pillst plat">${esc(PLAT_SHORT[e.platform]||e.platform)}</span></td><td><button class="switch ${e.active?"on":""}" role="switch" aria-checked="${e.active}" aria-label="Active: ${esc(e.name)}" data-act="${esc(String(e.id))}" ${state.teamBusy?"disabled":""}></button></td><td>${chipFor(e)}</td><td style="white-space:nowrap">${actionFor(e)} <button class="btn-quiet" data-p="${esc(String(e.id))}">Preview</button></td></tr>`).join("");
+ $("#teamFoot").textContent=list.length===ppl.length?ppl.length+" "+(ppl.length===1?"person":"people")+" · "+st.active+" active · "+st.on+" delivered":list.length+" of "+ppl.length+" people shown";
 }
-$("#rows").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;state.emp=+b.dataset.p;renderEmpSel();renderTiles();go("backgrounds")};
-function renderEmpSel(){$("#empSel").innerHTML=EMPLOYEES.map(e=>`<option value="${e.id}" ${e.id===state.emp?"selected":""}>${esc(e.name)} — ${esc(e.title)}${e.you?" (you)":e.sample?" · sample":""}</option>`).join("")}   /* v85: the signed-in person first, the mock roster marked as sample */
-$("#empSel").onchange=e=>{state.emp=+e.target.value;renderTiles()};
-$("#search").oninput=()=>renderPeople();
+function toggleActive(id){const e=EMPLOYEES.find(x=>String(x.id)===String(id));if(!e||e.you)return;
+ e.active=!e.active;renderAll();
+ if(teamMode()==="signed"){cloud().api("/api/employee","PATCH",{id:e.id,active:e.active}).catch(err=>{e.active=!e.active;renderAll();toast("Couldn’t save the change: "+errMsg(err))})}}
+function setBusy(msg){state.teamBusy=msg||"";renderTeam()}
+function defaultLook(){return (state.mode==="scene"&&scene())||SCENES.find(s=>s._starter)||SCENES[0]}
+function pushSummary(r){const c=(r&&r.counts)||{},n=(k)=>+c[k]||0;const parts=[];
+ if(n("pushed"))parts.push(n("pushed")+" delivered — each person picks it once in Zoom");if(n("already_pushed"))parts.push(n("already_pushed")+" already had it");
+ if(n("blocked"))parts.push(n("blocked")+" blocked");if(n("failed"))parts.push(n("failed")+" failed");if(n("retry"))parts.push(n("retry")+" to retry (Zoom rate limit)");if(n("needs_reconnect"))parts.push("Zoom needs a reconnect");if(n("unknown_employee"))parts.push(n("unknown_employee")+" unknown");
+ return parts.length?parts.join(" · "):"Push finished."}
+async function pushTo(ids){const targets=(ids||[]).map(id=>EMPLOYEES.find(e=>String(e.id)===String(id))).filter(e=>e&&e.imported&&e.platform==="zoom");
+ if(!targets.length){toast("Nothing to push — pick active Zoom people.");return}
+ if(state.teamBusy)return;
+ __mbTrack("push_clicked",{platform:"zoom",count:targets.length,demo:teamMode()!=="signed"});
+ if(teamMode()!=="signed"){targets.forEach(e=>{e.push={state:"queued"}});renderAll();
+  setTimeout(()=>{targets.forEach(e=>{e.push={state:"awaiting_client",updated_at:new Date().toISOString(),demo:true}});renderAll();toast("Sample push done — in a real workspace each person now picks it once in Zoom.")},700);return}
+ const c=cloud(),sc=defaultLook();
+ setBusy("Rendering "+(sc?sc.name:"the look")+" at 1920×1080 and uploading it…");
+ try{const ex=await c.ensureExports(sc);
+  setBusy("Pushing to "+targets.length+" Zoom "+(targets.length===1?"library":"libraries")+"…");
+  const r=await c.api("/api/team/push","POST",{background_id:ex.background_id,employee_ids:targets.map(e=>e.id)});
+  (r&&r.results||[]).forEach(x=>{const e=EMPLOYEES.find(e2=>String(e2.id)===String(x.employee_id));if(!e)return;const st={pushed:"awaiting_client",already_pushed:"awaiting_client",in_progress:"pushing",blocked:"blocked",failed:"failed",retry:"queued",needs_reconnect:"failed",unknown_employee:"failed"};e.push={state:x.state||st[x.outcome]||"queued",error:x.error||null}});
+  state.teamBusy="";await teamLoad({force:true,silent:true});toast(pushSummary(r));
+ }catch(e){toast(e&&e.code==="no_export"?"Export the background first (Backgrounds → Download) and push again.":e&&e.code==="not_connected"?"Connect Zoom first — Upload users → Zoom.":e&&e.code==="not_configured"?"Zoom is not configured yet — we are completing the listing.":"Push failed: "+errMsg(e))}
+ finally{setBusy("")}}
+function pushAll(){pushTo(teamPeople().filter(e=>e.active&&e.platform==="zoom"&&!delivered(e)).map(e=>e.id))}
+async function getPack(platform,ids){platform=String(platform||"");if(platform!=="teams"&&platform!=="meet")return;
+ if(teamMode()!=="signed"){toast("Delivery packs need a connected "+PLAT_NAME[platform]+" workspace — the sample team can’t generate one.");return}
+ if(state.teamBusy)return;
+ const c=cloud(),sc=defaultLook();
+ __mbTrack("pack_clicked",{platform,count:(ids||[]).length||null});
+ setBusy("Rendering the delivery files for "+PLAT_NAME[platform]+"…");
+ try{const ex=await c.ensureExports(sc);
+  setBusy("Building the "+PLAT_NAME[platform]+" delivery pack…");
+  const body={platform,background_id:ex.background_id};if(ids&&ids.length)body.employee_ids=ids;
+  const pk=await c.api("/api/team/pack","POST",body);
+  if(pk&&pk.ready)teamPeople().forEach(e=>{if(e.platform===platform&&(!ids||!ids.length||ids.map(String).includes(String(e.id))))e._packAt=Date.now()});
+  state.teamBusy="";renderAll();openPack(pk);
+ }catch(e){toast(e&&e.code==="not_connected"?"Connect "+PLAT_NAME[platform]+" first — Upload users → "+PLAT_NAME[platform]+".":e&&e.code==="not_configured"?PLAT_NAME[platform]+" is not configured yet — we are completing the listing.":"Couldn’t build the delivery pack: "+errMsg(e))}
+ finally{setBusy("")}}
+function openPack(pk){const m=$("#packModal");if(!pk){return}
+ const pl=pk.platform,rb=pk.runbook||{},files=pk.assets||{};
+ $("#pkTitle").textContent=(PLAT_NAME[pl]||pl)+" delivery pack"+(pk.background&&pk.background.label?" · "+pk.background.label:"");
+ $("#pkSub").textContent=rb.honest_limit||pk.delivery||DELIVERY[pl]||"";
+ let h="";
+ if(!pk.ready)h+=`<p class="note" style="margin:0 0 10px;color:#B42318">Not ready yet — missing: ${(pk.missing||[]).map(x=>esc(x.what||x.key)).join("; ")}. Push again in a moment.</p>`;
+ const fl=Object.keys(files).map(k=>{const f=files[k];return f&&f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener" download="${esc(f.filename||k)}">⬇ ${esc(f.filename||k)}${f.width?` <span class="note" style="margin:0">${f.width}×${f.height}</span>`:""}</a>`:""}).join("");
+ if(fl)h+=`<div class="pkFiles">${fl}</div><p class="note" style="margin:4px 0 10px">Links expire ${pk.expires_at?"at "+esc(String(pk.expires_at).replace("T"," ").slice(0,16))+" UTC":"in one hour"} — download now or package the files.</p>`;
+ h+=(rb.steps||[]).map(s=>`<div class="pkStep"><b>${+s.n||""}</b><div><div style="font-weight:500">${esc(s.title||"")}</div><div class="note" style="margin:0">${esc(s.detail||"")}</div></div></div>`).join("");
+ if(pk.scripts){Object.keys(pk.scripts).forEach(k=>{h+=`<p class="note" style="margin:12px 0 4px"><b>${esc(k==="windows_ps1"?"Intune platform script (Windows PowerShell)":k==="macos_sh"?"macOS shell script (Intune / Jamf)":k)}</b> <button class="btn-quiet" data-copy="${esc(k)}" style="padding:3px 8px;font-size:11px">Copy</button></p><textarea class="pkScript" readonly data-script="${esc(k)}">${esc(pk.scripts[k])}</textarea>`})}
+ if(Array.isArray(pk.employees))h+=`<p class="note" style="margin:12px 0 0">Targets: ${pk.employees.length} ${pk.employees.length===1?"person":"people"}${pk.unknown_employee_ids&&pk.unknown_employee_ids.length?" · "+pk.unknown_employee_ids.length+" unknown":""}.</p>`;
+ $("#pkBody").innerHTML=h;m.style.display="flex";state.lastPack=pk}
+$("#pkClose").onclick=()=>{$("#packModal").style.display="none"};
+$("#pkBody").onclick=e=>{const b=e.target.closest("[data-copy]");if(!b)return;const ta=$("#pkBody").querySelector(`[data-script="${b.dataset.copy}"]`);if(!ta)return;
+ const done=()=>{b.textContent="Copied";setTimeout(()=>{b.textContent="Copy"},1600)};
+ try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(done,()=>{ta.select();done()});else{ta.select();document.execCommand&&document.execCommand("copy");done()}}catch(x){ta.select()}};
+/* ---- the chooser ---- */
+function chooserOpen(){return $("#teamChooser").style.display==="flex"}
+function openChooser(o){o=o||{};const conn=connectModel(),mode=teamMode(),ints=(state.team&&state.team.integrations)||[];
+ if(!conn){const err=state.team&&state.team.error,loading=!o.again&&!err;   /* v87: signed in, no read model yet — fetch it, never show the demo's cards */
+  $("#tcGrid").innerHTML=loading?`<p class="note" id="tcLoad" style="margin:0">Checking which platforms are ready…</p>`:`<p class="note" id="tcLoad" style="margin:0">Couldn’t check which platforms are ready${err?" ("+esc(err)+")":""}. <button class="btn-quiet" id="tcRetry" style="margin-left:6px">Try again</button></p>`;
+  $("#teamChooser").style.display="flex";if(!o.again)__mbTrack("upload_users_clicked",{mode});
+  if(loading)teamEnsure().then(()=>{if(chooserOpen())openChooser({again:true})});
+  return}
+ $("#tcGrid").innerHTML=["meet","teams","zoom"].map(p=>{const c=conn[p]||{},ok=!!c.configured,it=ints.find(i=>i&&i.platform===p),connected=!!(it&&it.status==="connected")||(mode!=="signed"&&state.team&&state.team.demo&&p==="zoom");
+  return `<div class="tc" data-plat="${p}" ${ok?"":"data-soon=\"1\""}><div class="tn">${esc(PLAT_NAME[p])}${ok&&mode!=="signed"?' <span class="note" style="margin:0;font-size:11px">sample</span>':""}</div><div class="td">${esc(c.delivery||DELIVERY[p])}</div>${ok?`<button class="tcb" data-choose="${p}">${connected?"Sync again":"Connect "+esc(PLAT_SHORT[p])}</button>`:`<div class="soon">Coming soon — we are completing the ${esc(PLAT_NAME[p])} listing</div><button class="tcb" data-notify="${p}">Notify me</button>`}</div>`}).join("");
+ $("#teamChooser").style.display="flex";__mbTrack("upload_users_clicked",{mode})}
+function closeChooser(){$("#teamChooser").style.display="none"}
+$("#uploadUsers").onclick=()=>openChooser();$("#uploadUsers2").onclick=()=>openChooser();$("#tcClose").onclick=closeChooser;
+$("#teamChooser").onclick=e=>{if(e.target===$("#teamChooser"))closeChooser()};
+$("#tcGrid").onclick=e=>{const rt=e.target.closest("#tcRetry");if(rt){rt.disabled=true;rt.textContent="Checking…";teamEnsure({force:true}).then(()=>{if(chooserOpen())openChooser({again:true})});return}const n=e.target.closest("[data-notify]");if(n){notifyMe(n.dataset.notify,n);return}const b=e.target.closest("[data-choose]");if(b)choose(b.dataset.choose)};
+function notifyMe(p,btn){__mbTrack("integration_interest",{platform:p});if(btn){btn.textContent="We’ll let you know";btn.disabled=true}toast("Noted — we’ll tell you when "+(PLAT_NAME[p]||p)+" is ready.")}
+async function choose(p){const conn=connectModel();if(!conn){toast("Still checking which platforms are ready — one moment.");return}const c=conn[p]||{};
+ if(!c.configured){notifyMe(p);return}
+ if(teamMode()!=="signed"){demoConnect(p);return}
+ const cl=cloud();__mbTrack("integration_connect_clicked",{platform:p});
+ try{const r=await cl.api("/api/team/connect","POST",{platform:p});closeChooser();toast("Taking you to "+(PLAT_NAME[p]||p)+" to authorize MeetingBrand…");cl.navigate(r.url)}
+ catch(e){if(e&&e.code==="not_configured"){if(state.team&&state.team.connect&&state.team.connect[p]){state.team.connect[p].configured=false;state.team.connect[p].missing=e.missing||[]}openChooser();toast((PLAT_NAME[p]||p)+" is not configured yet — we are completing the listing.")}else toast("Couldn’t start the "+(PLAT_NAME[p]||p)+" connection: "+errMsg(e))}}
+function demoConnect(p){if(p!=="zoom")return;
+ const ints=[{platform:"zoom",status:"connected",last_sync_at:new Date().toISOString(),employees:{total:SAMPLE_TEAM.length,active:SAMPLE_TEAM.length}}];
+ if(!EMPLOYEES.some(e=>e.sample))SAMPLE_TEAM.forEach(p2=>EMPLOYEES.push({id:p2.id,name:p2.name,title:p2.title,dept:p2.dept,email:p2.email,plat:"Zoom",platform:"zoom",st:"pend",sample:true,imported:false,active:false,push:null}));
+ EMPLOYEES.forEach(e=>{if(e.sample){e.imported=true;e.platform="zoom";e.plat="Zoom";e.active=true;e.push=null}});
+ state.team={demo:true,sample:true,connect:DEMO_CONNECT,integrations:ints,employees:[],fetched_at:Date.now()};
+ closeChooser();renderAll();__mbTrack("integration_connected_client",{platform:"zoom",demo:true,imported:SAMPLE_TEAM.length});
+ toast("Sample team imported — "+SAMPLE_TEAM.length+" people (sample data, nothing saved on a server).")}
+$("#teamPlats").onclick=async e=>{const s=e.target.closest("[data-sync]");if(s){syncNow(s.dataset.sync);return}const pa=e.target.closest("[data-packall]");if(pa)getPack(pa.dataset.packall,teamPeople().filter(x=>x.active&&x.platform===pa.dataset.packall).map(x=>x.id))};
+async function syncNow(p){if(teamMode()!=="signed"){toast("Sample data — nothing to sync.");return}if(state.teamBusy)return;
+ setBusy("Importing the "+(PLAT_NAME[p]||p)+" directory…");
+ try{const r=await cloud().api("/api/team/sync","POST",{platform:p});state.teamBusy="";await teamLoad({force:true,silent:true});toast((PLAT_NAME[p]||p)+": "+(+r.total||0)+" people · "+(+r.imported||0)+" new"+(r.stale?" · "+r.stale+" no longer in the directory":""))}
+ catch(e){toast("Sync failed: "+errMsg(e))}finally{setBusy("")}}
+/* ---- CSV ---- */
+function parseCSV(text){const rows=[];let row=[],f="",q=false;text=String(text||"").replace(/^﻿/,"");
+ for(let i=0;i<text.length;i++){const ch=text[i];
+  if(q){if(ch==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=ch}
+  else if(ch==='"')q=true;else if(ch===","||ch==="\t"||ch===";"){row.push(f);f=""}else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(f);rows.push(row);row=[];f=""}else f+=ch}
+ if(f.length||row.length){row.push(f);rows.push(row)}
+ return rows.filter(r=>r.some(c=>String(c).trim()))}
+function csvPeople(text){const rows=parseCSV(text);if(!rows.length)return [];
+ const hdr=rows[0].map(h=>String(h).trim().toLowerCase()),idx=names=>hdr.findIndex(h=>names.some(k=>h===k||h.startsWith(k)));
+ const iN=idx(["name","full name","full_name","fullname","employee","display"]),iE=idx(["email","e-mail","mail","upn"]),iT=idx(["title","job title","job_title","jobtitle","role","position"]),iD=idx(["department","dept","team","division"]);
+ const hasHdr=iN>=0||iE>=0,body=hasHdr?rows.slice(1):rows,g=(r,i)=>i>=0&&i<r.length?String(r[i]).trim():"";
+ return body.map(r=>hasHdr?{name:g(r,iN),email:g(r,iE),title:g(r,iT),dept:g(r,iD)}:{name:g(r,0),email:g(r,1),title:g(r,2),dept:g(r,3)}).map(p=>{if(!/@/.test(p.email)&&/@/.test(p.name)&&!p.email){p.email=p.name;p.name=""}return p}).filter(p=>p.name||/@/.test(p.email))}
+async function importCSV(text){const people=csvPeople(text);if(!people.length){toast("No people found — the CSV needs name and/or email columns.");return null}
+ __mbTrack("csv_uploaded",{count:people.length,demo:teamMode()!=="signed"});
+ if(teamMode()!=="signed"){let n=0;people.forEach(p=>{const ext=(p.email||("name:"+p.name)).toLowerCase(),id="csv:"+ext;let e=EMPLOYEES.find(x=>String(x.id)===id);if(!e){e={id,imported:true,platform:"csv",plat:"CSV",st:"on",push:null,active:true};EMPLOYEES.push(e);n++}e.name=p.name||p.email;e.title=p.title;e.dept=p.dept;e.email=p.email});
+  if(!state.team)state.team={demo:true,connect:DEMO_CONNECT,integrations:[],employees:[],fetched_at:Date.now()};closeChooser();renderAll();toast(people.length+" people from the CSV ("+n+" new) — kept in this browser only.");return {count:people.length}}
+ setBusy("Saving "+people.length+" people…");
+ try{const r=await cloud().api("/api/employees","PUT",{rows:people});state.teamBusy="";closeChooser();await teamLoad({force:true,silent:true});toast((+r.count||0)+" people imported from the CSV"+(r.skipped?" · "+r.skipped+" rows skipped":""));return r}
+ catch(e){toast("Couldn’t save the CSV: "+errMsg(e));return null}finally{setBusy("")}}
+$("#csvLink").onclick=e=>{e.preventDefault();$("#csvFile").click()};
+$("#csvFile").onchange=()=>{const f=$("#csvFile").files&&$("#csvFile").files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{importCSV(String(rd.result||""));$("#csvFile").value=""};rd.onerror=()=>toast("Couldn’t read the file.");rd.readAsText(f)};
+$("#rows").onclick=e=>{const t=e.target;
+ const a=t.closest("[data-act]");if(a){toggleActive(a.dataset.act);return}
+ const pu=t.closest("[data-push]");if(pu){pushTo([pu.dataset.push]);return}
+ const pk=t.closest("[data-pack]");if(pk){getPack(pk.dataset.pack,[pk.dataset.packId]);return}
+ const b=t.closest("[data-p]");if(!b)return;state.emp=empId(b.dataset.p);renderEmpSel();renderTiles();go("backgrounds")};
+function empId(v){v=String(v==null?"":v);return /^-?\d+$/.test(v)?+v:v}
+function renderEmpSel(){$("#empSel").innerHTML=EMPLOYEES.map(e=>`<option value="${esc(String(e.id))}" ${String(e.id)===String(state.emp)?"selected":""}>${esc(e.name)} — ${esc(e.title)}${e.you?" (you)":e.sample?" · sample":""}</option>`).join("")}   /* v85: the signed-in person first; v86: sample people only in the demo */
+$("#empSel").onchange=e=>{state.emp=empId(e.target.value);renderTiles()};
+$("#search").oninput=()=>renderTeam();
 $("#meSave").onclick=()=>{const n=String($("#meName").value||"").trim(),t=String($("#meTitle").value||"").trim();
  if(!n){toast("Enter your name.");$("#meName").focus();return}
  const em=(state.viewer&&state.viewer.email)||"";
  setViewer({name:n,title:t||"Admin",email:em,guessed:false},{});   /* fires 'viewer' -> mb-cloud persistProfile (signed-in) + the gate's draft */
  toast("Saved — the name bar uses it everywhere.")};
 $("#meName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#meSave").click()}};$("#meTitle").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#meSave").click()}};
-function deploy(){const pend=EMPLOYEES.filter(e=>e.st==="pend");if(!pend.length)return;
- __mbTrack("deploy_clicked",{platform:"all",count:pend.length,by_platform:pend.reduce((o,e)=>{const k=String(e.plat||"other").toLowerCase();o[k]=(o[k]||0)+1;return o},{})});
- $("#deployBtn").disabled=true;$("#goDeploy").disabled=true;
- pend.forEach((e,i)=>setTimeout(()=>{e.st="on";renderPeople([e.id]);},220*i));
- setTimeout(()=>{state.org.on=state.org.total;ring(true);renderPeople();toast("Everyone is on brand. "+state.org.total.toLocaleString()+" of "+state.org.total.toLocaleString()+" deployed.")},220*pend.length+250)}
-$("#deployBtn").onclick=deploy;
-$("#goDeploy").onclick=()=>{go("people");setTimeout(deploy,420)};
+$("#deployBtn").onclick=pushAll;
+$("#goDeploy").onclick=()=>{go("people");if(teamPeople().some(e=>e.active&&e.platform==="zoom"&&!delivered(e)))setTimeout(pushAll,420)};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if($("#teamChooser").style.display==="flex")closeChooser();if($("#packModal").style.display==="flex")$("#packModal").style.display="none"}});
 
 function fmtD(v){return v?new Date(v).toLocaleDateString("en-US",{month:"short",day:"numeric"}):"TBD"}
 function renderCamps(){if(typeof syncRib==="function")setTimeout(syncRib,0);$("#campList").innerHTML=campaigns.map((c,i)=>`<div class="camp ${c.active?"on":""}"><div class="rail"></div><div style="flex:1"><div class="cn">${esc(c.name)}</div><div class="cd">ends ${esc(c.end)} · meeting backgrounds + email banners</div></div><button class="switch ${c.active?"on":""}" role="switch" aria-checked="${c.active}" aria-label="Toggle ${esc(c.name)}" data-ci="${i}"></button></div>`).join("");
@@ -2380,13 +2631,17 @@ $("#cAdd").onclick=()=>{const n=$("#cName").value.trim();if(!n){toast("Give the 
  campaigns.forEach(c=>c.active=false);campaigns.unshift({name:n,end:fmtD($("#cEnd").value),active:true});
  $("#cName").value="";renderCamps();renderTiles();toast("Campaign scheduled on every surface.")};
 
-function renderBars(){const d=[["W1",62],["W2",71],["W3",78],["W4",86],["W5",92],["W6",96]];
- $("#bars").innerHTML=d.map(([w,v])=>`<div class="bar" style="height:${v}%"><i>${v}%</i><b>${w}</b></div>`).join("")}
-function renderHbars(){const d=[["Google Meet",98],["Zoom",97],["Microsoft Teams",89]];
- $("#hbars").innerHTML=d.map(([k,v])=>`<div class="hbar"><div class="hk"><span>${k}</span><b>${v}%</b></div><div class="tr"><div class="fl" data-w="${v}"></div></div></div>`).join("")}
+/* v86: Analytics derives from the same team data — nothing invented */
+function renderBars(){const by={};teamPeople().forEach(e=>{if(!e.active)return;const k=e.dept||"No department";const o=by[k]=by[k]||{a:0,on:0};o.a++;if(delivered(e))o.on++});
+ const d=Object.keys(by).sort((x,y)=>by[y].a-by[x].a).slice(0,6).map(k=>[k,Math.round(by[k].on/by[k].a*100)]);
+ $("#bars").innerHTML=d.map(([w,v])=>`<div class="bar" style="height:${Math.max(4,v)}%"><i>${v}%</i><b>${esc(w)}</b></div>`).join("");
+ const st=teamStats();$("#barsNote").textContent=d.length?(st.demo?"Sample data — no server connected.":"From your directory and the push log."):"No data yet — import your people in My team."}
+function renderHbars(){const st=teamStats(),d=Object.keys(st.byPlat).map(k=>[PLAT_NAME[k]||k,st.byPlat[k].active?Math.round(st.byPlat[k].on/st.byPlat[k].active*100):0,st.byPlat[k]]);
+ $("#hbars").innerHTML=d.map(([k,v,o])=>`<div class="hbar"><div class="hk"><span>${esc(k)} <span class="note" style="margin:0;font-size:11px">${o.on} of ${o.active} active</span></span><b>${v}%</b></div><div class="tr"><div class="fl" data-w="${v}" style="width:${v}%"></div></div></div>`).join("");
+ $("#hbarsNote").textContent=d.length?(st.demo?"Sample data — no server connected.":"Delivered = the latest push is pushed, awaiting the person’s one-time pick, available or selected."):"No platform connected yet."}
 
 const C=2*Math.PI*52;
-function ring(anim){const pct=state.org.on/state.org.total;const fg=$("#ringFg");
+function ring(anim){const pct=state.org.total?state.org.on/state.org.total:0;const fg=$("#ringFg");   /* v86: 0 of 0 = 0%, never NaN */
  fg.style.strokeDasharray=C;
  if(!anim)fg.style.strokeDashoffset=C;
  requestAnimationFrame(()=>fg.style.strokeDashoffset=C*(1-pct));
@@ -2512,7 +2767,7 @@ $("#brandNameIn").oninput=()=>{const b=state.brand;if(!b)return;
  const ta=$("#brandNameIn");ta.style.height="auto";ta.style.height=Math.min(72,ta.scrollHeight)+"px";
  const v2=ta.value.replace(/\n{2,}/g,"\n").trim();
  b.wallText=v2;if(v2)b.name=v2;
- renderVariants();renderTiles();if(typeof renderPeople==="function")renderPeople()};
+ renderVariants();renderTiles();if(typeof renderTeam==="function")renderTeam()};
 $("#logoUrlBtn").onclick=async()=>{const b=state.brand;
  if(!b){toast("Connect a brand first.");return}
  const u2=(window.prompt("Paste a direct image URL for the logo (right-click the logo on the site → Copy image address):","")||"").trim();
@@ -2699,12 +2954,13 @@ function applyColorInputs(){if(!state.brand){state.brand={domain:"custom",name:"
  state.brand.primary=$("#cPrim").value;state.brand.secondary=$("#cSec").value;applyBrand(state.brand)}
 $("#cPrim").oninput=applyColorInputs;$("#cSec").oninput=applyColorInputs;
 
-const META={overview:["Overview","Your brand, live in every meeting"],brandtab:["Brand","The identity every background is built from"],backgrounds:["Backgrounds","Real scenes and templates, on your brand"],campaigns:["Campaigns","One campaign, every surface"],people:["People","Who is on brand right now"],analytics:["Analytics","Proof the brand is showing up"]};
+const META={overview:["Overview","Your brand, live in every meeting"],brandtab:["Brand","The identity every background is built from"],backgrounds:["Backgrounds","Real scenes and templates, on your brand"],campaigns:["Campaigns","One campaign, every surface"],people:["My team","Everyone who should be on brand"],analytics:["Analytics","Proof the brand is showing up"]};
 function go(v){__mbFire("go",v);$$(".nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
  $$(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
  $("#tTitle").textContent=META[v][0];$("#tSub").textContent=META[v][1];
  if(v==="overview"){ring(true);if(!state.counted.m){countUp($("#stMeet"),state.meet,1100);state.counted.m=1}}
- if(v==="analytics"){requestAnimationFrame(()=>{$("#bars").classList.add("go");$$("#hbars .fl").forEach(f=>f.style.width=f.dataset.w+"%")});if(!state.counted.i){countUp($("#stImp"),state.imp,1100);state.counted.i=1}}}
+ if(v==="people"){try{teamEnsure()}catch(e){}}   /* v87: opening My team reads the live model when signed in and nothing fresh is held (60 s) */
+ if(v==="analytics"){requestAnimationFrame(()=>{$("#bars").classList.add("go");$$("#hbars .fl").forEach(f=>f.style.width=f.dataset.w+"%")});if(typeof renderTeam==="function")renderTeam()}}   /* v86: People imported / Active derive from the team on every visit (the v71 impressions tween is gone) */
 $$(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
 $$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 
@@ -2973,7 +3229,7 @@ $("#dl").onclick=async()=>{if(document.fonts&&document.fonts.ready)await documen
 
 applyBrand(mbBrand());   /* v83: the boot (demo) brand is MeetingBrand's own brand — the same object the gate uses as the fallback */
 window.__PRESENCE_DEBUG={clearLogo:(b)=>buildClearLogo(b),svgDims:(u)=>svgDims(u),svgRaster:(u,l)=>svgRaster(u,l),brandRec:()=>dbBrandGet(),sceneSrc:(id)=>{const s2=SCENES.find(x2=>x2.id===id);return s2?baseSrc(s2):null},localBakeGraph:(n,p,s)=>localBakeGraph(n,p,s),localGraph:(p,s)=>localGraph(p,s),localProbe:(ms)=>localProbe(ms),warp:(d3,s3,r3,z3)=>perspStrips(d3,s3,r3,z3),scrapeTargets:(r3,d3)=>scrapeTargets(r3,d3),pixelRoutes:u2=>pixelRoutes(u2),parseLogos:(h2,b2)=>parseSiteLogos(h2,b2),rebuild:(c2,w2,h2)=>rebuildTinyMark(c2,w2,h2),lights:(id,pts)=>{const s=SCENES.find(x2=>x2.id===id);if(!s)return null;if(pts!==undefined){if(pts&&pts.length)ensureAdj(s).lights=pts.slice(0,6);else if(s.adj)delete s.adj.lights;persistAdj(s)}return (s.adj&&s.adj.lights)||[]},lt:id=>{const s=SCENES.find(x2=>x2.id===id);return s&&s._lt},light:id=>{const s=SCENES.find(x2=>x2.id===id);return s&&lightOf(s)},sample:id=>{const s=SCENES.find(x2=>x2.id===id);if(s)sampleLight(s)},brand:()=>state.brand,setLogo:u=>{if(!state.brand)return;state.brand.logo={src:u,ok:true,safe:true};state.brand.logoClear=false;if(state.brand.logo)state.brand.logo.clearSrc=null;renderBrandUI();renderVariants();renderTiles()}};
-renderEmpSel();renderDepts();renderPeople();renderCamps();renderBars();renderHbars();syncLogoX();syncRib();ring(true);
+renderEmpSel();renderDepts();renderTeam();renderCamps();renderBars();renderHbars();syncLogoX();syncRib();ring(true);
 sampleLight(scene());learnRoom(scene());
 dbBrandGet().then(rec=>{if(!rec||!rec.key)return;__brandRec=rec;if(applyBrandRec(state.brand)){__brandRec=null;renderBrandUI();renderVariants();renderLogoRow();renderTiles()}}).catch(()=>{});   /* v85 (3): the local logo record, before or after the draft/session brand */
 dbAll().then(list=>{if(list&&list.length){list.forEach(s=>{s.custom=true;if(s.fgv===2&&s.fgData){s._fg=s.fgData;s._fgAI=true;s._fgDone=true;if(s.wallData)s.wallSrc=s.wallData}else{delete s.fgData;delete s.wallData}SCENES.push(s)});renderVariants();renderAssets()}
@@ -2985,7 +3241,7 @@ dbAll().then(list=>{if(list&&list.length){list.forEach(s=>{s.custom=true;if(s.fg
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <script id="mb-cloud">
-/* MeetingBrand cloud layer (v85, 2026-09-15) — the ProSignature api() shim over Supabase, no UI (the UI is engine/mb-gate.js).
+/* MeetingBrand cloud layer (v87, 2026-09-16) — the ProSignature api() shim over Supabase, no UI (the UI is engine/mb-gate.js).
    Source of truth: engine/mb-cloud.js; build-vNN.py inlines it as the script block id="mb-cloud" right before the end
    of body, after the pinned supabase-js script tag. Contract (ps-auth map §1-2, §11):
    - window.__MB = engine/mb-config.json (empty url/key = OFFLINE demo mode; a pre-existing window.__MB overrides).
@@ -3063,7 +3319,35 @@ dbAll().then(list=>{if(list&&list.length){list.forEach(s=>{s.custom=true;if(s.fg
        scene by the app (sc._adjDefault=true). loadSession: a saved backgrounds row REPLACES a seeded default (the user's
        row always wins); a scene the user touched in this browser keeps the v77 merge (local keys win, server fills gaps);
        a look with no row keeps the default. persistBackground therefore writes the default the first time it saves a scene.
-   (2) brandPayload keeps up to 6 remote candidates (the app's logoOpts cap is 6 since v85; 7 with the 'Selected' entry). */
+   (2) brandPayload keeps up to 6 remote candidates (the app's logoOpts cap is 6 since v85; 7 with the 'Selected' entry).
+   v87 — no contract change: /api/join-org drops the cached team read model (the org changes under it); the app (build-v87.py)
+   now asks for the read model right after a fresh signup and on opening My team (60 s cache) — loadSession still hands it over.
+   v86 — MY TEAM (PROJECT.md 'MY TEAM SPEC -> v86'): the data half of the tab; the UI lives in the app IIFE (build-v86.py).
+   - fnCall(url, method, body): the ONLY raw fetch to <supabaseUrl>/functions/v1/* (the events insert stays the only one
+     to /rest/v1/*). Bearer = the user's own access token (every Edge Function verifies it itself via GoTrue — the project
+     signs ES256), apikey = the publishable key. A non-2xx answer throws an Error with .status/.code/.detail/.missing
+     (the functions' {error, detail, missing} body), so 503 not_configured {missing:[…]} reaches the UI as 'Coming soon'.
+   - GET /api/team (cached 60 s, {force:true} bypasses): mb-integrations' read model (connect.{zoom,teams,meet} with
+     configured/missing/start_url/finish_url/sync_url/push_url|pack_url/delivery, integrations[], last_pushes) + the org's
+     mb.employees rows (RLS: members read) + the latest mb.pushes row per employee -> employees[].push {state,error,…}.
+   - POST /api/team/connect {platform}: refuses (503 not_configured + missing) while the platform's app credentials are
+     absent; otherwise GET <start_url> with the Bearer -> {url} (the app navigates through __MB_CLOUD.navigate — a plain
+     property so tests stub it; the default assigns window.location). The start endpoint needs the Bearer, which a
+     top-level navigation cannot carry — hence fetch-then-redirect.
+   - teamReturn(): #integrations=<p>&status=pending&code|tenant&state (the callback redirect) -> POST <finish_url> with the
+     Bearer {code|tenant, state} -> POST <sync_url> -> hash cleared -> app.teamLoad({force}) + go('people') + toast; runs
+     after every successful loadSession (idempotent, once per hash); status=error&reason=… -> toast + hash cleared + event
+     integration_error. Never before the session exists (a login is the gate's job; the hash survives it).
+   - POST /api/team/sync {platform}, POST /api/team/push {background_id, employee_ids} (Zoom, ≤50 per call, chunked),
+     POST /api/team/pack {platform, background_id, employee_ids?} (Teams/Meet runbooks + signed URLs), PUT /api/employees
+     {rows:[{name,email,title,dept}]} (CSV: upsert mb.employees platform 'csv', ext_id = the e-mail or 'name:<slug>',
+     active true — mb-008 gives admins the INSERT policy and lets them edit their own CSV rows), PATCH /api/employee
+     {id, active} (the per-row toggle; employees_admin_update).
+   - persistExports(sc, dataUrl): the three CLIENT-rendered delivery files the push/pack functions need (mb-export-pack
+     header): 1920x1080 PNG (kind export -> backgrounds.export_asset_id), 280x158 PNG thumb (kind thumb ->
+     thumb_asset_id) and 1920x1080 JPEG (kind export_jpg -> export_jpg_asset_id) into mb-exports/<org>/<bgId>{.png,
+     _thumb.png,.jpg} (upsert) + brand_assets rows; signed-in only; throws on failure (the caller shows one toast).
+     Every write is cached on the scene (sc._exportIds / sc._exportSig) so a repeat push re-uploads only after a change. */
 window.__MB=Object.assign({"supabaseUrl":"https://ohobtgbyrlczfdztzvqi.supabase.co","supabaseAnonKey":"sb_publishable_H3hDKJRE0oOH7dkg7496Rw_trmUMPW9","googleClientId":"","ga4Id":"","supabaseJs":"2.116.0","product":"meetingbrand","schema":"mb"},window.__MB||{});
 (function(){
 "use strict";
@@ -3160,7 +3444,7 @@ async function api(p,method,bodyObj){
   if(lr.error)throw (lr.error.message||'Login failed');
   _me=null;return {ok:true};
  }
- if(p==='/api/logout'&&M==='POST'){await sb.auth.signOut();_me=null;_org=null;_signed=false;_noProfile=null;return {ok:true};}
+ if(p==='/api/logout'&&M==='POST'){await sb.auth.signOut();_me=null;_org=null;_signed=false;_noProfile=null;teamInvalidate();return {ok:true};}
  /* invite link: anon RPC, returns {org_name,email,role} or null when the token is unknown/expired (CC invite_info) */
  if(p==='/api/invite'&&M==='GET'){
   var tok=String(B.token||'');if(!/^[0-9a-f-]{36}$/i.test(tok))return null;
@@ -3200,7 +3484,7 @@ async function api(p,method,bodyObj){
   /* join an org whose settings.domain_join is 'open' (SECURITY DEFINER mb.join_org_by_domain(p_org_id) re-checks the email domain + the flag server-side) */
   var jr=await sb.rpc('join_org_by_domain',{p_org_id:String(B.org_id||'')});
   if(jr.error)throw jr.error.message;
-  _me=null;_org=null;return {ok:true,org_id:String(B.org_id||'')};
+  _me=null;_org=null;teamInvalidate();return {ok:true,org_id:String(B.org_id||'')};   /* v87: the team read model belongs to the org just left */
  }
  if(p==='/api/profile'&&M==='PUT'){
   var pu=await sb.from('profiles').update({full_name:B.name||'',title:B.title||'',email:B.email||m2.email}).eq('id',m2.uid);
@@ -3224,7 +3508,180 @@ async function api(p,method,bodyObj){
   if(ur.error)throw ur.error.message;
   return {ok:true,id:rec.id};
  }
+ /* ---------- v86: My team ---------- */
+ if(p==='/api/team'&&M==='GET')return teamRead(!!B.force);
+ if(p==='/api/team/connect'&&M==='POST'){
+  var pl=platformOf(B.platform),c1=await connectFor(pl);
+  if(!c1.configured)throw fnErr(503,'not_configured','',c1.missing||[]);
+  var st=await fnCall(c1.start_url,'GET');
+  if(!st||typeof st.url!=='string'||!/^https:\/\//i.test(st.url))throw fnErr(0,'no_start_url','the start endpoint returned no url',[]);
+  return {url:st.url,platform:pl,finish_url:c1.finish_url||null};
+ }
+ if(p==='/api/team/finish'&&M==='POST'){
+  var pl2=platformOf(B.platform),c2=await connectFor(pl2);
+  var fb=pl2==='teams'?{tenant:String(B.tenant||''),state:String(B.state||'')}:{code:String(B.code||''),state:String(B.state||'')};
+  var fr2=await fnCall(c2.finish_url,'POST',fb);teamInvalidate();return fr2;
+ }
+ if(p==='/api/team/sync'&&M==='POST'){
+  var pl3=platformOf(B.platform),c3=await connectFor(pl3);
+  var sr=await fnCall(c3.sync_url,'POST',{});teamInvalidate();return sr;
+ }
+ if(p==='/api/team/push'&&M==='POST'){
+  var c4=await connectFor('zoom'),ids=uniqIds(B.employee_ids),bg=String(B.background_id||'');
+  if(!bg||!ids.length)throw fnErr(400,'bad_request','background_id and employee_ids are required',[]);
+  var all={background_id:bg,results:[],counts:{},next_step:null,file:null};
+  for(var i5=0;i5<ids.length;i5+=PUSH_CHUNK){
+   var chunk=ids.slice(i5,i5+PUSH_CHUNK),pr5=await fnCall(c4.push_url,'POST',{background_id:bg,employee_ids:chunk});
+   (pr5&&pr5.results||[]).forEach(function(r){all.results.push(r)});
+   Object.keys((pr5&&pr5.counts)||{}).forEach(function(k){all.counts[k]=(all.counts[k]||0)+(+pr5.counts[k]||0)});
+   if(pr5&&pr5.next_step)all.next_step=pr5.next_step;if(pr5&&pr5.file)all.file=pr5.file;
+  }
+  teamInvalidate();return all;
+ }
+ if(p==='/api/team/pack'&&M==='POST'){
+  var pl6=platformOf(B.platform),c6=await connectFor(pl6);
+  if(!c6.pack_url)throw fnErr(400,'unsupported_platform',pl6+' has no delivery pack (Zoom pushes by API)',[]);
+  var pb={background_id:String(B.background_id||''),platform:pl6};var ids6=uniqIds(B.employee_ids);if(ids6.length)pb.employee_ids=ids6;
+  var pk=await fnCall(c6.pack_url,'POST',pb);teamInvalidate();return pk;
+ }
+ if(p==='/api/employees'&&M==='PUT'){
+  var rows=(Array.isArray(B.rows)?B.rows:[]).map(csvRow).filter(Boolean),seenX={},recs=[];
+  rows.forEach(function(r){if(seenX[r.ext_id])return;seenX[r.ext_id]=1;recs.push({org_id:m2.org_id,platform:'csv',ext_id:r.ext_id,email:r.email,name:r.name,title:r.title,dept:r.dept,active:true})});
+  recs=recs.slice(0,CSV_MAX);
+  for(var i7=0;i7<recs.length;i7+=CSV_CHUNK){var ur7=await sb.from('employees').upsert(recs.slice(i7,i7+CSV_CHUNK),{onConflict:'org_id,platform,ext_id'});if(ur7.error)throw ur7.error.message}
+  teamInvalidate();return {ok:true,count:recs.length,skipped:rows.length-recs.length};
+ }
+ if(p==='/api/employee'&&M==='PATCH'){
+  var eid=String(B.id||'');if(!eid)throw 'bad_request';
+  var eu=await sb.from('employees').update({active:!!B.active}).eq('id',eid).eq('org_id',m2.org_id);
+  if(eu.error)throw eu.error.message;teamInvalidate();return {ok:true,id:eid,active:!!B.active};
+ }
  throw ('Unknown endpoint '+M+' '+p);
+}
+
+/* ---------- v86: My team — read model, connectors, pushes, packs, CSV, exports (see the header) ---------- */
+var TEAM_TTL_MS=60000,PUSH_CHUNK=50,CSV_MAX=2000,CSV_CHUNK=500,_team={at:0,data:null,p:null},_returnHash='',_returnBusy=false,_lastReturn=null;
+var TEAM_PLATFORMS=['zoom','teams','meet'];
+function platformOf(v){v=String(v||'').toLowerCase();if(TEAM_PLATFORMS.indexOf(v)<0)throw fnErr(400,'unsupported_platform','platform must be zoom, teams or meet',[]);return v}
+function fnUrl(name){return String(CFG.supabaseUrl).replace(/\/+$/,'')+'/functions/v1/'+name}
+function fnErr(status,code,detail,missing){var e=new Error(String(code)+(detail?': '+detail:''));e.status=+status||0;e.code=String(code);e.detail=detail||'';e.missing=Array.isArray(missing)?missing.slice():[];return e}
+async function bearer(){var s=await sbc().auth.getSession();var t=s&&s.data&&s.data.session&&s.data.session.access_token;if(!t)throw 'NOSESSION';return t}
+async function fnCall(url,method,body){
+ var tok=await bearer(),M=String(method||'GET').toUpperCase();
+ var h={apikey:String(CFG.supabaseAnonKey),Authorization:'Bearer '+tok,Accept:'application/json'},init={method:M,headers:h};
+ if(M!=='GET'&&M!=='HEAD'){h['Content-Type']='application/json';init.body=JSON.stringify(body||{})}
+ var r;try{r=await fetch(url,init)}catch(e){throw fnErr(0,'network',String(e&&e.message||e),[])}
+ var j=null;try{j=await r.json()}catch(e){j=null}
+ if(!r.ok)throw fnErr(r.status,(j&&j.error)||('http_'+r.status),(j&&(j.detail||j.message))||'',(j&&j.missing)||[]);
+ return j;
+}
+function uniqIds(a){var s={},o=[];(Array.isArray(a)?a:[]).forEach(function(x){x=String(x||'');if(x&&!s[x]){s[x]=1;o.push(x)}});return o}
+function teamInvalidate(){_team={at:0,data:null,p:null}}
+async function connectFor(pl){var tm=await teamRead(false),c=tm&&tm.connect&&tm.connect[pl];if(!c)throw fnErr(0,'unsupported_platform','no read model for '+pl,[]);return c}
+async function teamRead(force){
+ if(!force&&_team.data&&Date.now()-_team.at<TEAM_TTL_MS)return _team.data;
+ if(_team.p)return _team.p;
+ _team.p=(async function(){
+  var m=await me(),sb=sbc();
+  var rm=await fnCall(fnUrl('mb-integrations'),'GET');
+  var er=await sb.from('employees').select('id,platform,ext_id,email,name,title,dept,active,assigned_bg,synced_at,updated_at').eq('org_id',m.org_id).order('name',{ascending:true}).limit(CSV_MAX);
+  if(er.error)throw er.error.message;
+  var pr=await sb.from('pushes').select('id,employee_id,background_id,platform,state,error,updated_at').eq('org_id',m.org_id).order('updated_at',{ascending:false}).limit(4000);
+  if(pr.error)throw pr.error.message;
+  var latest={};(pr.data||[]).forEach(function(p){if(p&&p.employee_id&&!latest[p.employee_id])latest[p.employee_id]=p});
+  var emps=(er.data||[]).map(function(e){var p=latest[e.id]||null;return Object.assign({},e,{push:p?{state:p.state,error:p.error||null,background_id:p.background_id,updated_at:p.updated_at}:null})});
+  var data={org_id:m.org_id,role:(rm&&rm.role)||m.role,connect:(rm&&rm.connect)||{},integrations:(rm&&rm.integrations)||[],employees:emps,last_pushes:(rm&&rm.last_pushes)||[],fetched_at:Date.now(),demo:false};
+  _team={at:Date.now(),data:data,p:null};return data;
+ })();
+ try{return await _team.p}catch(e){_team.p=null;throw e}
+}
+function csvSlug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)}
+function csvRow(r){
+ if(!r||typeof r!=='object')return null;
+ var name=String(r.name||'').trim().slice(0,200),email=String(r.email||'').trim().toLowerCase().slice(0,320),title=String(r.title||'').trim().slice(0,200),dept=String(r.dept||r.department||'').trim().slice(0,200);
+ if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))email='';
+ if(!name&&!email)return null;
+ return {ext_id:email||('name:'+csvSlug(name)),email:email||null,name:name||null,title:title||null,dept:dept||null};
+}
+function hashParams(){var h='';try{h=String(location.hash||'')}catch(e){}if(h.charAt(0)!=='#')return null;var o={};h.slice(1).split('&').forEach(function(kv){var i=kv.indexOf('='),k=i<0?kv:kv.slice(0,i),v=i<0?'':kv.slice(i+1);try{k=decodeURIComponent(k);v=decodeURIComponent(v)}catch(e){}if(k)o[k]=v});return o}
+function clearHash(){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+/* the OAuth return: #integrations=<platform>&status=pending|error&… (mb-oauth-* callbacks) — see the header */
+async function teamReturn(){
+ var q=hashParams(),h='';try{h=String(location.hash||'')}catch(e){}
+ if(!q||!q.integrations||TEAM_PLATFORMS.indexOf(String(q.integrations).toLowerCase())<0)return null;
+ if(_returnBusy||_returnHash===h)return null;
+ var pl=String(q.integrations).toLowerCase(),a=APP(),name={zoom:'Zoom',teams:'Microsoft Teams',meet:'Google Meet'}[pl];
+ if(q.status==='error'){_returnHash=h;clearHash();var reason=String(q.reason||'unknown').slice(0,60);toast(name+' connection failed ('+reason.replace(/_/g,' ')+'). Try again from My team.');track('integration_error',{platform:pl,reason:reason});_lastReturn={platform:pl,status:'error',reason:reason};try{if(a&&a.go)a.go('people')}catch(e){}return _lastReturn}
+ if(q.status!=='pending')return null;
+ if(!_signed||_noProfile)return null;                                  /* the gate signs in first; the hash survives it */
+ _returnBusy=true;_returnHash=h;
+ try{
+  var body={platform:pl,state:q.state||''};if(pl==='teams')body.tenant=q.tenant||'';else body.code=q.code||'';
+  toast('Finishing the '+name+' connection…');
+  var fin=await api('/api/team/finish','POST',body);
+  clearHash();
+  var sync=null;try{sync=await api('/api/team/sync','POST',{platform:pl})}catch(e){toast(name+' connected, but the directory import failed: '+errText(e)+'. Use Sync in My team.');track('integration_sync_failed',{platform:pl,code:errCode(e)})}
+  track('integration_connected_client',{platform:pl,imported:sync?+sync.total||0:null});
+  _lastReturn={platform:pl,status:'connected',finish:fin,sync:sync};
+  try{if(a&&a.teamLoad)await a.teamLoad({force:true})}catch(e){}
+  try{if(a&&a.go)a.go('people')}catch(e){}
+  toast(name+' connected'+(sync?' · '+(+sync.total||0)+' '+((+sync.total||0)===1?'person':'people')+' imported':''));
+  return _lastReturn;
+ }catch(e){
+  clearHash();toast('Couldn’t finish the '+name+' connection: '+errText(e)+'. Try again from My team.');track('integration_error',{platform:pl,reason:errCode(e)});
+  _lastReturn={platform:pl,status:'error',reason:errCode(e)};try{if(a&&a.go)a.go('people')}catch(e2){}return _lastReturn;
+ }finally{_returnBusy=false}
+}
+function errCode(e){return String((e&&e.code)||(e&&e.message)||e||'error').slice(0,60)}
+function errText(e){if(e&&e.code==='not_configured')return 'not configured yet';var d=e&&(e.detail||e.message);return String(d||e||'error').slice(0,140)}
+function defaultNavigate(u){try{window.location.assign(u);return true}catch(e){return false}}
+/* ---------- v86: the client-rendered delivery files (export PNG, Teams thumb, Meet JPEG) -> mb-exports ---------- */
+var EXPORT_BUCKET='mb-exports',EXPORT_W=1920,EXPORT_H=1080,THUMB_W=280,THUMB_H=158;
+function imgBytes(url,w,h,mime){
+ return new Promise(function(res,rej){
+  try{var im=new Image();
+   im.onload=function(){try{var cv=document.createElement('canvas');cv.width=w;cv.height=h;var x=cv.getContext('2d');if(mime==='image/jpeg'){x.fillStyle='#000';x.fillRect(0,0,w,h)}x.drawImage(im,0,0,w,h);
+     var b64=String(cv.toDataURL(mime,mime==='image/jpeg'?0.9:undefined)).split(',')[1]||'',bin=atob(b64),n=bin.length,u8=new Uint8Array(n);for(var i=0;i<n;i++)u8[i]=bin.charCodeAt(i);res(u8)}catch(e){rej(e)}};
+   im.onerror=function(){rej('decode')};im.src=url}
+  catch(e){rej(e)}
+ });
+}
+function exportSig(sc){var st=APP()&&APP().state(),b=st&&st.brand;return JSON.stringify([sc&&sc.id,sc&&sc.adj||null,b&&b.domain,b&&b.fallbackFor,b&&b.wallText,b&&b.logo&&b.logo.src&&String(b.logo.src).slice(0,120),b&&b.logoClear,st&&st.signFont&&st.signFont.fam])}
+async function persistExports(sc,url){
+ if(!_signed||_loading||_noProfile||!online())throw 'NOSESSION';
+ if(!sc||!sc.id||typeof url!=='string'||!/^data:image\//.test(url))throw 'no_export_source';
+ var sb=sbc(),m=await me();
+ var row=bgPayload(sc),pr=await api('/api/background','PUT',row),bgId=(pr&&pr.id)||row.id;
+ sc._cloudId=bgId;_bgIds[sc.id]=bgId;
+ var base=m.org_id+'/'+bgId,st=APP()&&APP().state(),b=st&&st.brand;
+ var kinds=[{kind:'export',path:base+'.png',mime:'image/png',w:EXPORT_W,h:EXPORT_H,col:'export_asset_id'},
+            {kind:'thumb',path:base+'_thumb.png',mime:'image/png',w:THUMB_W,h:THUMB_H,col:'thumb_asset_id'},
+            {kind:'export_jpg',path:base+'.jpg',mime:'image/jpeg',w:EXPORT_W,h:EXPORT_H,col:'export_jpg_asset_id'}];
+ var out={background_id:bgId},upd={};
+ for(var i=0;i<kinds.length;i++){var k=kinds[i];
+  var bytes=await imgBytes(url,k.w,k.h,k.mime);
+  var up=await sb.storage.from(EXPORT_BUCKET).upload(k.path,bytes,{contentType:k.mime,upsert:true,cacheControl:'3600'});
+  if(up&&up.error)throw (up.error.message||'upload failed');
+  var ex=await sb.from('brand_assets').select('id').eq('bucket',EXPORT_BUCKET).eq('storage_path',k.path).limit(1);
+  if(ex.error)throw ex.error.message;
+  var aid=ex.data&&ex.data[0]&&ex.data[0].id;
+  if(!aid){var wr=await sb.from('brand_assets').insert({org_id:m.org_id,brand_id:(b&&b._cloudId)||null,kind:k.kind,bucket:EXPORT_BUCKET,storage_path:k.path,mime:k.mime,width:k.w,height:k.h,bytes:bytes.length}).select('id');
+   if(wr.error)throw wr.error.message;aid=wr.data&&wr.data[0]&&wr.data[0].id}
+  if(!aid)throw 'no asset id';
+  upd[k.col]=aid;out[k.kind]=aid;out[k.kind+'_bytes']=bytes.length;
+ }
+ var bu=await sb.from('backgrounds').update(upd).eq('id',bgId);
+ if(bu.error)throw bu.error.message;
+ sc._exportIds=out;sc._exportSig=exportSig(sc);sc._exportAt=Date.now();
+ return out;
+}
+/* render (through the app's export sink, name bar off) + upload unless the scene's exports are current */
+async function ensureExports(sc){
+ if(!sc)throw 'no_scene';
+ if(sc._exportIds&&sc._exportIds.export&&sc._exportSig===exportSig(sc))return sc._exportIds;
+ var a=APP();if(!a||!a.renderLook)throw 'no_renderer';
+ var url=await a.renderLook(sc.id,{bar:false});
+ return persistExports(sc,url);
 }
 
 /* signup card doubles as login (PS realAuth): 'new' | 'login' | 'demo' */
@@ -3359,10 +3816,12 @@ async function loadSession(){
    flagged.forEach(function(sc){sc._starter=true});
    _restored=flagged.length;j.restoredStarters=_restored;
    try{if(a.setViewer&&j.user)a.setViewer({name:j.user.name||'',title:j.user.title||'',email:j.user.email||''},{silent:true})}catch(e){}   /* v85 (1): the signed-in person is the first employee; silent = never written back on load */
+   try{if(a.teamLoad)a.teamLoad({silent:true})}catch(e){}   /* v86: My team (non-blocking; a failed read leaves the empty state) */
    try{a.refresh()}catch(e){}
   }
  }finally{_loading=false}
  try{var a2=APP();if(a2&&a2.fire)a2.fire('session',j)}catch(e){}
+ try{teamReturn().catch(function(){})}catch(e){}   /* v86: an OAuth return (#integrations=…) completes once the session exists */
  return j;
 }
 
@@ -3444,14 +3903,17 @@ window.__MB_CLOUD={
  persistBrand:persistBrand,persistBackground:persistBackground,persistProfile:persistProfile,brandPayload:brandPayload,brandFromRow:brandFromRow,
  persistPreview:persistPreview,get previews(){return Object.assign({},_previews)},get previewWarned(){return _previewWarned},clearLocal:clearLocal,profileHeaders:profileHeaders,PREVIEW:{w:PREVIEW_W,h:PREVIEW_H,bucket:PREVIEW_BUCKET},
  isInfraErr:isInfraErr,DB_DOWN_MSG:DB_DOWN_MSG,config:CFG,
- track:MBTrack,sid:sid,get lastEvents(){return _events.slice()},trackReset:function(){_sent={};_events.length=0},version:'v85'
+ /* v86: My team */
+ teamRead:teamRead,teamReturn:teamReturn,teamInvalidate:teamInvalidate,get teamCache(){return _team.data},get lastReturn(){return _lastReturn},navigate:defaultNavigate,
+ persistExports:persistExports,ensureExports:ensureExports,csvRow:csvRow,hashParams:hashParams,EXPORT:{bucket:EXPORT_BUCKET,w:EXPORT_W,h:EXPORT_H,thumbW:THUMB_W,thumbH:THUMB_H},TEAM_TTL_MS:TEAM_TTL_MS,
+ track:MBTrack,sid:sid,get lastEvents(){return _events.slice()},trackReset:function(){_sent={};_events.length=0},version:'v87'
 };
 (async function(){try{await loadSession()}catch(e){if(e!=='OFFLINE'&&e!=='NOSESSION'&&window.console)console.warn('[mb-cloud] session restore skipped:',String(e&&e.message||e))}})();
 })();
 
 </script>
 <script id="mb-gate">
-/* MeetingBrand auth gate (v85, 2026-09-15) — signup card + login modal + invite mode + the pre-gate draft snapshot,
+/* MeetingBrand auth gate (v87, 2026-09-16) — signup card + login modal + invite mode + the pre-gate draft snapshot,
    and (v79) the signup -> domain -> brand -> starter-set chain (PLAN §3, §5 item 9).
    Source of truth: engine/mb-gate.js; build-vNN.py inlines it as the script block id="mb-gate" right after the
    cloud block (engine/mb-cloud.js), the last thing before the end of body. Donor: the LIVE ProSignature ps-auth-gate
@@ -3778,6 +4240,7 @@ async function finishSignup(email,how){
  try{acctLine()}catch(e){}
  lastEmail=String(email||'').trim().toLowerCase();lastHow=how||'new';
  try{var av=APP();if(av&&av.setViewer)av.setViewer({name:lastName,email:lastEmail},{silent:true})}catch(e){}   /* v85 (1): the new account's person is the first employee (silent: the trigger already stored full_name) */
+ if(how!=='demo'&&signed()){try{var at=APP();if(at&&at.teamLoad)at.teamLoad({silent:true})}catch(e){}}   /* v87: a fresh account reads the live My-team model NOW (the org exists — /api/signup polled the profile row); only loadSession (login/reload) did before, so the chooser fell back to the demo's 'Connect Zoom' */
  var st=stateOf();
  var had=!!(st&&isUserBrand(st.brand)&&st.brand.source!=='demo');
  if(mode==='invite'){close();toast(how==='demo'?'Demo mode — no server connected. Explore freely; nothing is saved.':'Welcome to '+((invite&&invite.org_name)||'the team')+'!');go('backgrounds');return 'invite'}
@@ -4122,7 +4585,7 @@ window.__MB_GATE={
  mount:function(f){return mount(f)},close:function(){close()},openLogin:openLogin,closeLogin:closeLogin,isLoginOpen:isLoginOpen,
  signupEmail:signupEmail,doLogin:doLogin,finishSignup:finishSignup,demoContinue:demoContinue,
  runMachine:runMachine,runFallback:runFallback,mbFallback:mbFallback,needsFallback:needsFallback,hydrateBuiltin:hydrateBuiltin,kbLogo:kbLogo,siteSubmit:siteSubmit,siteSkip:siteSkip,joinOrg:joinOrg,ownWorkspace:ownWorkspace,summaryLine:summaryLine,restoredLine:restoredLine,restoreStarter:restoreStarter,joinTitle:joinTitle,cleanDomain:cleanDomain,STARTER:STARTER.slice(),FLOOR_MS:FLOOR_MS,
- saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,version:'v85'
+ saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,version:'v87'
 };
 })();
 
