@@ -4,7 +4,7 @@
 // One function, the action is the last path segment (…/mb-agent/enroll) — `?action=` works too.
 //
 //   POST /enroll      {orgKey, deviceId, os: windows|macos|chrome|edge, hostname?, localIdentity?, version?, employeeEmail?}
-//                     (the extension sends os = its host browser, hostname = "Chrome 152 · macOS"-style description,
+//                     (the extension sends os = its host browser, hostname = "Chrome 152 on macOS"-style description,
 //                      version = the extension version, employeeEmail from managed config / the product page /
 //                      chrome.identity — see the extension's background.js)
 //                     → the key is looked up by sha256 (enrollment_key_use RPC: not revoked, ≤ 60 enrollments/min/key)
