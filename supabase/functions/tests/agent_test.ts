@@ -6,24 +6,29 @@ import {
   asEmail,
   assignmentGuid,
   cleanEvidence,
+  isAgentOs,
   KEY_RE,
   mapReportState,
   MB_GUID_NAMESPACE,
   newDeviceToken,
   pickEmployee,
+  platformForOs,
   POLL_SECONDS,
   pushKey,
+  reportStatesFor,
   ROTATE_BELOW_MS,
+  safeUrl,
   sha256Hex,
   shapeAssignments,
+  shapeMeetAssignment,
   shouldRotate,
   tileLabel,
   TOKEN_RE,
   TOKEN_TTL_MS,
   uuidV5,
 } from "../_shared/agent.ts";
-import { actionOf, escapeLike, makeHandler } from "../mb-agent/handler.ts";
-import { ASSET, BG, configure, EMP, eventsOk, j, ORG, patchOk, rest, router, rpc, SB_URL, THUMB, type Route } from "./_fake.ts";
+import { actionOf, deliveryPlatform, ENROLL_FAILS_PER_WINDOW, escapeLike, FailureLimiter, makeHandler, sourceIp } from "../mb-agent/handler.ts";
+import { ASSET, BG, configure, EMP, eventsOk, j, JPG, ORG, patchOk, rest, router, rpc, SB_URL, THUMB, type Route } from "./_fake.ts";
 
 // ------------------------------------------------------------------ pure rules
 Deno.test("agent: key + token formats; sha256 of the plaintext is what the DB stores", async () => {
@@ -74,6 +79,13 @@ Deno.test("agent: tile label + push key + e-mail / employee helpers", () => {
   assertEquals(asEmail("  Jane.Doe@Acme.COM "), "jane.doe@acme.com");
   assertEquals(asEmail("DESKTOP-1\\jane"), null);
   assertEquals(asEmail(42), null);
+  // PostgREST rewrites `*` to `%` inside ilike filters and nothing can escape it: wildcards are refused up front
+  assertEquals(asEmail("*@*.*"), null);
+  assertEquals(asEmail("%@acme.com"), null);
+  assertEquals(asEmail("j*ne@acme.com"), null);
+  assertEquals(asEmail("jane@acme.com,or=(x)"), null);
+  assertEquals(asEmail("jane\\@acme.com"), null);
+  assertEquals(asEmail("jane_o'brien+mb@sub.acme.co.il"), "jane_o'brien+mb@sub.acme.co.il", "real e-mails with _ ' + still pass (the _ is escaped for LIKE)");
   const rows = [
     { id: "z", platform: "zoom", active: true },
     { id: "c1", platform: "csv", active: false },
@@ -156,6 +168,7 @@ const AGENT = "77777777-7777-4777-8777-777777777777";
 const KEY = "mbk_" + "k".repeat(32);
 const STARTER = "88888888-8888-4888-8888-888888888888";
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]);
+const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 9, 8, 7, 6, 5]);
 
 interface Store {
   key: { revoked: boolean; limited: boolean; exists: boolean };
@@ -264,6 +277,7 @@ function backend(st: Store) {
     } },
     { method: "POST", test: (u) => u.pathname.startsWith("/storage/v1/object/sign/mb-exports/"), reply: (_r, u) => j(200, { signedURL: `${u.pathname.replace("/storage/v1", "")}?token=sig` }) },
     { method: "GET", test: (u) => u.pathname === `/storage/v1/object/mb-exports/${ORG}/${STARTER}.png`, reply: () => new Response(PNG, { status: 200, headers: { "content-type": "image/png" } }) },
+    { method: "GET", test: (u) => u.pathname === `/storage/v1/object/mb-exports/${ORG}/${STARTER}.jpg`, reply: () => new Response(JPEG, { status: 200, headers: { "content-type": "image/jpeg" } }) },
   ];
   return router(routes);
 }
@@ -311,6 +325,50 @@ Deno.test("mb-agent /enroll: bad / unknown / revoked / rate-limited keys; valida
   assertEquals(r.status, 429);
   assertEquals((await r.json()).retry_after_ms, 60000);
   assertEquals(st.agents.length, 0, "no agent row on any refusal");
+  // a wildcard e-mail never reaches the roster query
+  st.key.limited = false;
+  r = await h(post("enroll", { ...enrollBody, employeeEmail: "*@*.*" }));
+  assertEquals(r.status, 400);
+  assert(!be.seen.some((u) => u.path.includes("/rest/v1/employees")), "no employees query for a wildcard e-mail");
+});
+
+Deno.test("mb-agent /enroll: a source that keeps sending refused keys is cut off before the database (per-IP failure limiter)", async () => {
+  configure();
+  const st = fresh();
+  st.key.exists = false;
+  const be = backend(st);
+  let t = Date.UTC(2026, 8, 17);
+  const lim = new FailureLimiter();
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => t, enrollFailures: lim });
+  const from = (ip: string, body: unknown = enrollBody) => new Request(fnUrl("enroll"), { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": `${ip}, 10.0.0.1` }, body: JSON.stringify(body) });
+  for (let i = 0; i < ENROLL_FAILS_PER_WINDOW; i++) {
+    const r = await h(from("203.0.113.7"));
+    assertEquals(r.status, 401);
+  }
+  const rpcCalls = be.seen.filter((u) => u.path.includes("enrollment_key_use")).length;
+  assertEquals(rpcCalls, ENROLL_FAILS_PER_WINDOW);
+  let r = await h(from("203.0.113.7"));
+  assertEquals(r.status, 429, "the 31st refused attempt is cut off");
+  assertEquals((await r.json()).error, "rate_limited");
+  assertEquals(be.seen.filter((u) => u.path.includes("enrollment_key_use")).length, rpcCalls, "no database call once limited");
+  // another address is unaffected; a malformed key counts as a failure too but never reaches the RPC
+  r = await h(from("203.0.113.8", { ...enrollBody, orgKey: "mbk_nope" }));
+  assertEquals(r.status, 401);
+  assertEquals(be.seen.filter((u) => u.path.includes("enrollment_key_use")).length, rpcCalls);
+  // a valid key from the limited address is still refused until the window passes, then works again
+  st.key.exists = true;
+  r = await h(from("203.0.113.7"));
+  assertEquals(r.status, 429);
+  t += 10 * 60_000;
+  r = await h(from("203.0.113.7"));
+  assertEquals(r.status, 200, "window passed → enrolled");
+  // successful enrollments never count: 40 of them from one office NAT stay 200
+  for (let i = 0; i < 40; i++) {
+    const rr = await h(from("198.51.100.2", { ...enrollBody, deviceId: `PC-${i}` }));
+    assertEquals(rr.status, 200);
+  }
+  assertEquals(sourceIp(new Request("https://x", { headers: { "x-forwarded-for": "203.0.113.7, 10.0.0.1" } })), "203.0.113.7");
+  assertEquals(sourceIp(new Request("https://x")), "?");
 });
 
 Deno.test("mb-agent /enroll: matches by localIdentity e-mail, stores only the token hash, re-enroll refreshes the same row; unmatched is reported clearly", async () => {
@@ -571,4 +629,196 @@ Deno.test("mb-agent /heartbeat: last_seen_at + version", async () => {
   assertEquals(be.calls("GET", "/rest/v1/employees").length, 0);
   void eventsOk;
   void patchOk;
+});
+
+
+// ================================================================== the Meet extension (011): os chrome|edge, platform meet
+Deno.test("extension: os + platform rules, meet push key, report vocabularies, evidence + url scrubbing", () => {
+  assertEquals(["windows", "macos", "chrome", "edge"].every(isAgentOs), true);
+  assertEquals(isAgentOs("linux"), false);
+  assertEquals(platformForOs("chrome"), "meet");
+  assertEquals(platformForOs("edge"), "meet");
+  assertEquals(platformForOs("macos"), "teams");
+  assertEquals(deliveryPlatform(null, "chrome"), "meet");
+  assertEquals(deliveryPlatform("teams", "chrome"), "teams", "an explicit platform wins over the os default");
+  assertEquals(deliveryPlatform(" MEET ", "windows"), "meet");
+  let threw = 0;
+  try { deliveryPlatform("zoom", "chrome"); } catch { threw++; }
+  assertEquals(threw, 1);
+  assertEquals(pushKey(ORG, EMP(1), BG, "meet"), `${ORG}:${EMP(1)}:${BG}:meet`);
+  assertEquals(pushKey(ORG, EMP(1), BG), `${ORG}:${EMP(1)}:${BG}:teams`, "default stays teams (the agent's rows keep their keys)");
+  assertEquals(reportStatesFor("meet"), ["applied", "unavailable", "error"]);
+  assertEquals(reportStatesFor("teams").includes("applied"), false);
+  assertEquals(mapReportState("applied", null), { pushState: "selected", error: null, event: "push_delivered" });
+  assertEquals(mapReportState("unavailable", { message: "Meet's own effect is on" }), { pushState: "pushed", error: "not applied: Meet's own effect is on", event: "push_delivered" });
+  assertEquals(mapReportState("unavailable", null).error, "not applied (no reason given by the extension)");
+  assertEquals(safeUrl("https://meet.google.com/abc-defg-hij?authuser=1&pli=1#x"), "https://meet.google.com/abc-defg-hij");
+  assertEquals(safeUrl("javascript:alert(1)"), "");
+  assertEquals(safeUrl("not a url"), "");
+  const ev = cleanEvidence({ url: "https://meet.google.com/abc-defg-hij?hs=1", technique: "B", meetVersionHint: "k=meet.ui.\u0000x".repeat(10), browser: "Chrome 152", fps: 19.96, segMs: 10.0612, message: "ok", bogus: 1 })!;
+  assertEquals(ev.url, "https://meet.google.com/abc-defg-hij");
+  assertEquals(ev.technique, "B");
+  assertEquals(ev.meetVersionHint!.length, 80);
+  assertEquals(ev.meetVersionHint!.includes("\u0000"), false);
+  assertEquals(ev.browser, "Chrome 152");
+  assertEquals(ev.fps, 20);
+  assertEquals(ev.segMs, 10.06);
+  assertEquals(("bogus" in ev), false);
+  assertEquals(cleanEvidence({ technique: "not valid!" })!.technique, undefined);
+});
+
+Deno.test("extension: shapeMeetAssignment — one look, JPEG over PNG, PNG when no JPEG, skipped when neither, removes + queue", () => {
+  const A = "a1111111-1111-4111-8111-111111111111", B = "b2222222-2222-4222-8222-222222222222", C = "c3333333-3333-4333-8333-333333333333";
+  const bgs = [
+    { id: A, label: "A", slug: "a", export_asset_id: "png-a", thumb_asset_id: null, export_jpg_asset_id: "jpg-a" },
+    { id: B, label: "B", slug: "b", export_asset_id: "png-b", thumb_asset_id: null, export_jpg_asset_id: null },
+    { id: C, label: "C", slug: "c", export_asset_id: null, thumb_asset_id: null, export_jpg_asset_id: null },
+  ];
+  let m = shapeMeetAssignment({ assigned: [A, B], starters: [C], backgrounds: bgs, existing: [], active: true, revoked: false });
+  assertEquals(m.apply?.bg.id, A);
+  assertEquals(m.apply?.assetId, "jpg-a");
+  assertEquals(m.apply?.mime, "image/jpeg");
+  assertEquals(m.queue, [A]);
+  assertEquals(m.skipped, []);
+  m = shapeMeetAssignment({ assigned: [B], starters: [A], backgrounds: bgs, existing: [], active: true, revoked: false });
+  assertEquals(m.apply?.assetId, "png-b", "PNG is used when no JPEG export exists");
+  assertEquals(m.apply?.mime, "image/png");
+  m = shapeMeetAssignment({ assigned: [C, B], starters: [], backgrounds: bgs, existing: [], active: true, revoked: false });
+  assertEquals(m.skipped, [C], "no export at all → skipped, the next wanted look is applied");
+  assertEquals(m.apply?.bg.id, B);
+  m = shapeMeetAssignment({ assigned: [], starters: [A], backgrounds: bgs, existing: [{ id: "p", background_id: B, state: "selected" }, { id: "q", background_id: A, state: "failed" }], active: true, revoked: false });
+  assertEquals(m.remove, [B], "a previously applied other look is removed");
+  assertEquals(m.queue, [A], "a failed row of the applied look is re-queued");
+  m = shapeMeetAssignment({ assigned: [A], starters: [], backgrounds: bgs, existing: [{ id: "p", background_id: A, state: "selected" }], active: false, revoked: false });
+  assertEquals(m.apply, null);
+  assertEquals(m.remove, [A], "inactive employee: nothing applied, the live look removed");
+  m = shapeMeetAssignment({ assigned: [A], starters: [], backgrounds: bgs, existing: [{ id: "p", background_id: A, state: "selected" }], active: true, revoked: false });
+  assertEquals(m.queue, [], "an already-selected row is not re-queued");
+});
+
+Deno.test("mb-agent /enroll + /assignments for a chrome device: platform meet by default, JPEG preferred, queued 'meet' push, ?platform=teams still works, bad platform 400", async () => {
+  configure();
+  const st = fresh();
+  st.backgrounds[0].export_jpg_asset_id = JPG;
+  st.assets.push({ id: JPG, org_id: ORG, bucket: "mb-exports", storage_path: `${ORG}/${STARTER}.jpg`, mime: "image/jpeg", bytes: null, sha256: null });
+  const be = backend(st);
+  const NOW = Date.UTC(2026, 8, 17);
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW });
+  const er = await h(post("enroll", { orgKey: KEY, deviceId: "ext-uuid-1", os: "chrome", hostname: "Chrome 152 · macOS", version: "1.0.0", employeeEmail: "Jane@ACME.com" }));
+  assertEquals(er.status, 200);
+  const eb = await er.json();
+  assertEquals(eb.state, "matched");
+  assertEquals(st.agents[0].os, "chrome");
+  assertEquals(st.agents[0].hostname, "Chrome 152 · macOS");
+  assertEquals((await h(post("enroll", { orgKey: KEY, deviceId: "x", os: "firefox" }))).status, 400);
+
+  const r = await h(get("assignments", eb.deviceToken));
+  assertEquals(r.status, 200);
+  const b = await r.json();
+  assertEquals(b.platform, "meet");
+  assertEquals(b.assignments.length, 1);
+  const a = b.assignments[0];
+  assertEquals(a.platform, "meet");
+  assertEquals(a.action, "apply");
+  assertEquals(a.backgroundId, STARTER);
+  assertEquals(a.mime, "image/jpeg");
+  assertStringIncludes(a.imageUrl, `/object/sign/mb-exports/${ORG}/${STARTER}.jpg?token=sig`);
+  assertEquals(a.pngUrl, a.imageUrl);
+  assertEquals(a.sha256, await sha256Hex(JPEG));
+  assertEquals(a.bytes, JPEG.byteLength);
+  assertEquals(a.label, "MeetingBrand - Walnut lobby");
+  assertStringIncludes(a.thumbUrl, `${STARTER}_thumb.png?token=sig`);
+  assertEquals(a.guid, await assignmentGuid(ORG, EMP(1), STARTER));
+  assertEquals(st.pushes.length, 1);
+  assertEquals(st.pushes[0].platform, "meet");
+  assertEquals(st.pushes[0].idempotency_key, pushKey(ORG, EMP(1), STARTER, "meet"));
+  assertEquals(st.pushes[0].state, "queued");
+  assertEquals(be.calls("GET", "/storage/v1/object/mb-exports/").length, 1, "the JPEG was downloaded once to hash it");
+  assertEquals(be.calls("GET", "/storage/v1/object/mb-exports/")[0].path.endsWith(".jpg"), true);
+
+  // no JPEG export → the PNG
+  st.backgrounds[0].export_jpg_asset_id = null;
+  const b2 = await (await h(get("assignments", eb.deviceToken))).json();
+  assertEquals(b2.assignments[0].mime, "image/png");
+  assertStringIncludes(b2.assignments[0].imageUrl, `${STARTER}.png?token=sig`);
+  assertEquals(st.pushes.length, 1, "same pair, same key: no second row");
+
+  // the same device may ask for the Teams shape explicitly (the pushes rows are separate per platform)
+  const bt = await (await h(get("assignments?platform=teams", eb.deviceToken))).json();
+  assertEquals(bt.platform, "teams");
+  assertEquals(bt.assignments[0].action, "write");
+  assertEquals(st.pushes.length, 2);
+  assertEquals(st.pushes[1].platform, "teams");
+  assertEquals((await h(get("assignments?platform=zoom", eb.deviceToken))).status, 400);
+
+  // the meet answer never lists the teams row as a remove (rows are read per platform)
+  const b3 = await (await h(get("assignments", eb.deviceToken))).json();
+  assertEquals(b3.assignments.map((x: { action: string }) => x.action), ["apply"]);
+
+  // another look assigned → the old one is a remove, the new one an apply
+  const OTHER = "0aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  st.backgrounds.push({ id: OTHER, org_id: ORG, label: "Other", slug: "other", export_asset_id: ASSET, thumb_asset_id: null, export_jpg_asset_id: null, state: {}, created_at: "2026-09-03T00:00:00Z" });
+  st.employees[0].assigned_bg = [OTHER];
+  const b4 = await (await h(get("assignments", eb.deviceToken))).json();
+  assertEquals(b4.assignments.map((x: { action: string; backgroundId: string }) => [x.action, x.backgroundId]), [["remove", STARTER], ["apply", OTHER]]);
+
+  // revoked → 410 with the removes
+  st.agents[0].revoked_at = "2026-09-17T01:00:00Z";
+  const rv = await h(get("assignments", eb.deviceToken));
+  assertEquals(rv.status, 410);
+  assertEquals((await rv.json()).action, "remove_all");
+});
+
+Deno.test("mb-agent /report from a chrome device: applied → selected, unavailable → pushed + reason, error → failed; agent-only states rejected; teams device cannot say 'applied'; events via extension", async () => {
+  configure();
+  const st = fresh();
+  st.pushes.push({ id: "m1", org_id: ORG, employee_id: EMP(1), background_id: STARTER, platform: "meet", state: "queued", idempotency_key: pushKey(ORG, EMP(1), STARTER, "meet") });
+  st.pushes.push({ id: "t1", org_id: ORG, employee_id: EMP(1), background_id: STARTER, platform: "teams", state: "queued", idempotency_key: pushKey(ORG, EMP(1), STARTER, "teams") });
+  const be = backend(st);
+  const h = makeHandler({ fetchImpl: be.fetchImpl });
+  const tok = newDeviceToken();
+  st.agents.push({ id: AGENT, org_id: ORG, employee_id: EMP(1), device_id: "ext-1", os: "edge", version: "1.0.0", token_hash: await sha256Hex(tok), token_expires_at: "2099-01-01T00:00:00Z", revoked_at: null });
+
+  const r = await h(post("report", { items: [
+    { backgroundId: STARTER, state: "applied", evidence: { url: "https://meet.google.com/abc-defg-hij?authuser=0", technique: "B", meetVersionHint: "k=meet.ui.2026", browser: "Edge 152", fps: 20, segMs: 10.1 } },
+    { backgroundId: STARTER, state: "written" },
+  ] }, tok));
+  assertEquals(r.status, 200);
+  const b = await r.json();
+  assertEquals(b.accepted, 1);
+  assertEquals(b.rejected, 1);
+  assertStringIncludes(b.results[1].error, "applied|unavailable|error");
+  assertEquals(st.pushes[0].state, "selected", "the meet row moved");
+  assertEquals(st.pushes[1].state, "queued", "the teams row of the same pair is untouched");
+  const ev = st.pushes[0].evidence as Record<string, unknown>;
+  assertEquals(ev.via, "extension");
+  assertEquals(ev.url, "https://meet.google.com/abc-defg-hij");
+  assertEquals(ev.technique, "B");
+  assertEquals(ev.os, "edge");
+  assertEquals(st.reports.length, 1);
+  assertEquals(st.reports[0].state, "applied");
+  assertEquals(st.reports[0].push_id, "m1");
+  const delivered = st.events.filter((e) => e.event === "push_delivered");
+  assertEquals(delivered.length, 1);
+  assertEquals((delivered[0].props as Record<string, unknown>).platform, "meet");
+  assertEquals((delivered[0].props as Record<string, unknown>).via, "extension");
+
+  await h(post("report", { items: [{ backgroundId: STARTER, state: "unavailable", evidence: { message: "Meet's own effect is on" } }] }, tok));
+  assertEquals(st.pushes[0].state, "pushed");
+  assertStringIncludes(String(st.pushes[0].error), "Meet's own effect is on");
+  await h(post("report", { items: [{ backgroundId: STARTER, state: "error", evidence: { message: "WebAssembly CompileError" } }] }, tok));
+  assertEquals(st.pushes[0].state, "failed");
+  assertEquals(st.events.filter((e) => e.event === "push_failed").length, 1);
+
+  // explicit platform teams from a browser device: the teams row, agent vocabulary
+  await h(post("report", { items: [{ backgroundId: STARTER, state: "written", platform: "teams" }] }, tok));
+  assertEquals(st.pushes[1].state, "available");
+  assertEquals((await h(post("report", { items: [{ backgroundId: STARTER, state: "applied", platform: "zoom" }] }, tok))).status, 422);
+
+  // an OS agent cannot report the extension's states
+  const tok2 = newDeviceToken();
+  st.agents.push({ id: "77777777-7777-4777-8777-777777777778", org_id: ORG, employee_id: EMP(1), device_id: "mac-1", os: "macos", version: "0.1.0", token_hash: await sha256Hex(tok2), token_expires_at: "2099-01-01T00:00:00Z", revoked_at: null });
+  const bad = await h(post("report", { items: [{ backgroundId: STARTER, state: "applied" }] }, tok2));
+  assertEquals(bad.status, 422);
+  assertStringIncludes((await bad.json()).results[0].error, "platform teams");
 });

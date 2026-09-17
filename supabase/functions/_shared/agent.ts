@@ -87,8 +87,20 @@ export function tileLabel(label: string | null | undefined): string {
 }
 
 export const TEAMS_PLATFORM = "teams";
-export function pushKey(orgId: string, employeeId: string, backgroundId: string): string {
-  return `${orgId}:${employeeId}:${backgroundId}:${TEAMS_PLATFORM}`;
+export const MEET_PLATFORM = "meet";
+/** Where a device delivers: the OS agent writes Teams tiles, the browser extension composites in Meet. */
+export type DeliveryPlatform = "teams" | "meet";
+export const AGENT_OS = ["windows", "macos", "chrome", "edge"] as const;
+export type AgentOs = typeof AGENT_OS[number];
+export function isAgentOs(v: unknown): v is AgentOs {
+  return typeof v === "string" && (AGENT_OS as readonly string[]).includes(v);
+}
+/** The platform a device serves by default: browsers → meet, operating systems → teams. */
+export function platformForOs(os: string): DeliveryPlatform {
+  return os === "chrome" || os === "edge" ? MEET_PLATFORM : TEAMS_PLATFORM;
+}
+export function pushKey(orgId: string, employeeId: string, backgroundId: string, platform: DeliveryPlatform = TEAMS_PLATFORM): string {
+  return `${orgId}:${employeeId}:${backgroundId}:${platform}`;
 }
 
 // ---------------------------------------------------------------- assignment shaping
@@ -99,6 +111,8 @@ export interface BackgroundRow {
   slug: string | null;
   export_asset_id: string | null;
   thumb_asset_id: string | null;
+  /** 1920×1080 JPEG (kind export_jpg, 007) — preferred by the Meet extension when present; absent on older rows */
+  export_jpg_asset_id?: string | null;
 }
 export interface PushRow {
   id: string;
@@ -168,10 +182,57 @@ export function shapeAssignments(p: {
   return { write, remove, skipped, queue };
 }
 
+/**
+ * The Meet extension applies ONE look per employee (the composited background): the first wanted background
+ * (assigned_bg in order, else the org's starters) that has any 1920×1080 export — the JPEG (export_jpg_asset_id)
+ * when the app rendered one, else the PNG (export_asset_id; Meet's native upload accepts PNG and JPEG, the JPEG-only
+ * rule was the admin-console gallery's). Every other 'meet' push row of the employee in a removable state → remove.
+ */
+export function shapeMeetAssignment(p: {
+  assigned: string[];
+  starters: string[];
+  backgrounds: BackgroundRow[];
+  existing: PushRow[];
+  active: boolean;
+  revoked: boolean;
+}): { apply: { bg: BackgroundRow; assetId: string; mime: "image/jpeg" | "image/png" } | null; remove: string[]; skipped: string[]; queue: string[] } {
+  const wanted = p.active && !p.revoked ? (p.assigned.length ? p.assigned : p.starters) : [];
+  const byId = new Map(p.backgrounds.map((b) => [b.id, b]));
+  let apply: { bg: BackgroundRow; assetId: string; mime: "image/jpeg" | "image/png" } | null = null;
+  const skipped: string[] = [];
+  const seen = new Set<string>();
+  for (const id of wanted) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const bg = byId.get(id);
+    if (!bg) continue;
+    if (apply) break; // one look only; later wanted ids are neither applied nor reported
+    if (bg.export_jpg_asset_id) apply = { bg, assetId: bg.export_jpg_asset_id, mime: "image/jpeg" };
+    else if (bg.export_asset_id) apply = { bg, assetId: bg.export_asset_id, mime: "image/png" };
+    else skipped.push(id);
+  }
+  const remove: string[] = [];
+  for (const r of p.existing) {
+    if (r.background_id !== apply?.bg.id && REMOVABLE_STATES.has(r.state) && !remove.includes(r.background_id)) remove.push(r.background_id);
+  }
+  const queue: string[] = [];
+  if (apply) {
+    const r = p.existing.find((x) => x.background_id === apply!.bg.id);
+    if (!r || REQUEUE_STATES.has(r.state)) queue.push(apply.bg.id);
+  }
+  return { apply, remove, skipped, queue };
+}
+
 // ---------------------------------------------------------------- report mapping
 
-export const REPORT_STATES = ["written", "verified", "restart_needed", "removed", "blocked", "error"] as const;
+export const REPORT_STATES = ["written", "verified", "restart_needed", "removed", "blocked", "error", "applied", "unavailable"] as const;
 export type ReportState = typeof REPORT_STATES[number];
+/** The states each kind of device may report (an OS agent never says 'applied'; a browser never 'written'). */
+export const AGENT_REPORT_STATES: readonly ReportState[] = ["written", "verified", "restart_needed", "removed", "blocked", "error"];
+export const EXTENSION_REPORT_STATES: readonly ReportState[] = ["applied", "unavailable", "error"];
+export function reportStatesFor(platform: DeliveryPlatform): readonly ReportState[] {
+  return platform === MEET_PLATFORM ? EXTENSION_REPORT_STATES : AGENT_REPORT_STATES;
+}
 
 export interface ReportEvidence {
   path?: string;
@@ -180,6 +241,13 @@ export interface ReportEvidence {
   thumbBytes?: number;
   teamsRunning?: boolean;
   message?: string;
+  /** extension: the Meet page (origin + path only, query stripped), the technique that ran, Meet's build hint */
+  url?: string;
+  technique?: string;
+  meetVersionHint?: string;
+  browser?: string;
+  fps?: number;
+  segMs?: number;
 }
 
 /**
@@ -189,10 +257,19 @@ export interface ReportEvidence {
  *   removed            → failed + error 'removed…'  (same convention as the Zoom library-full removal)
  *   blocked            → blocked + the agent's reason (no FDA on macOS 27, folder not writable, …)
  *   error              → failed + the agent's message
+ * Extension report (platform meet) → pushes.state:
+ *   applied            → selected    (the composited stream is what Meet sends — rung A, "Delivered — forced (extension)")
+ *   unavailable        → pushed      (the image is cached on the device but not applied: toggle off, Meet's own effect
+ *                                     on, no WebGL/WASM, no camera yet — the reason is in `error`)
+ *   error              → failed + the extension's message
  */
-export function mapReportState(state: ReportState, evidence: ReportEvidence | null | undefined): { pushState: "available" | "pushed" | "blocked" | "failed"; error: string | null; event: "push_delivered" | "push_removed" | "push_failed" } {
+export function mapReportState(state: ReportState, evidence: ReportEvidence | null | undefined): { pushState: "available" | "pushed" | "blocked" | "failed" | "selected"; error: string | null; event: "push_delivered" | "push_removed" | "push_failed" } {
   const msg = (evidence?.message ?? "").toString().trim().slice(0, 500);
   switch (state) {
+    case "applied":
+      return { pushState: "selected", error: null, event: "push_delivered" };
+    case "unavailable":
+      return { pushState: "pushed", error: msg ? `not applied: ${msg}` : "not applied (no reason given by the extension)", event: "push_delivered" };
     case "written":
     case "verified":
       return { pushState: "available", error: null, event: "push_delivered" };
@@ -218,14 +295,37 @@ export function cleanEvidence(v: unknown): ReportEvidence | null {
   if (typeof o.thumbBytes === "number" && Number.isFinite(o.thumbBytes) && o.thumbBytes >= 0) out.thumbBytes = Math.floor(o.thumbBytes);
   if (typeof o.teamsRunning === "boolean") out.teamsRunning = o.teamsRunning;
   if (typeof o.message === "string") out.message = o.message.slice(0, 500);
+  if (typeof o.url === "string") out.url = safeUrl(o.url);
+  if (typeof o.technique === "string" && /^[A-Za-z0-9_-]{1,24}$/.test(o.technique)) out.technique = o.technique;
+  if (typeof o.meetVersionHint === "string") out.meetVersionHint = o.meetVersionHint.replace(/[^\x20-\x7e]/g, "").slice(0, 80);
+  if (typeof o.browser === "string") out.browser = o.browser.replace(/[^\x20-\x7e]/g, "").slice(0, 80);
+  if (typeof o.fps === "number" && Number.isFinite(o.fps) && o.fps >= 0) out.fps = Math.round(o.fps * 10) / 10;
+  if (typeof o.segMs === "number" && Number.isFinite(o.segMs) && o.segMs >= 0) out.segMs = Math.round(o.segMs * 100) / 100;
   return out;
 }
 
-/** Lower-cased e-mail or null when the string does not look like one (used for employeeEmail and localIdentity). */
+/** Origin + path of a reported page URL, query and fragment dropped (a Meet URL's query can carry invite tokens). */
+export function safeUrl(v: string): string {
+  try {
+    const u = new URL(v);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return "";
+    return (u.origin + u.pathname).slice(0, 512);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Lower-cased e-mail or null when the string does not look like one (used for employeeEmail and localIdentity).
+ * The character set is deliberately narrow: the value becomes a PostgREST `ilike` filter, where `*` is a wildcard
+ * that no escaping can neutralise (PostgREST rewrites it to `%` unconditionally) — so `*`, `%`, `\`, quotes and
+ * PostgREST's reserved `,()` are rejected outright instead of letting a key holder enumerate the roster with `*@*.*`.
+ */
+export const EMAIL_RE = /^[a-z0-9.!#$&'+\/=?^_{|}~-]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 export function asEmail(v: unknown): string | null {
   if (typeof v !== "string") return null;
   const t = v.trim().toLowerCase();
-  return t.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t) ? t : null;
+  return t.length <= 320 && EMAIL_RE.test(t) ? t : null;
 }
 
 /** Which employee row wins when several rows share the e-mail (one person can come from CSV and a directory). */
