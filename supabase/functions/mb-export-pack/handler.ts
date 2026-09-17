@@ -29,6 +29,7 @@ import { HttpError, json, readJson, serveFn } from "../_shared/http.ts";
 import { requireOrgAdmin, requireUser, serviceClient } from "../_shared/auth.ts";
 import { DELIVERY, isSafeOrgStoragePath, UUID_RE } from "../_shared/platform.ts";
 import { recordEvent } from "../_shared/events.ts";
+import { tileLabel } from "../_shared/agent.ts";
 
 export interface Deps {
   fetchImpl?: typeof fetch;
@@ -209,11 +210,8 @@ export function makeHandler(deps: Deps = {}) {
   });
 }
 
-/** Tile label appended after the GUID (text after the GUID becomes the Teams tile label): ASCII, no path chars, ≤ 40. */
-export function tileLabel(label: string | null | undefined): string {
-  const base = (label ?? "").normalize("NFKD").replace(/[^\x20-\x7e]/g, "").replace(/[\\/:*?"<>|$`'{}]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
-  return base ? `MeetingBrand - ${base}` : "MeetingBrand";
-}
+/** Tile label appended after the GUID — one definition for the pack and the agent (_shared/agent.ts). */
+export { tileLabel };
 
 function mimeFromExt(path: string): string | null {
   const m = /\.([a-z0-9]+)$/i.exec(path);

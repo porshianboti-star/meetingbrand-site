@@ -7,8 +7,9 @@
 # No Docker on this Mac → `--use-api` (bundles on Supabase's side). `functions serve` is unavailable.
 project_id = "ohobtgbyrlczfdztzvqi"
 
-# verify_jwt = false on ALL nine — deliberately:
+# verify_jwt = false on ALL ten — deliberately:
 #  * mb-oauth-zoom / mb-oauth-ms / mb-oauth-google: the platform redirects the admin's browser to /callback with no Supabase JWT at all.
+#  * mb-agent: the MeetingBrand Agent authenticates with a device token (mb.agents.token_hash), not a Supabase JWT.
 #  * the others: this project signs user sessions with an ES256 key (Management API
 #    /config/auth/signing-keys on 2026-09-13: ES256 in_use, HS256 previously_used). Supabase's
 #    gateway verify_jwt only understands the legacy HS256 secret — "If you're using Edge Functions
@@ -52,3 +53,7 @@ entrypoint = "./functions/mb-sync-google/index.ts"
 [functions.mb-export-pack]
 verify_jwt = false
 entrypoint = "./functions/mb-export-pack/index.ts"
+
+[functions.mb-agent]
+verify_jwt = false
+entrypoint = "./functions/mb-agent/index.ts"
