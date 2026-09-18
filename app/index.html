@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MeetingBrand — Product Demo v87</title>
+<title>MeetingBrand — Product Demo v88</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAADsAAAA7AF5KHG9AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA7xJREFUWIXFl0tMnFUUx3/n+755YMcWGAKUsTyHgK222pratD4wLExsl0YSkq7aVYN1YWNQ6qouGqNsutHExGVjNTEtdGUXjcQEW1KtRgKC9CF0OuBH6TA4D775rgs7tMxcYECw/+U5557//577OleUUmQhFfsqrIw67goHBcLAJtYHcwpGDMVFx5QzKtofXeDMCrDK97ah5AsgsE6kS2EWUUedySvnFgQ8ID8LyAaTZ6EQ2pzJH78Wyl+sMF01ysbPPBezGdMKm5Y/9AFC65rTeDyoHTugrg6ZtsFxCh3pM12VslzhUMF1LypC1ddDQwOqthaqq1Fbq8Ay//XbNuaHJ8GeLiidK+qQJVCv9VoWqrkZmppQdfWo2hooKwNZRm4wiNq/H+npLUiAQNhCt/bBIJmuLgiFCkq0CD7/aqIDls7qHj6cRy6DgzA6Co/cG1oMD69GAFoBKty4mPzCBSq/HeKpQCsrn9RtUP4GAH87E/w5e4m5+burE5DL4bl4iQNVZzHFtwJ5Pp4uPcLPk93ciPVo/UYhSTwpWRM5gCledle8R9C/U+vXV2AFuOIwXnpzkXxv2kfl/W3aeMGgseRN7Mgv6yPgu9Y+ZloW7xOUYtfn12ke36UdU+xr1toLWoJcPDFj5p+GVJpAYunbfD5zX2tfUwVeHngFBlY35s7cD1r7miqwWsRSY4zMfPV4BMRSN7g80YHjJh6PgM2+Ol6q+gSv+eTGCHj+9SE6PxunpX1wyZhS/3b2lHdqfWvahFl4fXDi5HZM0+C5nfDr9zb2+BZtbCjwKpu99cTSY4vs/6kC82kYGr4DQOTuNHF7uR5WKCvKvw31FUgmCxKgFJzuCFLVNEz0jxCpxPIFNcWTZ9NWwOjrK0hASe0Ixz+O8P7pEO922zTs+23Z+Hup0TybVrKcP4/hZHBfa4HiEtC0AKW1v9P9ZRi/zwtA8ZYAz3xaTec7V7k1sDsvfjZ9GztxXSsgTm5XpBTS24PZ++AJNYN5A9s7jAXyBeEiHDtRQ2e7QrkP33THTXA1egqFm5smZigYy7XmIpmZxk4+fMkMI8MLe/StZE11BaVVdnYm/JX4icvjx5hO5h9TBWNiBfd+pISulUSImAT9z2KIB9NSbK2LLxk7NbGJxJxLPH2TZObe0jmRU9mPyQigv6o2DrGMNR82VLQ/iqijaLfahkEhckRFrk0ZAM7klXMIbcDs/0AeQ+QtZ7L/G3jkdwwglQfKLSfztivqoEAj6/dfjCsYMZBex0qfUZFrU1nHP1lhPr2nXjwYAAAAAElFTkSuQmCC">
 <!-- ================= PRESENCE DEMO STATE =================
-version: v87 (2026-09-16)
+version: v88 (2026-09-17)
 source of truth: this block. Any session resuming work MUST read it before editing.
 constraint: INTERNAL PREVIEW ONLY - never published to a production domain without the owner's go.
-gate: jsdom regression (regress.js, 547 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
+gate: jsdom regression (regress.js, 563 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
 
 MODULES (verified v39):
 - Views: Overview, Brand, Backgrounds, Campaigns, People, Analytics
@@ -31,6 +31,7 @@ MODULES (verified v39):
 - v85: the owner's four notes after his first real signup as boti@prosignature.co (2026-09-15). (1) The signed-in person is the first employee: viewerFrom(user) = profiles.full_name or the title-cased email local part ('boti@…' -> 'Boti'; dots/underscores -> spaces) + profiles.title or 'Admin'; setViewer() puts that person first in EMPLOYEES (id 0, you:true), selects them for the name bar / Overview / every 'View as' selector, and the mock roster is marked as sample people; the signup card has an optional 'Your name' field (prefilled from the email, sent as signUp metadata full_name); the People tab has a 'You' editor whose Save fires the 'viewer' bridge event -> mb-cloud persistProfile -> PUT /api/profile (loadSession sets the viewer silently, never writing back). (2) Library brands (BRANDKB with a built-in mark) run the same site scrape as everyone (microlink meta logo, site <img>/CSS logos, apple-touch/manifest icons, the logo/icon APIs; same timeouts) and MERGE: built-in mark first and selected, scraped candidates deduped after it, cap 6 for everyone (renderLogoOpts, Linked/Cropped/Uploaded, brandPayload); name/colours/source stay 'library'; the gate's summary says 'logo ✓ · N marks found'. (3) Clear logo background, per the live diagnosis on the real ProSignature files: transparent pixels are never counted as cleared (no false 'Background lifted'), a badly-fitting matte keeps the pixel opaque (residual > 40), a uniform coloured badge/disc that most of the remaining mark sits on is peeled like the near-white tile (coverage >= 0.35, compactness > 0.02: the coral disc lifts, the P + flourish stay), enclosed pockets of the backdrop colour are cleared on the badge path with a 0.3/0.05 cap and after the border flood too; an uploaded SVG data URI is rasterised at >= 1024 on its long edge with the aspect from width/height/viewBox before matting; the toggle says 'This logo already has a transparent background' and stays OFF when nothing was lifted from a transparent image; the pixel-access failure note offers Upload; the uploaded logo + the cleared result persist in this browser (IndexedDB 'brand' store, restored at boot / on the first matching applyBrand, cleared by connectBrand and sign-out) — NOT yet uploaded to Storage (cross-device). (4) DEFAULT_SETUP = the owner's 12 saved backgrounds (engine/default-setup.json) seeded into every fresh built-in scene before the first render and before any persist (sc._adjDefault); a saved server row or a local IndexedDB record always replaces the default, never the reverse; the starter set renders with it.
 - v86: MY TEAM (owner spec 2026-09-15: 'The People tab is called My team; first state 0% brand cover, no data, one big button Upload users; clicking it connects the customer's system — Meet / Teams / Zoom — which brings the employee list AND the permission to inject the templates'). The tab is 'My team' (sub 'Everyone who should be on brand'; route id 'people'). Every mock KPI is gone: the Overview ring, the counters, the topbar dot and Analytics derive from GET /api/team (mb-cloud: the deployed mb-integrations read model + mb.employees + the latest mb.pushes row per person, cached 60 s) and read 0% · 0 of 0 people / 0 / '—' / 'No directory connected' when nothing is imported; no meeting telemetry exists, so 'Meetings on brand' is 0 until it does. Empty state: the ring at 0%, 'Connect your meeting platform to import your people and push branded backgrounds to them.' and one primary 'Upload users' button (56 px, Signal Violet). Upload users -> 'Where does your team meet?' with Google Meet / Microsoft Teams / Zoom cards, each carrying the platform's honest delivery sentence (from the backend's platform.ts: Zoom uploads into each person's own library and they pick it once; Teams has no background API -> Intune/Jamf script or the agent; Meet has no background API and no memory -> JPEG + admin-console runbook or the force-installed extension), plus 'Upload a CSV instead' (name, email, title, department; parsed here; PUT /api/employees -> mb.employees platform csv, mb-008 admin INSERT policy). A platform whose app credentials the owner has not created yet reads 'Coming soon — we are completing the <Platform> listing' with 'Notify me' (event integration_interest); a configured one runs the OAuth start with the Bearer and navigates; the return (#integrations=<p>&status=pending) finishes the connection, syncs the directory and lands on My team with the people (name, email, title, dept, platform badge, active toggle -> PATCH /api/employee, status chip). Push: per row and 'Push to all active' — Zoom renders the current look at 1920x1080 through the export sink, uploads PNG + 280x158 thumb + JPEG to mb-exports (persistExports) and POSTs mb-push-zoom; chips from pushes.state (Queued / Delivered · pick it once in Zoom / On brand / Blocked · reason / Failed). Teams and Meet: 'Get delivery pack' -> mb-export-pack -> the runbook steps, the signed download links and the Intune/macOS scripts in a modal. Coverage = active people whose latest push is pushed, awaiting_client, available or selected ÷ active people. Demo mode (no server): Upload users -> Zoom imports the 5-person sample team (labelled 'Sample data'), pushes complete locally, Teams/Meet are 'Coming soon'.
 - v87: My team reads the live read model right after a fresh signup (the v86 live E2E defect, reproduced twice: finishSignup -> runMachine -> Backgrounds on the same page never called teamLoad — only loadSession on login/reload did — so state.team stayed null and connectModel() fell back to the demo's connectable Zoom; the chooser read 'Connect Zoom' instead of the honest 'Coming soon'). Now: the gate's finishSignup hands teamLoad({silent:true}) to the app as soon as the account exists (before any route); go('people') runs teamEnsure() — a throttled read (state.teamAt, 60 s like the cloud cache) when signed in and state.team is null or stale; connectModel() is null while signed in until the read model arrives (never DEMO_CONNECT) — the chooser shows 'Checking which platforms are ready…', fetches and re-renders itself, or the error with 'Try again'; the empty card's note reads 'Loading your team…' meanwhile. PUT /api/join-org drops the cached read model. The empty card shows '0 of 0 people' under the 0% ring (#covSub0).
+- v88: 'Install the MeetingBrand Agent' in My team (PLAN-active-push §1.1/§2/§4). (1) Exports on demand: prepareBackgrounds() renders every starter / assigned look at 1920x1080 through the export sink and uploads PNG + 280x158 thumb (+ the Meet JPEG) to mb-exports (brand_assets kind export/thumb/export_jpg -> backgrounds.*_asset_id) when My team opens with an active person or on 'Prepare backgrounds'; idempotent across reloads — the cloud layer's exportHash (scene id + persisted adj + brand + sign font) is stored in backgrounds.state.export_hash once the uploads succeed and restored with the asset ids by loadSession, so an unchanged look is skipped without a render. (2) The card 'Push with the MeetingBrand Agent (Teams)': one honest sentence (the tile appears after Teams restarts, the person picks it once, every later change is silent), the org enrollment key (rpc create_enrollment_key on first open; the plaintext lives in this browser only, the server keeps a hash; Rotate = new key + revoke the held one; Copy), the unsigned dev builds from the public bucket's latest.json (mac universal, Windows x64/ARM64, sha256 shown), the Intune PowerShell + Jamf/macOS install scripts (read from the agent repo by the build) with the key, version and sha256 pins baked in (Copy), enrolled devices with Revoke; no per-employee personal link yet (said on the card). (3) Chips from agent state: the read model carries agents[] + pushes_by_employee; chips 'Delivered · pick it once in Teams' (available), 'Delivered · restart Teams' (pushed), 'Blocked · <reason>', 'Agent offline > 7 days', 'Queued for the agent', 'Agent ready · waiting for a background', 'Waiting for the agent' (active Teams/CSV person, no agent). (4) The 'Push to all active' card is platform-aware: 'Everyone active on Zoom…' only when Zoom people exist; Teams/CSV rosters read 'Install the agent below to deliver to Teams…'. (5) Found by the live E2E: the selected built-in mark now survives a reload (logo_opts marker 'builtin:<domain>'); before, the first scraped candidate replaced it and every export re-rendered once.
 - Placement: per-scene wall segments (x1,x2,y1,y2,ry,rz) -> nearest-segment snap, perspective foreshortening, per-scene adj {x,y,s,ry,rz,dep} persisted to 'adj' store
 - Signage: 13 treatments (sign, sticker, silver, brass, wood, black, illum, glass, plaque, backlit, acrylic, led, wallpaper)
 - Lighting engine (v40): per-scene photometric detector (96x54, gamma-linear) = sign-anchored local gradient (median profiles, fg-masked, band trimmed of near-black rows) + downlight fingerprint (bottom-brighter & dark-above & warm => from-top) + global source centroid (top-2% brightness, 1/d^1.8 to sign) + elevation prior; outputs sc._lt {ang,amt,hard,lum,warm}. lightOf(sc) merges per-scene overrides adj.la/adj.li and derives shadow vector S (gravity-biased), shadow alpha (ambient-scaled), penumbra blur (hardness), emissive gain (room darkness). Rendering: extrusion body direction via --ex/--ey from E (3D angle adj.da; defaults to S so untouched scenes are pixel-identical); bevel highlight via --sx/--sy from S; 3-tier contact/mid/far drop-shadow penumbra (DOM castCSS + export castPass); letters-only face-shading gradient along the light axis (export offscreen source-in); led/illum cast elliptical wall glow scaled by eGain. UI: Lighting sliders (Light -180..180, 3D -180..180, Power 20..160) + Auto light in the wall-fit panel, persisted per scene. Debug: window.__PRESENCE_DEBUG {lt,light,sample}.
@@ -45,6 +46,7 @@ MODULES (verified v39):
 DORMANT (kept intentionally, no UI): bake stack since v74 (geminiBake, localBake, BAKEWOOD, __bmSet, bake mode/species state), WASHES beyond 'none' (brand wash removed per owner, pipeline retained), TEMPLATES/template mode (renderTpls/renderSw/syncStudio stubs; artCV still used by the export fallback), recolorAll (awaits scenes carrying recolor metadata)
 
 CHANGELOG:
+v88 2026-09-17 MeetingBrand Agent: enrollment key + install scripts + dev builds in My team; export assets prepared on demand; employee chips from agent reports; push card copy platform-aware
 v87 2026-09-16 My team reads the live read model right after signup (no reload); empty card shows 0 of 0
 v86 2026-09-15 My team: 0% first state, Upload users → Meet/Teams/Zoom chooser → connect → import people → push per platform (Zoom API; Teams/Meet delivery packs); mock KPIs removed.
 v85 2026-09-15 owner feedback: signed-in user is the first employee (name from the account), library brands also scrape for more marks (up to 6), clear-logo-background fixed for uploads/SVG, the owner's background setup is the default for new users.
@@ -315,6 +317,9 @@ input[type=color]{width:44px;height:32px;border:1px solid var(--border);border-r
 .pkStep{display:flex;gap:10px;margin:8px 0;font-size:12.5px;line-height:1.55;color:#031436}.pkStep b{flex:none;width:22px;height:22px;border-radius:50%;background:#EFEBFF;color:#5739FB;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
 .pkFiles a{display:inline-flex;align-items:center;gap:6px;margin:4px 8px 4px 0;font-size:12.5px;color:#5739FB;text-decoration:none;border:1px solid #DDE3EE;border-radius:8px;padding:6px 10px}.pkFiles a:hover{border-color:#5739FB}
 .pkScript{width:100%;box-sizing:border-box;font-family:ui-monospace,Menlo,monospace;font-size:11px;min-height:120px;border:1px solid #DDE3EE;border-radius:8px;padding:8px;color:#031436;background:#F9FAFC}
+.agentKey{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#031436;background:#F9FAFC;border:1px solid #DDE3EE;border-radius:8px;padding:8px 10px;display:inline-block;user-select:all;word-break:break-all;min-width:120px}
+.agentDev{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:#031436;padding:6px 0;border-top:1px solid #EEF1F7}
+.agentDev:first-child{border-top:none}
 table{width:100%;border-collapse:collapse;font-size:13px}
 td,th{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border)}
 th{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:500}
@@ -362,7 +367,7 @@ tr.flip td{animation:flip .5s ease}
 </style>
 </head>
 <body>
-<div class="demo-bar"><b>BETA PREVIEW v87</b> · MeetingBrand · early access</div>
+<div class="demo-bar"><b>BETA PREVIEW v88</b> · MeetingBrand · early access</div>
 
 <div class="shell">
 <aside>
@@ -740,6 +745,29 @@ tr.flip td{animation:flip .5s ease}
       </table>
       </div>
       <p class="note" id="teamFoot" style="margin:10px 0 0"></p>
+    </div>
+    <div class="card" id="agentCard" hidden style="margin-top:16px">
+      <h3 style="margin:0 0 4px">Push with the MeetingBrand Agent (Teams)</h3>
+      <p class="sub" id="agentSub" style="max-width:760px">IT installs the agent once (Intune or Jamf) and MeetingBrand pushes from then on: the background lands in each person’s Teams gallery — the tile appears after Teams restarts, the person picks it once, and every later change is silent.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px"><button class="btn-quiet" id="prepBtn">Prepare backgrounds</button><span class="note" id="prepNote" style="margin:0"></span></div>
+      <div class="grid g2" style="margin-bottom:14px">
+        <div>
+          <div class="k" style="font-size:12px;color:var(--muted);margin-bottom:6px">Org enrollment key</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><code class="agentKey" id="agentKey">—</code><button class="btn-quiet" id="keyCopy" style="padding:6px 10px">Copy</button><button class="btn-quiet" id="keyRotate" style="padding:6px 10px">Rotate</button></div>
+          <p class="note" id="keyNote" style="margin:8px 0 0"></p>
+        </div>
+        <div>
+          <div class="k" style="font-size:12px;color:var(--muted);margin-bottom:6px">Downloads · <span id="agentVer">unsigned developer build</span></div>
+          <div class="pkFiles" id="agentDl"></div>
+          <p class="note" id="agentDlNote" style="margin:8px 0 0"></p>
+        </div>
+      </div>
+      <p class="note" style="margin:0 0 4px"><b>Intune platform script (Windows PowerShell)</b> — run using the logged-on credentials, 64-bit; the key and the sha256 pins are baked in <button class="btn-quiet" data-copy-script="intune" style="padding:3px 8px;font-size:11px">Copy</button></p>
+      <textarea class="pkScript" readonly data-script="intune" id="scriptIntune" aria-label="Intune install script"></textarea>
+      <p class="note" style="margin:12px 0 4px"><b>Jamf / macOS shell script</b> — run as the console user (Jamf policy or Intune shell script); the key and the sha256 pin are baked in <button class="btn-quiet" data-copy-script="jamf" style="padding:3px 8px;font-size:11px">Copy</button></p>
+      <textarea class="pkScript" readonly data-script="jamf" id="scriptJamf" aria-label="Jamf install script"></textarea>
+      <div id="agentDevices" style="margin-top:12px"></div>
+      <p class="note" id="agentFoot" style="margin:12px 0 0">The agent matches each device to a person by the signed-in e-mail (or the EmployeeEmail parameter in the script); a per-employee personal link is not part of this build. Teams must be fully quit and relaunched before the tile appears; only a Teams Premium customization policy can force a background — the agent never claims to.</p>
     </div>
   </section>
 
@@ -1120,11 +1148,11 @@ async function geminiBake(){const sc=effScene();
   toast("Photoreal render added to the library.")
  }catch(e){toast("Bake failed: "+((e&&e.message)||"unknown error"))}
  btn.disabled=false;btn.textContent=old}
-const state={emp:1,viewer:null,ribBg:null,gemKey:null,gemModel:"gemini-3-pro-image-preview",localUrl:"http://127.0.0.1:8188",localOk:null,bakeWood:"oak",bakeMode:"studio",policy:"locked",bar:{on:true,size:"md",logo:true,bg:"#FFFFFF",f:{name:true,title:true,dept:false,company:true}},mode:"scene",scene:{id:"cornerloft",wash:"none",logo:"sign"},tpl:"boardroom",accent:"#5739FB",org:{on:0,total:0},meet:0,imp:0,counted:{},team:null,teamBusy:"",teamAt:0,brand:null,accents:["#5739FB","#00BDDF","#031436","#00A76F"]};
+const state={emp:1,viewer:null,ribBg:null,gemKey:null,gemModel:"gemini-3-pro-image-preview",localUrl:"http://127.0.0.1:8188",localOk:null,bakeWood:"oak",bakeMode:"studio",policy:"locked",bar:{on:true,size:"md",logo:true,bg:"#FFFFFF",f:{name:true,title:true,dept:false,company:true}},mode:"scene",scene:{id:"cornerloft",wash:"none",logo:"sign"},tpl:"boardroom",accent:"#5739FB",org:{on:0,total:0},meet:0,imp:0,counted:{},team:null,teamBusy:"",teamAt:0,agent:{key:null,keys:null,keyErr:"",builds:null,buildsErr:"",prep:null,busy:""},brand:null,accents:["#5739FB","#00BDDF","#031436","#00A76F"]};
 const __mbH={};function __mbFire(k,a){(__mbH[k]||[]).forEach(f=>{try{f(a)}catch(e){}})}
 /* v80: every product event goes through window.MBTrack (mb-cloud); a missing MBTrack (file:// before the cloud block) is a silent no-op */
 function __mbTrack(n,p){try{if(typeof window.MBTrack==="function")window.MBTrack(n,p||{})}catch(e){}}
-window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m)=>toast(m),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a)};
+window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m)=>toast(m),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),prepareBackgrounds:(o)=>prepareBackgrounds(o),wantedLooks:()=>wantedLooks(),agentEnsure:()=>agentEnsure(),agentScripts:()=>agentScripts(),rotateKey:()=>rotateKey(),chipFor:(e)=>chipFor(e),deployCopy:(ppl)=>deployCopy(ppl),renderAgentCard:()=>renderAgentCard(),agentOffline:(a)=>agentOffline(a),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a)};
 const EMP_PLACEHOLDER={id:-1,name:"Your name",title:"Your title",dept:"",plat:"Zoom",platform:"zoom",st:"pend",placeholder:true,active:false,push:null};
 const emp=()=>EMPLOYEES.find(e=>String(e.id)===String(state.emp))||EMPLOYEES.find(e=>e.you)||EMPLOYEES[0]||EMP_PLACEHOLDER;   /* v86: ids may be uuids; an empty roster renders a placeholder person */
 const tpl=()=>TEMPLATES.find(t=>t.id===state.tpl)||TEMPLATES[0];
@@ -2421,7 +2449,7 @@ const DELIVERED=["pushed","awaiting_client","available","selected"];
 const cloud=()=>window.__MB_CLOUD||null;
 function teamMode(){const c=cloud();return (c&&c.signed&&!c.noProfile)?"signed":"demo"}
 function teamPeople(){return EMPLOYEES.filter(e=>e.imported&&!e.you)}
-function delivered(e){return !!(e.push&&DELIVERED.includes(e.push.state))}
+function delivered(e){if(e.push&&DELIVERED.includes(e.push.state))return true;const P=e.pushes||{};return Object.keys(P).some(k=>P[k]&&DELIVERED.includes(P[k].state))}   /* v88: delivered on any platform (a CSV person delivered by the agent has a teams entry) */
 function errMsg(e){if(!e)return "error";if(e.code==="not_configured")return "not configured yet";if(e==="OFFLINE")return "no server connected";return String(e.detail||e.message||e).slice(0,140)}
 var TEAM_FRESH_MS=60000,__teamP=null;   /* v87: the app-side cache window = the cloud layer's TEAM_TTL_MS (var: go('people') may run before this module's consts) */
 function connectModel(){const t=state.team;if(teamMode()!=="signed")return DEMO_CONNECT;return (t&&t.connect&&Object.keys(t.connect).length)?t.connect:null}   /* v87: signed in = the live read model, or null while it has not arrived — never the demo's connectable Zoom */
@@ -2436,7 +2464,7 @@ function teamStats(){const ppl=teamPeople(),act=ppl.filter(e=>e.active),on=act.f
  const ints=((state.team&&state.team.integrations)||[]).filter(i=>i&&i.status==="connected");
  const last=ints.map(i=>Date.parse(i.last_sync_at||"")||0).reduce((a,b)=>Math.max(a,b),0);
  return {total:ppl.length,active:act.length,on:on.length,pending:act.length-on.length,pct:act.length?Math.round(on.length/act.length*100):0,platforms:ints.map(i=>i.platform),lastSync:last,byPlat,demo:!!(state.team&&state.team.demo)}}
-function rowFrom(r){return {id:String(r.id),name:String(r.name||r.email||"—"),title:String(r.title||""),dept:String(r.dept||""),email:String(r.email||""),platform:String(r.platform||"csv"),plat:PLAT_SHORT[r.platform]||String(r.platform||""),active:!!r.active,push:r.push||null,imported:true,ext_id:r.ext_id||"",st:"on"}}
+function rowFrom(r){return {id:String(r.id),name:String(r.name||r.email||"—"),title:String(r.title||""),dept:String(r.dept||""),email:String(r.email||""),platform:String(r.platform||"csv"),plat:PLAT_SHORT[r.platform]||String(r.platform||""),active:!!r.active,push:r.push||null,pushes:(r.pushes&&typeof r.pushes==="object")?r.pushes:{},agent:r.agent||null,assigned_bg:Array.isArray(r.assigned_bg)?r.assigned_bg.map(String):[],imported:true,ext_id:r.ext_id||"",st:"on"}}   /* v88: pushes per platform, the bound agent, the assignments */
 function dropSamples(){for(let i=EMPLOYEES.length-1;i>=0;i--)if(EMPLOYEES[i].sample)EMPLOYEES.splice(i,1);if(!EMPLOYEES.some(e=>String(e.id)===String(state.emp)))state.emp=EMPLOYEES.length?EMPLOYEES[0].id:null}
 function setTeam(d){state.team=d;const you=EMPLOYEES.find(e=>e.you);EMPLOYEES.length=0;if(you)EMPLOYEES.push(you);
  (d&&d.employees||[]).forEach(r=>{if(r&&r.id)EMPLOYEES.push(rowFrom(r))});
@@ -2451,16 +2479,34 @@ async function teamLoad(o){o=o||{};
   if(!state.team||state.team.demo)state.team={error:msg,employees:[],connect:{},integrations:[],demo:false};else state.team.error=msg;
   renderAll();if(!o.silent)toast("Couldn’t load your team: "+msg);return null}}
 function ago(t){if(!t)return "";const s=Math.max(0,(Date.now()-t)/1000);if(s<90)return "moments ago";if(s<3600)return Math.round(s/60)+" min ago";if(s<86400)return Math.round(s/3600)+" h ago";return Math.round(s/86400)+" d ago"}
-function chipFor(e){if(!e.active)return `<span class="pillst off">Inactive</span>`;
- const s=e.push&&e.push.state;
- if(s==="selected")return `<span class="pillst on">On brand</span>`;
- if(s==="pushed"||s==="awaiting_client"||s==="available")return `<span class="pillst on">Delivered · pick it once in ${esc(PLAT_SHORT[e.platform]||"the app")}</span>`;
- if(s==="queued"||s==="pushing")return `<span class="pillst pend"><i></i>Queued</span>`;
- if(s==="blocked")return `<span class="pillst bad" title="${esc(e.push.error||"")}">Blocked · ${esc((e.push.error||"see Zoom").slice(0,60))}</span>`;
- if(s==="failed")return `<span class="pillst bad" title="${esc(e.push.error||"")}">Failed${e.push.error?" · "+esc(String(e.push.error).slice(0,50)):""}</span>`;
- if(e.platform==="teams"||e.platform==="meet")return e._packAt?`<span class="pillst pend"><i></i>In the delivery pack · ${e.platform==="teams"?"picks it once in Teams":"re-selects it in Meet"}</span>`:`<span class="pillst pend"><i></i>Not delivered</span>`;
- if(e.platform==="csv")return `<span class="pillst off">No platform · download only</span>`;
- return `<span class="pillst pend"><i></i>Not delivered</span>`}
+function chipOn(t,ti){return `<span class="pillst on"${ti?` title="${esc(ti)}"`:""}>${esc(t)}</span>`}function chipPend(t,ti){return `<span class="pillst pend"${ti?` title="${esc(ti)}"`:""}><i></i>${esc(t)}</span>`}function chipBad(t,ti){return `<span class="pillst bad"${ti?` title="${esc(ti)}"`:""}>${esc(t)}</span>`}
+function chipFor(e){if(!e.active)return `<span class="pillst off">Inactive</span>`;   /* v88: the honesty ladder (PLAN §4) from mb.pushes per platform + the bound agent */
+ const P=e.pushes||{},tp=P.teams||null,zp=P.zoom||(e.platform==="zoom"&&e.push?e.push:null),mp=P.meet||null,ag=e.agent||null,off=agentOffline(ag);
+ const t=tp&&tp.state,seen=ag?"Agent "+(ag.hostname||ag.os||"")+" · last seen "+(ag.last_seen_at?ago(Date.parse(ag.last_seen_at)):"never"):"";
+ if(t==="selected")return chipOn("On brand · Teams",seen);
+ if(t==="available")return chipOn("Delivered · pick it once in Teams",seen);
+ if(t==="pushed"||t==="awaiting_client")return chipOn("Delivered · restart Teams",seen);
+ if(t==="blocked")return chipBad("Blocked · "+String(tp.error||"see the agent log").slice(0,60),tp.error||"");
+ if(ag&&off)return chipBad("Agent offline > 7 days",seen);
+ if(t==="queued"||t==="pushing")return chipPend("Queued for the agent",seen);
+ if(t==="failed")return chipBad("Failed"+(tp.error?" · "+String(tp.error).slice(0,50):""),tp.error||"");
+ const z=zp&&zp.state;
+ if(z==="selected")return chipOn("On brand");
+ if(z==="pushed"||z==="awaiting_client"||z==="available")return chipOn("Delivered · pick it once in Zoom");
+ if(z==="queued"||z==="pushing")return chipPend("Queued");
+ if(z==="blocked")return chipBad("Blocked · "+String(zp.error||"see Zoom").slice(0,60),zp.error||"");
+ if(z==="failed")return chipBad("Failed"+(zp.error?" · "+String(zp.error).slice(0,50):""),zp.error||"");
+ const m=mp&&mp.state;
+ if(m==="selected")return chipOn("On brand · Meet extension");
+ if(m==="pushed"||m==="awaiting_client"||m==="available")return chipOn("Delivered · pick it once in Meet",mp.error||"");
+ if(m==="queued"||m==="pushing")return chipPend("Queued for the extension");
+ if(m==="blocked")return chipBad("Blocked · "+String(mp.error||"see the extension").slice(0,60),mp.error||"");
+ if(m==="failed")return chipBad("Failed"+(mp.error?" · "+String(mp.error).slice(0,50):""),mp.error||"");
+ if(ag)return chipPend("Agent ready · waiting for a background",seen);
+ if(e.platform==="teams")return e._packAt?chipPend("In the delivery pack · picks it once in Teams"):chipPend("Waiting for the agent");
+ if(e.platform==="csv")return chipPend("Waiting for the agent","CSV people are matched by e-mail when the agent enrolls");
+ if(e.platform==="meet")return e._packAt?chipPend("In the delivery pack · re-selects it in Meet"):chipPend("Not delivered");
+ return chipPend("Not delivered")}
 function actionFor(e){const busy=!!state.teamBusy;
  if(e.platform==="zoom")return `<button class="btn-quiet" data-push="${esc(String(e.id))}" ${busy||!e.active?"disabled":""}>Push</button>`;
  if(e.platform==="teams"||e.platform==="meet")return `<button class="btn-quiet" data-pack="${e.platform}" data-pack-id="${esc(String(e.id))}" ${busy||!e.active?"disabled":""}>Get delivery pack</button>`;
@@ -2479,7 +2525,7 @@ function renderTeam(){
  $("#pendN").textContent=st.pending.toLocaleString();
  const zoomTargets=ppl.filter(e=>e.active&&e.platform==="zoom"&&!delivered(e));
  $("#deployBtn").disabled=!zoomTargets.length||!!state.teamBusy;$("#deployBtn").textContent=state.teamBusy?"Working…":"Push to all active";
- $("#deployNote").textContent=zoomTargets.length?"Uploads the current look ("+(scene()?scene().name:"")+") into "+zoomTargets.length+" active Zoom "+(zoomTargets.length===1?"person’s library":"people’s libraries")+" — each picks it once.":(st.byPlat.teams||st.byPlat.meet?"Teams and Meet have no push API — use Get delivery pack per person or per platform below.":"Everyone active on Zoom already has the background.");
+ $("#deployNote").textContent=zoomTargets.length?"Uploads the current look ("+(scene()?scene().name:"")+") into "+zoomTargets.length+" active Zoom "+(zoomTargets.length===1?"person’s library":"people’s libraries")+" — each picks it once.":deployCopy(ppl);   /* v88: platform-aware */
  const gd=$("#goDeploy");gd.disabled=false;gd.firstChild.textContent=zoomTargets.length?"Push to all active":"Open My team";
  $("#stImp").textContent=st.total.toLocaleString();$("#stImpS").textContent=st.total?"across "+Object.keys(st.byPlat).map(k=>PLAT_SHORT[k]||k).join(" · "):"from your meeting platforms and CSV";
  $("#stAct").textContent=st.active.toLocaleString();
@@ -2492,7 +2538,14 @@ function renderTeam(){
  const list=ppl.filter(e=>(deptFilter==="All"||e.dept===deptFilter)&&(e.name+" "+e.title+" "+e.dept+" "+e.email).toLowerCase().includes(q));
  $("#rows").innerHTML=list.map(e=>`<tr data-id="${esc(String(e.id))}"${e.sample?' data-sample="1"':""} data-platform="${esc(e.platform)}"><td style="color:#16243D;font-weight:500"><span class="rowav">${initials(e.name)}</span>${esc(e.name)}${e.sample?' <span class="note" style="margin-left:6px;font-size:11px">sample</span>':""}${e.email?`<div class="note" style="margin:0;font-size:11px">${esc(e.email)}</div>`:""}</td><td>${esc(e.title)}</td><td>${esc(e.dept)}</td><td><span class="pillst plat">${esc(PLAT_SHORT[e.platform]||e.platform)}</span></td><td><button class="switch ${e.active?"on":""}" role="switch" aria-checked="${e.active}" aria-label="Active: ${esc(e.name)}" data-act="${esc(String(e.id))}" ${state.teamBusy?"disabled":""}></button></td><td>${chipFor(e)}</td><td style="white-space:nowrap">${actionFor(e)} <button class="btn-quiet" data-p="${esc(String(e.id))}">Preview</button></td></tr>`).join("");
  $("#teamFoot").textContent=list.length===ppl.length?ppl.length+" "+(ppl.length===1?"person":"people")+" · "+st.active+" active · "+st.on+" delivered":list.length+" of "+ppl.length+" people shown";
+ try{renderAgentCard()}catch(e){}   /* v88 */
 }
+function deployCopy(ppl){const act=ppl.filter(e=>e.active),agentT=act.filter(e=>(e.platform==="teams"||e.platform==="csv")&&!delivered(e)),meetT=act.filter(e=>e.platform==="meet"&&!delivered(e)),zoomAll=act.filter(e=>e.platform==="zoom"),parts=[];
+ if(agentT.length)parts.push("Install the agent below to deliver to Teams — "+agentT.length+" active "+(agentT.length===1?"person is":"people are")+" waiting for it"+(agentT.some(e=>e.platform==="csv")?" (CSV people are matched by e-mail)":"")+".");
+ if(meetT.length)parts.push("Meet has no push API — use Get delivery pack for "+meetT.length+" active "+(meetT.length===1?"person":"people")+".");
+ if(zoomAll.length)parts.push("Everyone active on Zoom already has the background.");
+ if(!parts.length)parts.push(act.length?"Everyone active already has the background.":"No active people yet — switch someone on.");
+ return parts.join(" ")}   /* v88: never 'Everyone active on Zoom' for a roster without Zoom people */
 function toggleActive(id){const e=EMPLOYEES.find(x=>String(x.id)===String(id));if(!e||e.you)return;
  e.active=!e.active;renderAll();
  if(teamMode()==="signed"){cloud().api("/api/employee","PATCH",{id:e.id,active:e.active}).catch(err=>{e.active=!e.active;renderAll();toast("Couldn’t save the change: "+errMsg(err))})}}
@@ -2510,7 +2563,7 @@ async function pushTo(ids){const targets=(ids||[]).map(id=>EMPLOYEES.find(e=>Str
   setTimeout(()=>{targets.forEach(e=>{e.push={state:"awaiting_client",updated_at:new Date().toISOString(),demo:true}});renderAll();toast("Sample push done — in a real workspace each person now picks it once in Zoom.")},700);return}
  const c=cloud(),sc=defaultLook();
  setBusy("Rendering "+(sc?sc.name:"the look")+" at 1920×1080 and uploading it…");
- try{const ex=await c.ensureExports(sc);
+ try{if(__prepP)await __prepP.catch(()=>null);const ex=await c.ensureExports(sc);   /* v88: a running preparation finishes first */
   setBusy("Pushing to "+targets.length+" Zoom "+(targets.length===1?"library":"libraries")+"…");
   const r=await c.api("/api/team/push","POST",{background_id:ex.background_id,employee_ids:targets.map(e=>e.id)});
   (r&&r.results||[]).forEach(x=>{const e=EMPLOYEES.find(e2=>String(e2.id)===String(x.employee_id));if(!e)return;const st={pushed:"awaiting_client",already_pushed:"awaiting_client",in_progress:"pushing",blocked:"blocked",failed:"failed",retry:"queued",needs_reconnect:"failed",unknown_employee:"failed"};e.push={state:x.state||st[x.outcome]||"queued",error:x.error||null}});
@@ -2524,7 +2577,7 @@ async function getPack(platform,ids){platform=String(platform||"");if(platform!=
  const c=cloud(),sc=defaultLook();
  __mbTrack("pack_clicked",{platform,count:(ids||[]).length||null});
  setBusy("Rendering the delivery files for "+PLAT_NAME[platform]+"…");
- try{const ex=await c.ensureExports(sc);
+ try{if(__prepP)await __prepP.catch(()=>null);const ex=await c.ensureExports(sc);   /* v88 */
   setBusy("Building the "+PLAT_NAME[platform]+" delivery pack…");
   const body={platform,background_id:ex.background_id};if(ids&&ids.length)body.employee_ids=ids;
   const pk=await c.api("/api/team/pack","POST",body);
@@ -2580,7 +2633,7 @@ function demoConnect(p){if(p!=="zoom")return;
 $("#teamPlats").onclick=async e=>{const s=e.target.closest("[data-sync]");if(s){syncNow(s.dataset.sync);return}const pa=e.target.closest("[data-packall]");if(pa)getPack(pa.dataset.packall,teamPeople().filter(x=>x.active&&x.platform===pa.dataset.packall).map(x=>x.id))};
 async function syncNow(p){if(teamMode()!=="signed"){toast("Sample data — nothing to sync.");return}if(state.teamBusy)return;
  setBusy("Importing the "+(PLAT_NAME[p]||p)+" directory…");
- try{const r=await cloud().api("/api/team/sync","POST",{platform:p});state.teamBusy="";await teamLoad({force:true,silent:true});toast((PLAT_NAME[p]||p)+": "+(+r.total||0)+" people · "+(+r.imported||0)+" new"+(r.stale?" · "+r.stale+" no longer in the directory":""))}
+ try{const r=await cloud().api("/api/team/sync","POST",{platform:p});state.teamBusy="";await teamLoad({force:true,silent:true});try{agentEnsure()}catch(e){}toast((PLAT_NAME[p]||p)+": "+(+r.total||0)+" people · "+(+r.imported||0)+" new"+(r.stale?" · "+r.stale+" no longer in the directory":""))}
  catch(e){toast("Sync failed: "+errMsg(e))}finally{setBusy("")}}
 /* ---- CSV ---- */
 function parseCSV(text){const rows=[];let row=[],f="",q=false;text=String(text||"").replace(/^﻿/,"");
@@ -2599,10 +2652,78 @@ async function importCSV(text){const people=csvPeople(text);if(!people.length){t
  if(teamMode()!=="signed"){let n=0;people.forEach(p=>{const ext=(p.email||("name:"+p.name)).toLowerCase(),id="csv:"+ext;let e=EMPLOYEES.find(x=>String(x.id)===id);if(!e){e={id,imported:true,platform:"csv",plat:"CSV",st:"on",push:null,active:true};EMPLOYEES.push(e);n++}e.name=p.name||p.email;e.title=p.title;e.dept=p.dept;e.email=p.email});
   if(!state.team)state.team={demo:true,connect:DEMO_CONNECT,integrations:[],employees:[],fetched_at:Date.now()};closeChooser();renderAll();toast(people.length+" people from the CSV ("+n+" new) — kept in this browser only.");return {count:people.length}}
  setBusy("Saving "+people.length+" people…");
- try{const r=await cloud().api("/api/employees","PUT",{rows:people});state.teamBusy="";closeChooser();await teamLoad({force:true,silent:true});toast((+r.count||0)+" people imported from the CSV"+(r.skipped?" · "+r.skipped+" rows skipped":""));return r}
+ try{const r=await cloud().api("/api/employees","PUT",{rows:people});state.teamBusy="";closeChooser();await teamLoad({force:true,silent:true});try{agentEnsure()}catch(e){}toast((+r.count||0)+" people imported from the CSV"+(r.skipped?" · "+r.skipped+" rows skipped":""));return r}
  catch(e){toast("Couldn’t save the CSV: "+errMsg(e));return null}finally{setBusy("")}}
 $("#csvLink").onclick=e=>{e.preventDefault();$("#csvFile").click()};
 $("#csvFile").onchange=()=>{const f=$("#csvFile").files&&$("#csvFile").files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{importCSV(String(rd.result||""));$("#csvFile").value=""};rd.onerror=()=>toast("Couldn’t read the file.");rd.readAsText(f)};
+/* ===================== v88: THE MEETINGBRAND AGENT (build-v88.py header) ===================== */
+var AGENT_SCRIPTS={"intune":"<#\nMeetingBrand Agent — Intune Platform script (Windows), PER-USER.\nDeploy as: Devices → Scripts → Windows 10 and later → \"Run this script using the logged on credentials\" = YES,\n           64-bit PowerShell = YES, signature check = NO (dev build: the script is unsigned too).\nSet $OrgKey below (from MeetingBrand → My team → Agents → \"New enrollment key\").\nWhat it does (no admin rights, nothing outside the user profile):\n  1. downloads latest.json from the public builds bucket, picks the exe for this CPU (amd64 / arm64)\n  2. downloads it to %LOCALAPPDATA%\\MeetingBrand\\bin\\ and VERIFIES the sha256 (aborts on mismatch). Two pins:\n       - the binary URL must live under the builds bucket itself (latest.json cannot point elsewhere);\n       - $PinnedSha256 (RECOMMENDED): the sha256 IT copied from the release notes / SHA256SUMS — when set, the\n         script installs that exact binary and nothing else, so a tampered latest.json cannot swap the build.\n       Without it the sha256 inside latest.json is used (transfer integrity only).\n  3. writes HKCU\\Software\\MeetingBrand\\Agent (OrgKey, ApiBase, Version) — Intune detection rule: that Version value\n  4. registers a per-user Scheduled Task \"MeetingBrand Agent\": at logon + every 4 h → mbagent.exe run --once\n  5. runs it once now\nUNSIGNED DEV BUILD: SmartScreen may warn if a user double-clicks the exe; the scheduled task runs it without a\nMark-of-the-Web because it was fetched by this script, not a browser. Signing = PLAN-active-push §2.5 (v88).\n#>\nparam(\n  [string]$OrgKey = \"__MB_ORG_KEY__\",\n  [string]$LatestUrl = \"https://ohobtgbyrlczfdztzvqi.supabase.co/storage/v1/object/public/mb-agent-builds/latest.json\",\n  [string]$EmployeeEmail = \"\",  # optional: leave empty → the agent sends whoami /upn as localIdentity\n  [string]$PinnedSha256 = \"\",   # RECOMMENDED: sha256 of mbagent-windows-<arch>.exe from the release's SHA256SUMS\n  [string]$PinnedVersion = \"__MB_VERSION__\",  # optional: refuse anything but this version (e.g. \"0.1.0\")\n  [hashtable]$PinnedByArch = @{ amd64 = \"__MB_PIN_AMD64__\"; arm64 = \"__MB_PIN_ARM64__\" } # optional: @{ amd64 = \"<sha256>\"; arm64 = \"<sha256>\" } — the pin for whichever CPU this is\n                                #   (MeetingBrand → My team → the Agent card renders both from latest.json); $PinnedSha256 wins when set\n)\n$ErrorActionPreference = \"Stop\"\n[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12\nif ($OrgKey -notmatch '^mbk_[A-Za-z0-9_-]{32}$') { throw \"OrgKey must be mbk_ + 32 chars\" }\nif ($LatestUrl -notmatch '^https://') { throw \"LatestUrl must be https\" }\n$bucketBase = ($LatestUrl -replace '/latest\\.json$', '') + '/'\n$dir = Join-Path $env:LOCALAPPDATA \"MeetingBrand\\bin\"; New-Item -ItemType Directory -Force -Path $dir | Out-Null\n$latest = Invoke-RestMethod -Uri $LatestUrl -UseBasicParsing -MaximumRedirection 0\nif ($PinnedVersion -and $latest.version -ne $PinnedVersion) { throw \"latest.json is version $($latest.version), pinned $PinnedVersion\" }\n$arch = if ($env:PROCESSOR_ARCHITECTURE -eq \"ARM64\") { \"arm64\" } else { \"amd64\" }\n$name = \"mbagent-windows-$arch.exe\"\nif (-not $PinnedSha256 -and $PinnedByArch -and $PinnedByArch[$arch]) { $PinnedSha256 = [string]$PinnedByArch[$arch] }\n$url = [string]$latest.files.$name; $want = [string]$latest.sha256s.$name\nif (-not $url -or -not $want) { throw \"latest.json has no $name\" }\nif (-not $url.StartsWith($bucketBase, [StringComparison]::Ordinal)) { throw \"refusing binary url outside the builds bucket: $url\" }\nif ($want -notmatch '^[0-9a-fA-F]{64}$') { throw \"latest.json sha256 for $name is malformed\" }\nif ($PinnedSha256) {\n  if ($PinnedSha256 -notmatch '^[0-9a-fA-F]{64}$') { throw \"PinnedSha256 must be 64 hex chars\" }\n  if ($want.ToLower() -ne $PinnedSha256.ToLower()) { throw \"latest.json announces $want for $name but IT pinned $PinnedSha256 — not installing\" }\n  $want = $PinnedSha256\n}\n$tmp = Join-Path $dir \"mbagent.download\"\nInvoke-WebRequest -Uri $url -OutFile $tmp -UseBasicParsing -MaximumRedirection 0\n$got = (Get-FileHash -Algorithm SHA256 -Path $tmp).Hash.ToLower()\nif ($got -ne $want.ToLower()) { Remove-Item $tmp -Force; throw \"sha256 mismatch for $name (got $got, want $want)\" }\n$exe = Join-Path $dir \"mbagent.exe\"\nMove-Item -Force $tmp $exe\n# managed config (per user; a policy key HKLM\\SOFTWARE\\Policies\\MeetingBrand\\Agent wins when IT sets one)\n$key = \"HKCU:\\Software\\MeetingBrand\\Agent\"; New-Item -Path $key -Force | Out-Null\nSet-ItemProperty -Path $key -Name OrgKey -Value $OrgKey\nSet-ItemProperty -Path $key -Name Version -Value $latest.version\nif ($EmployeeEmail) { Set-ItemProperty -Path $key -Name EmployeeEmail -Value $EmployeeEmail }\n# per-user scheduled task: logon + every 4 h, runs as the logged-on user, no elevation\n$action = New-ScheduledTaskAction -Execute $exe -Argument \"run --once\"\n$t1 = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME\n$t2 = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(5) -RepetitionInterval (New-TimeSpan -Hours 4)\n$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -Hidden\n$principal = New-ScheduledTaskPrincipal -UserId \"$env:USERDOMAIN\\$env:USERNAME\" -LogonType Interactive -RunLevel Limited\nRegister-ScheduledTask -TaskName \"MeetingBrand Agent\" -Action $action -Trigger @($t1, $t2) -Settings $settings -Principal $principal -Force | Out-Null\nStart-ScheduledTask -TaskName \"MeetingBrand Agent\"\nWrite-Output \"MeetingBrand Agent $($latest.version) installed for $env:USERNAME ($arch); task registered; first run started.\"\n","jamf":"#!/bin/bash\n# MeetingBrand Agent — macOS install (Jamf policy / Intune shell script \"run as signed-in user\" / by hand).\n# Runs as the console user (Jamf: run once per user at login, or wrap with `sudo -u \"$user\"`). No admin rights.\n#   1. downloads latest.json from the public builds bucket, takes mbagent-darwin-universal\n#   2. downloads it to ~/Library/Application Support/MeetingBrand/bin/mbagent and VERIFIES the sha256 (aborts on mismatch).\n#      Two pins: the binary URL must live under the builds bucket itself, and PINNED_SHA256 (RECOMMENDED — the sha256 of\n#      mbagent-darwin-universal from the release's SHA256SUMS, Jamf parameter $6) makes the script install that exact\n#      binary and nothing else, so a tampered latest.json cannot swap the build. Without it the sha256 inside\n#      latest.json is used (transfer integrity only). PINNED_VERSION ($7) optionally refuses any other version.\n#   3. writes ~/Library/Preferences/com.meetingbrand.agent.plist (OrgKey; an MDM managed preference wins over it)\n#   4. installs ~/Library/LaunchAgents/com.meetingbrand.agent.plist: RunAtLoad + StartInterval 14400 (4 h) → run --once\n#   5. loads it now\n# UNSIGNED DEV BUILD: not Developer-ID-signed, not notarized. curl does not set the quarantine attribute, so the\n# LaunchAgent runs it; a user double-clicking a browser download would see Gatekeeper. macOS shows the one-time\n# \"Background Items Added\" notice for the LaunchAgent. macOS 27: the write into the Teams container needs an MDM\n# PPPC Full Disk Access profile for this binary. Signing/notarization = PLAN-active-push §2.5 (v88).\n#   usage: ORG_KEY=mbk_… [EMPLOYEE_EMAIL=jane@acme.com] [PINNED_SHA256=<64 hex>] [PINNED_VERSION=0.1.0] jamf-install-user.sh\nset -euo pipefail\nORG_KEY=${ORG_KEY:-${4:-__MB_ORG_KEY__}}            # Jamf passes script parameters as $4…\nEMPLOYEE_EMAIL=${EMPLOYEE_EMAIL:-${5:-}}\nPINNED_SHA256=${PINNED_SHA256:-${6:-__MB_PIN_UNIVERSAL__}}\nPINNED_VERSION=${PINNED_VERSION:-${7:-__MB_VERSION__}}\nLATEST=${LATEST_URL:-https://ohobtgbyrlczfdztzvqi.supabase.co/storage/v1/object/public/mb-agent-builds/latest.json}\n[[ \"$ORG_KEY\" =~ ^mbk_[A-Za-z0-9_-]{32}$ ]] || { echo \"ORG_KEY must be mbk_ + 32 chars\"; exit 2; }\n[[ \"$LATEST\" == https://* ]] || { echo \"LATEST_URL must be https\"; exit 2; }\nBUCKET_BASE=\"${LATEST%/latest.json}/\"\n# curl: https only, no downgrade, no redirects (a signed/public storage URL is final), TLS 1.2+\nCURL=(curl -fsS --proto '=https' --tlsv1.2 --max-redirs 0 --max-time 300)\nHOME_DIR=$(dscl . -read \"/Users/$(id -un)\" NFSHomeDirectory | awk '{print $2}'); HOME_DIR=${HOME_DIR:-$HOME}\nBIN_DIR=\"$HOME_DIR/Library/Application Support/MeetingBrand/bin\"; mkdir -p \"$BIN_DIR\"\nTMPJ=$(mktemp); \"${CURL[@]}\" \"$LATEST\" -o \"$TMPJ\"\nNAME=mbagent-darwin-universal\nURL=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[\"files\"][sys.argv[2]])' \"$TMPJ\" \"$NAME\")\nWANT=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[\"sha256s\"][sys.argv[2]])' \"$TMPJ\" \"$NAME\")\nVER=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[\"version\"])' \"$TMPJ\"); rm -f \"$TMPJ\"\n[[ \"$URL\" == \"$BUCKET_BASE\"* ]] || { echo \"refusing binary url outside the builds bucket: $URL\"; exit 1; }\n[[ \"$WANT\" =~ ^[0-9a-fA-F]{64}$ ]] || { echo \"latest.json sha256 is malformed\"; exit 1; }\nif [ -n \"$PINNED_VERSION\" ] && [ \"$VER\" != \"$PINNED_VERSION\" ]; then echo \"latest.json is version $VER, pinned $PINNED_VERSION\"; exit 1; fi\nif [ -n \"$PINNED_SHA256\" ]; then\n  [[ \"$PINNED_SHA256\" =~ ^[0-9a-fA-F]{64}$ ]] || { echo \"PINNED_SHA256 must be 64 hex chars\"; exit 2; }\n  [ \"$(echo \"$WANT\" | tr 'A-F' 'a-f')\" = \"$(echo \"$PINNED_SHA256\" | tr 'A-F' 'a-f')\" ] || { echo \"latest.json announces $WANT but IT pinned $PINNED_SHA256 — not installing\"; exit 1; }\n  WANT=$PINNED_SHA256\nfi\nWANT=$(echo \"$WANT\" | tr 'A-F' 'a-f')\n\"${CURL[@]}\" \"$URL\" -o \"$BIN_DIR/mbagent.download\"\nGOT=$(shasum -a 256 \"$BIN_DIR/mbagent.download\" | cut -d' ' -f1)\n[ \"$GOT\" = \"$WANT\" ] || { rm -f \"$BIN_DIR/mbagent.download\"; echo \"sha256 mismatch (got $GOT want $WANT)\"; exit 1; }\nmv -f \"$BIN_DIR/mbagent.download\" \"$BIN_DIR/mbagent\"; chmod 755 \"$BIN_DIR/mbagent\"\nxattr -d com.apple.quarantine \"$BIN_DIR/mbagent\" 2>/dev/null || true\ndefaults write com.meetingbrand.agent OrgKey -string \"$ORG_KEY\"\ndefaults write com.meetingbrand.agent Version -string \"$VER\"\n[ -n \"$EMPLOYEE_EMAIL\" ] && defaults write com.meetingbrand.agent EmployeeEmail -string \"$EMPLOYEE_EMAIL\"\nLA=\"$HOME_DIR/Library/LaunchAgents\"; mkdir -p \"$LA\"\nPLIST=\"$LA/com.meetingbrand.agent.plist\"\ncat > \"$PLIST\" <<PL\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict>\n  <key>Label<\/key><string>com.meetingbrand.agent<\/string>\n  <key>ProgramArguments<\/key><array><string>$BIN_DIR/mbagent<\/string><string>run<\/string><string>--once<\/string><\/array>\n  <key>RunAtLoad<\/key><true/>\n  <key>StartInterval<\/key><integer>14400<\/integer>\n  <key>ProcessType<\/key><string>Background<\/string>\n  <key>StandardOutPath<\/key><string>$HOME_DIR/Library/Logs/MeetingBrand-agent.out.log<\/string>\n  <key>StandardErrorPath<\/key><string>$HOME_DIR/Library/Logs/MeetingBrand-agent.err.log<\/string>\n<\/dict><\/plist>\nPL\nUID_N=$(id -u)\nlaunchctl bootout \"gui/$UID_N\" \"$PLIST\" 2>/dev/null || true\nlaunchctl bootstrap \"gui/$UID_N\" \"$PLIST\"\necho \"MeetingBrand Agent $VER installed for $(id -un); LaunchAgent loaded (RunAtLoad + every 4 h).\"\n"};
+var AGENT_DL=[["mbagent-darwin-universal","macOS (universal)"],["mbagent-windows-amd64.exe","Windows x64"],["mbagent-windows-arm64.exe","Windows ARM64"]],AGENT_OFFLINE_MS=7*86400000,AGENT_KEY_LS="mb-agent-key";
+var __prepP=null,__agentP=null;
+function agentAdmin(){return teamMode()==="signed"&&!!state.team&&!state.team.demo&&String(state.team.role||"admin")==="admin"}
+function agentOffline(a){if(!a)return false;const t=Date.parse(a.last_seen_at||a.enrolled_at||"")||0;return !t||(Date.now()-t)>AGENT_OFFLINE_MS}
+function agentOrgId(){const c=cloud();return String((state.team&&state.team.org_id)||(c&&c.session&&c.session.org_id)||"")}
+function keyLoad(){try{const j=JSON.parse(localStorage.getItem(AGENT_KEY_LS)||"null");return (j&&j.org_id===agentOrgId()&&typeof j.key==="string"&&/^mbk_[A-Za-z0-9_-]{32}$/.test(j.key))?j:null}catch(e){return null}}
+function keySave(k){try{if(k)localStorage.setItem(AGENT_KEY_LS,JSON.stringify(k));else localStorage.removeItem(AGENT_KEY_LS)}catch(e){}}
+/* the agent's /assignments rule: every look assigned to an active person, else the starters — prepared here so the files exist before the first poll */
+function wantedLooks(){const ids=new Set();teamPeople().forEach(e=>{if(e.active)(e.assigned_bg||[]).forEach(id=>ids.add(String(id)))});return SCENES.filter(s=>s._starter||(s._cloudId&&ids.has(String(s._cloudId))))}
+function prepareBackgrounds(o){o=o||{};if(teamMode()!=="signed")return Promise.resolve(null);if(__prepP)return __prepP;
+ const c=cloud(),looks=wantedLooks(),A=state.agent,res={prepared:0,unchanged:0,failed:0,total:looks.length,errors:[],auto:!!o.auto};
+ if(!looks.length){A.prep=Object.assign(res,{at:Date.now(),empty:true});renderAgentCard();return Promise.resolve(res)}
+ if(!o.auto)__mbTrack("prepare_backgrounds_clicked",{count:looks.length});
+ __prepP=(async()=>{for(let i=0;i<looks.length;i++){const sc=looks[i];A.prep={busy:true,i:i+1,total:looks.length,name:sc.name||sc.id};renderAgentCard();
+   const n0=sc._exportN||0;try{await c.ensureExports(sc);if((sc._exportN||0)>n0)res.prepared++;else res.unchanged++}catch(e){res.failed++;res.errors.push((sc.name||sc.id)+": "+errMsg(e))}}
+  A.prep=Object.assign(res,{at:Date.now()});__mbTrack("backgrounds_prepared",{prepared:res.prepared,unchanged:res.unchanged,failed:res.failed,auto:res.auto});renderAgentCard();return res})().finally(()=>{__prepP=null});
+ return __prepP}
+async function agentKeysEnsure(o){o=o||{};const c=cloud(),A=state.agent;
+ const r=await c.api("/api/agent/keys","GET",{});A.keys=Array.isArray(r&&r.keys)?r.keys:[];A.keyErr="";
+ const held=keyLoad();
+ if(held&&!o.create&&A.keys.some(k=>k.id===held.id)){A.key=held;return A}
+ if(held&&!A.keys.some(k=>k.id===held.id))keySave(null);
+ if(!A.keys.length||o.create){const n=await c.api("/api/agent/key","POST",{label:o.label||("My team · "+new Date().toISOString().slice(0,10))});
+  const k={org_id:agentOrgId(),id:n.id,key:n.key,label:n.label||null,created_at:n.created_at};keySave(k);A.key=k;A.keys.unshift({id:n.id,label:k.label,created_at:n.created_at,uses:0});__mbTrack("agent_key_created",{rotate:!!o.rotate})}
+ else A.key=null;
+ return A}
+async function rotateKey(){if(!agentAdmin())return null;const c=cloud(),A=state.agent,prev=A.key;if(A.busy)return null;
+ A.busy="Issuing a new key…";renderAgentCard();
+ try{await agentKeysEnsure({create:true,rotate:true,label:"Rotated "+new Date().toISOString().slice(0,10)});
+  if(prev&&prev.id){await c.api("/api/agent/key","DELETE",{id:prev.id});A.keys=(A.keys||[]).filter(k=>k.id!==prev.id)}
+  toast(prev?"New enrollment key issued — the previous one is revoked; update the install scripts.":"New enrollment key issued.");return A.key}
+ catch(e){A.keyErr=errMsg(e);toast("Couldn’t rotate the key: "+errMsg(e));return null}finally{A.busy="";renderAgentCard()}}
+async function revokeAgent(id){if(!agentAdmin()||!id)return;const c=cloud();
+ try{await c.api("/api/agent/revoke","POST",{id});toast("Device revoked — its next poll removes the MeetingBrand files.");__mbTrack("agent_revoked",{});await teamLoad({force:true,silent:true})}
+ catch(e){toast("Couldn’t revoke the device: "+errMsg(e))}}
+/* opening My team (after the read model): the builds manifest once (10 min), the key on first open, then the exports the agent needs */
+function agentEnsure(){if(!agentAdmin()||!teamPeople().length)return Promise.resolve(null);if(__agentP)return __agentP;
+ const c=cloud(),A=state.agent;
+ __agentP=(async()=>{try{if(!A.builds)A.builds=await c.api("/api/agent/builds","GET",{});A.buildsErr=""}catch(e){A.buildsErr=errMsg(e)}
+  try{if(!A.key&&!A.keys)await agentKeysEnsure({})}catch(e){A.keyErr=errMsg(e)}
+  renderAgentCard();
+  if(teamPeople().some(e=>e.active))await prepareBackgrounds({auto:true}).catch(()=>null);
+  return A})().finally(()=>{__agentP=null});
+ return __agentP}
+function agentScripts(){const A=state.agent||{},k=(A.key&&A.key.key)||"mbk_REPLACE_ME",b=A.builds||{sha256s:{},version:""},S=(typeof AGENT_SCRIPTS==="object"&&AGENT_SCRIPTS)||{intune:"",jamf:""},sha=n=>(b.sha256s&&b.sha256s[n])||"";
+ const sub=t=>String(t||"").replace(/__MB_ORG_KEY__/g,k).replace(/__MB_VERSION__/g,b.version||"").replace(/__MB_PIN_UNIVERSAL__/g,sha("mbagent-darwin-universal")).replace(/__MB_PIN_AMD64__/g,sha("mbagent-windows-amd64.exe")).replace(/__MB_PIN_ARM64__/g,sha("mbagent-windows-arm64.exe"));
+ return {intune:sub(S.intune),jamf:sub(S.jamf)}}
+function renderAgentCard(){const card=$("#agentCard");if(!card)return;const A=state.agent||{};
+ const show=teamMode()==="signed"&&teamPeople().length>0&&!!state.team&&!state.team.demo;card.hidden=!show;if(!show)return;
+ const admin=agentAdmin(),looks=wantedLooks(),p=A.prep;
+ const pb=$("#prepBtn");pb.disabled=!!(p&&p.busy)||!admin;pb.textContent=(p&&p.busy)?"Preparing…":"Prepare backgrounds";
+ $("#prepNote").textContent=(p&&p.busy)?"Preparing "+p.name+" ("+p.i+" of "+p.total+") at 1920×1080…":(p&&p.at)?(p.empty?"No starter or assigned background yet — pick looks in Backgrounds first.":(p.total-p.failed)+" of "+p.total+" background"+(p.total===1?"":"s")+" ready for the agent · "+p.prepared+" prepared · "+p.unchanged+" unchanged"+(p.failed?" · "+p.failed+" failed ("+p.errors.slice(0,2).join("; ")+")":"")+" · "+ago(p.at)):(looks.length?"Renders "+looks.length+" look"+(looks.length===1?"":"s")+" (starters + assigned) at 1920×1080 for the agent — runs by itself when My team opens.":"No starter or assigned background yet — pick looks in Backgrounds first.");
+ const kEl=$("#agentKey"),kn=$("#keyNote");kEl.textContent=A.key?A.key.key:"—";$("#keyCopy").disabled=!A.key;$("#keyRotate").disabled=!admin||!!A.busy;$("#keyRotate").textContent=A.busy?"Working…":"Rotate";
+ kn.textContent=!admin?"Ask a workspace admin for the enrollment key.":A.busy?A.busy:A.keyErr?"Couldn’t issue the enrollment key ("+A.keyErr+") — open My team again.":A.key?"Created "+String(A.key.created_at||"").slice(0,10)+" · shown in this browser only (MeetingBrand stores a hash). Rotate issues a new key and revokes this one.":(A.keys&&A.keys.length)?"A key exists ("+(A.keys[0].label||"unlabelled")+", created "+String(A.keys[0].created_at||"").slice(0,10)+") but this browser doesn’t hold its plaintext — Rotate to issue a new one.":"Issuing the enrollment key…";
+ const b=A.builds;$("#agentVer").textContent=b?"v"+b.version+" · "+(b.signed?"signed build":"unsigned developer build"):"unsigned developer build";
+ $("#agentDl").innerHTML=b?AGENT_DL.map(([n,l])=>`<a href="${esc(b.files[n])}" target="_blank" rel="noopener" download="${esc(n)}" title="sha256 ${esc(b.sha256s[n])}">⬇ ${esc(l)} <span class="note" style="margin:0">${esc(String(b.sha256s[n]).slice(0,12))}…</span></a>`).join(""):"";
+ $("#agentDlNote").textContent=b?(b.signed?"":"Unsigned developer build: Gatekeeper / SmartScreen warn on a double-click — deploy through Intune or Jamf (no Mark-of-the-Web). Signing is on the owner's list (PLAN §2.5).")+" macOS 27 needs an MDM Full Disk Access profile for the Teams container.":A.buildsErr?"Couldn’t read the builds manifest ("+A.buildsErr+").":"Reading the builds manifest…";
+ const sc=agentScripts();$("#scriptIntune").value=sc.intune;$("#scriptJamf").value=sc.jamf;
+ const ags=(state.team&&state.team.agents)||[];$("#agentDevices").innerHTML=ags.length?`<div class="k" style="font-size:12px;color:var(--muted);margin-bottom:4px">Enrolled devices</div>`+ags.map(a=>{const e=EMPLOYEES.find(x=>String(x.id)===String(a.employee_id));return `<div class="agentDev" data-agent="${esc(a.id)}"><b>${esc(a.hostname||a.device_id||"device")}</b><span class="pillst plat">${esc(a.os||"")}</span><span>${esc(e?e.name:"unmatched — bind in a later build")}</span><span class="note" style="margin:0">v${esc(a.version||"?")} · ${a.revoked_at?"revoked":agentOffline(a)?"offline > 7 days":"seen "+(a.last_seen_at?ago(Date.parse(a.last_seen_at)):"never")}</span>${a.revoked_at||!admin?"":`<button class="btn-quiet" data-revoke-agent="${esc(a.id)}" style="padding:3px 8px;font-size:11px">Revoke</button>`}</div>`}).join(""):`<p class="note" style="margin:0">No device has enrolled yet — chips read “Waiting for the agent” until IT runs the script.</p>`}
+function copyText(txt,btn){const done=()=>{if(btn){const was=btn.textContent;btn.textContent="Copied";setTimeout(()=>{btn.textContent=was},1600)}};
+ try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,done);else{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand&&document.execCommand("copy")}catch(x){}document.body.removeChild(ta);done()}}catch(x){done()}}
+$("#prepBtn").onclick=()=>{prepareBackgrounds({}).catch(()=>null)};
+$("#keyRotate").onclick=()=>{rotateKey()};
+$("#keyCopy").onclick=()=>{if(state.agent.key){copyText(state.agent.key.key,$("#keyCopy"));__mbTrack("agent_key_copied",{})}};
+$("#agentCard").onclick=e=>{const cs=e.target.closest("[data-copy-script]");if(cs){const ta=$("#agentCard").querySelector(`[data-script="${cs.dataset.copyScript}"]`);if(ta){copyText(ta.value,cs);__mbTrack("agent_script_copied",{kind:cs.dataset.copyScript})}return}
+ const rv=e.target.closest("[data-revoke-agent]");if(rv){if(typeof window.confirm!=="function"||window.confirm("Revoke this device? Its next poll removes the MeetingBrand files from Teams."))revokeAgent(rv.dataset.revokeAgent)}};
 $("#rows").onclick=e=>{const t=e.target;
  const a=t.closest("[data-act]");if(a){toggleActive(a.dataset.act);return}
  const pu=t.closest("[data-push]");if(pu){pushTo([pu.dataset.push]);return}
@@ -2959,7 +3080,7 @@ function go(v){__mbFire("go",v);$$(".nav button").forEach(b=>b.setAttribute("ari
  $$(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
  $("#tTitle").textContent=META[v][0];$("#tSub").textContent=META[v][1];
  if(v==="overview"){ring(true);if(!state.counted.m){countUp($("#stMeet"),state.meet,1100);state.counted.m=1}}
- if(v==="people"){try{teamEnsure()}catch(e){}}   /* v87: opening My team reads the live model when signed in and nothing fresh is held (60 s) */
+ if(v==="people"){try{teamEnsure().then(()=>{try{agentEnsure()}catch(e){}})}catch(e){}}   /* v87: opening My team reads the live model when signed in and nothing fresh is held (60 s); v88: then the agent card + exports on demand */
  if(v==="analytics"){requestAnimationFrame(()=>{$("#bars").classList.add("go");$$("#hbars .fl").forEach(f=>f.style.width=f.dataset.w+"%")});if(typeof renderTeam==="function")renderTeam()}}   /* v86: People imported / Active derive from the team on every visit (the v71 impressions tween is gone) */
 $$(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
 $$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
@@ -3241,7 +3362,7 @@ dbAll().then(list=>{if(list&&list.length){list.forEach(s=>{s.custom=true;if(s.fg
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <script id="mb-cloud">
-/* MeetingBrand cloud layer (v87, 2026-09-16) — the ProSignature api() shim over Supabase, no UI (the UI is engine/mb-gate.js).
+/* MeetingBrand cloud layer (v88, 2026-09-17) — the ProSignature api() shim over Supabase, no UI (the UI is engine/mb-gate.js).
    Source of truth: engine/mb-cloud.js; build-vNN.py inlines it as the script block id="mb-cloud" right before the end
    of body, after the pinned supabase-js script tag. Contract (ps-auth map §1-2, §11):
    - window.__MB = engine/mb-config.json (empty url/key = OFFLINE demo mode; a pre-existing window.__MB overrides).
@@ -3347,7 +3468,32 @@ dbAll().then(list=>{if(list&&list.length){list.forEach(s=>{s.custom=true;if(s.fg
      header): 1920x1080 PNG (kind export -> backgrounds.export_asset_id), 280x158 PNG thumb (kind thumb ->
      thumb_asset_id) and 1920x1080 JPEG (kind export_jpg -> export_jpg_asset_id) into mb-exports/<org>/<bgId>{.png,
      _thumb.png,.jpg} (upsert) + brand_assets rows; signed-in only; throws on failure (the caller shows one toast).
-     Every write is cached on the scene (sc._exportIds / sc._exportSig) so a repeat push re-uploads only after a change. */
+     Every write is cached on the scene (sc._exportIds / sc._exportHash) so a repeat push re-uploads only after a change.
+   v88 — the MeetingBrand Agent in My team (PLAN-active-push §2, §4; PROJECT.md 'AGENT CORE'):
+   - exports prepared on demand + idempotent across reloads: exportHash(sc) = fnv1a-32 of a key-sorted JSON of the scene id,
+     its persisted adj (bgPayload's sanitised keys), the brand (domain / fallbackFor / wallText / logo src head+length /
+     logoClear) and the sign font. persistExports writes the hash into backgrounds.state.export_hash AFTER the three uploads
+     succeed (the same update that sets the *_asset_id columns), GET /api/me selects export_asset_id / thumb_asset_id /
+     export_jpg_asset_id, and loadSession restores sc._exportIds + sc._exportHash (the key is stripped before the adj merge
+     like starter). ensureExports skips the render while the PNG + thumb assets exist and the hash is unchanged — so
+     opening My team on a new day re-uploads nothing. sc._exportN counts real uploads (the app tells 'prepared' from 'unchanged').
+   - persistExports writes brand_assets.sha256 (WebCrypto) on insert and refreshes {bytes, sha256} on a re-used row
+     (a re-render must announce a new sha256 — mb-agent's /assignments hands it to the agent, which compares; null → recomputed)
+   - GET /api/team merges the read model's v88 keys: employees[].pushes = the latest push per platform
+     (mb-integrations pushes_by_employee, else folded here from the org's pushes rows), employees[].agent = the newest
+     non-revoked mb.agents row bound to the person, data.agents = every device.
+   - the enrollment key: GET /api/agent/keys (mb.enrollment_keys_view: active keys, no hash — admins only through RLS),
+     POST /api/agent/key {label} → rpc create_enrollment_key (the plaintext 'mbk_…' comes back ONCE — the app keeps it in
+     this browser's localStorage only), DELETE /api/agent/key {id} → rpc revoke_enrollment_key, POST /api/agent/revoke {id}
+     → rpc revoke_agent (the device's next poll answers 410 and removes our files).
+   - GET /api/agent/builds: the third raw fetch of this layer — the PUBLIC builds bucket's latest.json
+     (<supabaseUrl>/storage/v1/object/public/mb-agent-builds/latest.json, no key, no Bearer; CORS '*' verified), validated
+     (version, files/sha256s for mbagent-darwin-universal + mbagent-windows-{amd64,arm64}.exe, every URL under the bucket,
+     64-hex sums) and cached 10 min.
+   - the built-in mark survives a reload (found by the v88 live E2E through exportHash: after a reload the brand's logo was the
+     first SCRAPED candidate, not the kit mark the admin had seen, so every export re-rendered once): brandPayload records a
+     selected built-in logo as {src:'builtin:<domain>', sel:true} at the front of logo_opts (still no data: URI in jsonb) and
+     brandFromRow puts the mark back in front of the scraped candidates when that marker is present. */
 window.__MB=Object.assign({"supabaseUrl":"https://ohobtgbyrlczfdztzvqi.supabase.co","supabaseAnonKey":"sb_publishable_H3hDKJRE0oOH7dkg7496Rw_trmUMPW9","googleClientId":"","ga4Id":"","supabaseJs":"2.116.0","product":"meetingbrand","schema":"mb"},window.__MB||{});
 (function(){
 "use strict";
@@ -3459,7 +3605,7 @@ async function api(p,method,bodyObj){
   if(og.error)throw og.error.message;
   var br=await sb.from('brands').select('id,domain,name,source,primary_hex,secondary_hex,accents,logo_opts,fetch_ms,fetched_at,updated_at').eq('org_id',mm.org_id).eq('is_active',true).limit(1);
   if(br.error)throw br.error.message;
-  var bg=await sb.from('backgrounds').select('id,brand_id,slug,label,look,state,is_public,preview_asset_id,created_at,updated_at').eq('owner_id',mm.uid);   /* v82: preview_asset_id + created_at for the pre-v82 starter rule */
+  var bg=await sb.from('backgrounds').select('id,brand_id,slug,label,look,state,is_public,preview_asset_id,export_asset_id,thumb_asset_id,export_jpg_asset_id,created_at,updated_at').eq('owner_id',mm.uid);   /* v82: preview_asset_id + created_at for the pre-v82 starter rule; v88: the export columns (ensureExports skips what exists) */
   if(bg.error)throw bg.error.message;
   return {user:{id:mm.uid,email:mm.email,name:mm.prof.full_name||'',title:mm.prof.title||'',role:mm.role},
    org:og.data,brand:(br.data&&br.data[0])||null,backgrounds:bg.data||[]};
@@ -3556,6 +3702,26 @@ async function api(p,method,bodyObj){
   var eu=await sb.from('employees').update({active:!!B.active}).eq('id',eid).eq('org_id',m2.org_id);
   if(eu.error)throw eu.error.message;teamInvalidate();return {ok:true,id:eid,active:!!B.active};
  }
+ /* ---------- v88: the MeetingBrand Agent (mb-010: enrollment keys + agents; the RPCs are the only write path) ---------- */
+ if(p==='/api/agent/keys'&&M==='GET'){
+  var kr=await sb.from('enrollment_keys_view').select('id,label,created_at,last_used_at,uses,revoked_at').eq('org_id',m2.org_id).is('revoked_at',null).order('created_at',{ascending:false}).limit(20);
+  if(kr.error)throw kr.error.message;return {keys:kr.data||[]};
+ }
+ if(p==='/api/agent/key'&&M==='POST'){
+  var cr=await sb.rpc('create_enrollment_key',{p_label:String(B.label||'').slice(0,80)||null});
+  if(cr.error)throw cr.error.message;
+  var kj=cr.data;if(!kj||typeof kj.key!=='string'||!KEY_RE.test(kj.key))throw 'no key returned';
+  return {id:String(kj.id||''),key:kj.key,label:kj.label||null,created_at:kj.created_at||new Date().toISOString()};
+ }
+ if(p==='/api/agent/key'&&M==='DELETE'){
+  var kid=String(B.id||'');if(!kid)throw 'bad_request';
+  var rr=await sb.rpc('revoke_enrollment_key',{p_id:kid});if(rr.error)throw rr.error.message;return {ok:true,id:kid,revoked:rr.data===true};
+ }
+ if(p==='/api/agent/revoke'&&M==='POST'){
+  var aid2=String(B.id||'');if(!aid2)throw 'bad_request';
+  var ra=await sb.rpc('revoke_agent',{p_id:aid2});if(ra.error)throw ra.error.message;teamInvalidate();return {ok:true,id:aid2,revoked:ra.data===true};
+ }
+ if(p==='/api/agent/builds'&&M==='GET')return agentBuilds(!!B.force);
  throw ('Unknown endpoint '+M+' '+p);
 }
 
@@ -3588,9 +3754,12 @@ async function teamRead(force){
   if(er.error)throw er.error.message;
   var pr=await sb.from('pushes').select('id,employee_id,background_id,platform,state,error,updated_at').eq('org_id',m.org_id).order('updated_at',{ascending:false}).limit(4000);
   if(pr.error)throw pr.error.message;
-  var latest={};(pr.data||[]).forEach(function(p){if(p&&p.employee_id&&!latest[p.employee_id])latest[p.employee_id]=p});
-  var emps=(er.data||[]).map(function(e){var p=latest[e.id]||null;return Object.assign({},e,{push:p?{state:p.state,error:p.error||null,background_id:p.background_id,updated_at:p.updated_at}:null})});
-  var data={org_id:m.org_id,role:(rm&&rm.role)||m.role,connect:(rm&&rm.connect)||{},integrations:(rm&&rm.integrations)||[],employees:emps,last_pushes:(rm&&rm.last_pushes)||[],fetched_at:Date.now(),demo:false};
+  var latest={},perPlat={};(pr.data||[]).forEach(function(p){if(!p||!p.employee_id)return;if(!latest[p.employee_id])latest[p.employee_id]=p;var pp=perPlat[p.employee_id]=perPlat[p.employee_id]||{};if(p.platform&&!pp[p.platform])pp[p.platform]={state:p.state,error:p.error||null,background_id:p.background_id,updated_at:p.updated_at}});
+  /* v88: the read model's per-platform fold wins (it sees every row); the newest non-revoked device per person */
+  var pbe=(rm&&rm.pushes_by_employee&&typeof rm.pushes_by_employee==='object')?rm.pushes_by_employee:null,agents=Array.isArray(rm&&rm.agents)?rm.agents:[],agentOf={};
+  agents.forEach(function(a){if(!a||!a.employee_id||a.revoked_at)return;var cur=agentOf[a.employee_id];if(!cur||(Date.parse(a.last_seen_at||a.enrolled_at||'')||0)>(Date.parse(cur.last_seen_at||cur.enrolled_at||'')||0))agentOf[a.employee_id]=a});
+  var emps=(er.data||[]).map(function(e){var p=latest[e.id]||null;return Object.assign({},e,{push:p?{state:p.state,error:p.error||null,background_id:p.background_id,updated_at:p.updated_at}:null,pushes:(pbe&&pbe[e.id])||perPlat[e.id]||{},agent:agentOf[e.id]||null})});
+  var data={org_id:m.org_id,role:(rm&&rm.role)||m.role,connect:(rm&&rm.connect)||{},integrations:(rm&&rm.integrations)||[],employees:emps,last_pushes:(rm&&rm.last_pushes)||[],agents:agents,fetched_at:Date.now(),demo:false};
   _team={at:Date.now(),data:data,p:null};return data;
  })();
  try{return await _team.p}catch(e){_team.p=null;throw e}
@@ -3635,6 +3804,29 @@ async function teamReturn(){
 function errCode(e){return String((e&&e.code)||(e&&e.message)||e||'error').slice(0,60)}
 function errText(e){if(e&&e.code==='not_configured')return 'not configured yet';var d=e&&(e.detail||e.message);return String(d||e||'error').slice(0,140)}
 function defaultNavigate(u){try{window.location.assign(u);return true}catch(e){return false}}
+/* ---------- v88: the public dev builds of the agent (latest.json in the bucket mb-agent-builds) ---------- */
+var AGENT_BUCKET='mb-agent-builds',AGENT_FILES=['mbagent-darwin-universal','mbagent-windows-amd64.exe','mbagent-windows-arm64.exe'],BUILDS_TTL_MS=600000,_builds={at:0,data:null,p:null};
+var KEY_RE=/^mbk_[A-Za-z0-9_-]{32}$/,SHA_RE=/^[0-9a-f]{64}$/i;
+function agentBuildsUrl(){return String(CFG.supabaseUrl).replace(/\/+$/,'')+'/storage/v1/object/public/'+AGENT_BUCKET+'/latest.json'}
+async function agentBuilds(force){
+ if(!online())throw 'OFFLINE';
+ if(!force&&_builds.data&&Date.now()-_builds.at<BUILDS_TTL_MS)return _builds.data;
+ if(_builds.p)return _builds.p;
+ _builds.p=(async function(){
+  var url=agentBuildsUrl(),base=url.replace(/latest\.json$/,''),r;
+  try{r=await fetch(url,{method:'GET',headers:{Accept:'application/json'},credentials:'omit',cache:'no-cache'})}catch(e){throw fnErr(0,'network',String(e&&e.message||e),[])}
+  if(!r.ok)throw fnErr(r.status,'http_'+r.status,'latest.json answered '+r.status,[]);
+  var j=null;try{j=await r.json()}catch(e){throw fnErr(0,'bad_json','latest.json is not JSON',[])}
+  if(!j||typeof j.version!=='string'||!/^\d+\.\d+\.\d+$/.test(j.version)||!j.files||!j.sha256s)throw fnErr(0,'bad_manifest','latest.json has no version/files/sha256s',[]);
+  var files={},sums={};
+  AGENT_FILES.forEach(function(n){var u=String(j.files[n]||''),h=String(j.sha256s[n]||'').toLowerCase();
+   if(u.indexOf(base)!==0)throw fnErr(0,'bad_manifest',n+' is missing or outside the builds bucket',[]);
+   if(!SHA_RE.test(h))throw fnErr(0,'bad_manifest',n+' has no sha256',[]);files[n]=u;sums[n]=h});
+  var data={version:j.version,builtAt:typeof j.builtAt==='string'?j.builtAt:null,signed:j.signed===true,files:files,sha256s:sums,url:url,fetched_at:Date.now()};
+  _builds={at:Date.now(),data:data,p:null};return data;
+ })();
+ try{return await _builds.p}catch(e){_builds.p=null;throw e}
+}
 /* ---------- v86: the client-rendered delivery files (export PNG, Teams thumb, Meet JPEG) -> mb-exports ---------- */
 var EXPORT_BUCKET='mb-exports',EXPORT_W=1920,EXPORT_H=1080,THUMB_W=280,THUMB_H=158;
 function imgBytes(url,w,h,mime){
@@ -3646,11 +3838,16 @@ function imgBytes(url,w,h,mime){
   catch(e){rej(e)}
  });
 }
-function exportSig(sc){var st=APP()&&APP().state(),b=st&&st.brand;return JSON.stringify([sc&&sc.id,sc&&sc.adj||null,b&&b.domain,b&&b.fallbackFor,b&&b.wallText,b&&b.logo&&b.logo.src&&String(b.logo.src).slice(0,120),b&&b.logoClear,st&&st.signFont&&st.signFont.fam])}
+/* v88: a reload-stable fingerprint of what an export renders from (key-sorted JSON, undefined/function values skipped, data URLs of the adj excluded like bgPayload) */
+function stableJSON(v){if(v===undefined||typeof v==='function')return 'null';if(Array.isArray(v))return '['+v.map(stableJSON).join(',')+']';if(v&&typeof v==='object'){return '{'+Object.keys(v).filter(function(k){return v[k]!==undefined&&typeof v[k]!=='function'}).sort().map(function(k){return JSON.stringify(k)+':'+stableJSON(v[k])}).join(',')+'}'}return JSON.stringify(v)}
+function fnv1a(s){var h=0x811c9dc5;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0}return ('0000000'+h.toString(16)).slice(-8)}
+function exportAdj(sc){var adj={};Object.keys((sc&&sc.adj)||{}).forEach(function(k){var v=sc.adj[k];if(k==='fgData'||k==='wallData')return;if(typeof v==='string'&&/^(data|blob):/i.test(v))return;if(v===undefined||typeof v==='function')return;adj[k]=v});return adj}
+function exportHash(sc){var st=APP()&&APP().state(),b=(st&&st.brand)||{},logo=(b.logo&&typeof b.logo.src==='string')?b.logo.src:'';
+ return fnv1a(stableJSON([sc&&sc.id,exportAdj(sc),b.domain||'',b.fallbackFor||'',(b.wallText!=null)?b.wallText:(b.name||''),logo.length+':'+logo.slice(0,160)+':'+logo.slice(-64),!!b.logoClear,(st&&st.signFont&&st.signFont.fam)||null]))}
 async function persistExports(sc,url){
  if(!_signed||_loading||_noProfile||!online())throw 'NOSESSION';
  if(!sc||!sc.id||typeof url!=='string'||!/^data:image\//.test(url))throw 'no_export_source';
- var sb=sbc(),m=await me();
+ var sb=sbc(),m=await me(),hash=exportHash(sc);   /* v88: fingerprint what this render came from (before anything is written) */
  var row=bgPayload(sc),pr=await api('/api/background','PUT',row),bgId=(pr&&pr.id)||row.id;
  sc._cloudId=bgId;_bgIds[sc.id]=bgId;
  var base=m.org_id+'/'+bgId,st=APP()&&APP().state(),b=st&&st.brand;
@@ -3664,21 +3861,27 @@ async function persistExports(sc,url){
   if(up&&up.error)throw (up.error.message||'upload failed');
   var ex=await sb.from('brand_assets').select('id').eq('bucket',EXPORT_BUCKET).eq('storage_path',k.path).limit(1);
   if(ex.error)throw ex.error.message;
-  var aid=ex.data&&ex.data[0]&&ex.data[0].id;
-  if(!aid){var wr=await sb.from('brand_assets').insert({org_id:m.org_id,brand_id:(b&&b._cloudId)||null,kind:k.kind,bucket:EXPORT_BUCKET,storage_path:k.path,mime:k.mime,width:k.w,height:k.h,bytes:bytes.length}).select('id');
+  var aid=ex.data&&ex.data[0]&&ex.data[0].id,sha=await sha256Hex(bytes);   /* v88.1: the agent compares sha256s — a re-render must announce a new one */
+  if(!aid){var wr=await sb.from('brand_assets').insert({org_id:m.org_id,brand_id:(b&&b._cloudId)||null,kind:k.kind,bucket:EXPORT_BUCKET,storage_path:k.path,mime:k.mime,width:k.w,height:k.h,bytes:bytes.length,sha256:sha}).select('id');
    if(wr.error)throw wr.error.message;aid=wr.data&&wr.data[0]&&wr.data[0].id}
+  else{var au=await sb.from('brand_assets').update({bytes:bytes.length,sha256:sha}).eq('id',aid);if(au.error)throw au.error.message}   /* the row is re-used (same path): refresh bytes + sha256 (null → mb-agent recomputes it from the object on the next /assignments) */
   if(!aid)throw 'no asset id';
   upd[k.col]=aid;out[k.kind]=aid;out[k.kind+'_bytes']=bytes.length;
  }
+ sc._exportHash=hash;upd.state=bgPayload(sc).state;   /* v88: the hash lands in the row only once the three files exist (the same update as the asset ids) */
  var bu=await sb.from('backgrounds').update(upd).eq('id',bgId);
  if(bu.error)throw bu.error.message;
- sc._exportIds=out;sc._exportSig=exportSig(sc);sc._exportAt=Date.now();
+ sc._exportIds=out;sc._exportAt=Date.now();sc._exportN=(sc._exportN||0)+1;
  return out;
 }
-/* render (through the app's export sink, name bar off) + upload unless the scene's exports are current */
+/* render (through the app's export sink, name bar off) + upload unless the scene's exports are current
+   (v88: current = the PNG + thumb assets exist — from this session or restored by loadSession — and the hash is unchanged) */
+/* hex sha256 of the bytes just uploaded (WebCrypto; null where it is unavailable — the server then computes it from the object) */
+async function sha256Hex(bytes){try{var c=(typeof crypto!=='undefined'&&crypto&&crypto.subtle)?crypto.subtle:null;if(!c||!bytes)return null;var d=await c.digest('SHA-256',bytes);var u=new Uint8Array(d),o='';for(var i=0;i<u.length;i++)o+=(u[i]<16?'0':'')+u[i].toString(16);return o.length===64?o:null}catch(e){return null}}
+function exportsCurrent(sc){return !!(sc&&sc._exportIds&&sc._exportIds.export&&sc._exportIds.thumb&&typeof sc._exportHash==='string'&&sc._exportHash===exportHash(sc))}
 async function ensureExports(sc){
  if(!sc)throw 'no_scene';
- if(sc._exportIds&&sc._exportIds.export&&sc._exportSig===exportSig(sc))return sc._exportIds;
+ if(exportsCurrent(sc))return sc._exportIds;
  var a=APP();if(!a||!a.renderLook)throw 'no_renderer';
  var url=await a.renderLook(sc.id,{bar:false});
  return persistExports(sc,url);
@@ -3741,7 +3944,8 @@ function brandFromRow(r,base,email){
  base=base||{};
  var raw=Array.isArray(r.logo_opts)?r.logo_opts:[];
  var opts=raw.filter(function(o){return o&&remote(o.src)}).map(function(o){return {src:o.src,label:o.label||'Saved',w:o.w||0}});
- var selRaw=raw.filter(function(o){return o&&o.sel&&remote(o.src)})[0]||opts[0]||null;
+ var selBuiltin=raw.some(function(o){return o&&o.sel&&/^builtin:/.test(String(o.src||''))});   /* v88: the built-in mark was the selected logo when the row was saved (brandPayload's marker; the data: URI itself is never stored) */
+ var selRaw=raw.filter(function(o){return o&&o.sel&&remote(o.src)})[0]||(selBuiltin?null:opts[0])||null;
  var loc=(base.logo&&typeof base.logo.src==='string'&&/^data:/i.test(base.logo.src)&&!base.logo.builtin)?base.logo:null;   /* v85: an uploaded / cropped logo lives only in this browser — the row cannot hold it, so it is never replaced by a remote candidate */
  if(loc){opts=[{src:loc.src,label:((base.logoOpts||[]).filter(function(o){return o&&o.src===loc.src})[0]||{}).label||'Uploaded',w:loc.w||0}].concat(opts.filter(function(o){return o.src!==loc.src})).slice(0,6)}
  var b={domain:r.domain||base.domain||'',name:r.name||base.name||'',primary:r.primary_hex||base.primary||'#5739FB',secondary:r.secondary_hex||base.secondary||'#00BDDF',
@@ -3749,7 +3953,7 @@ function brandFromRow(r,base,email){
   logo:loc?loc:(selRaw?{src:selRaw.src,ok:true,safe:false,w:selRaw.w||0}:null),fetchMs:r.fetch_ms||0,_cloudId:r.id};
  if(!b.domain&&email)b.fallbackFor=String(email).toLowerCase();
  var kbl=kbLogo(b.domain);
- if(kbl&&!(b.logo&&b.logo.src)){b.logo=kbl.logo;b.logoOpts=kbl.opts;b.logoMiss=false}   /* v84: a library brand with a built-in mark gets it back (the row never stores the data: URI) */
+ if(kbl&&(selBuiltin||!(b.logo&&b.logo.src))){b.logo=kbl.logo;b.logoOpts=kbl.opts.concat(opts.filter(function(o){return o.src!==kbl.opts[0].src})).slice(0,7);b.logoMiss=false}   /* v84: a library brand with a built-in mark gets it back (the row never stores the data: URI); v88: also when the mark was the SELECTED logo next to scraped candidates (the v85 scrape kept the candidates but the reload picked the first remote one over the mark the admin saw) — the candidates stay behind it */
  if((b.source==='fallback'||b.source==='blocked')&&!b.logo){var a=APP(),m=a&&a.mbBrand?a.mbBrand():null;if(m){b.logo=m.logo;b.logoOpts=m.logoOpts;b.logoMiss=false;if(!b.name)b.name=m.name;if(!b.site)b.site=m.site}}   /* v83: the MeetingBrand mark comes back after a reload; v84: and brand.site with it */
  return b;
 }
@@ -3759,6 +3963,7 @@ function brandPayload(b){
  var opts=(b.logoOpts||[]).filter(function(o){return o&&remote(o.src)}).slice(0,6).map(function(o){return {src:o.src,label:o.label||'',w:o.w||0}});   /* v85: up to 6 remote candidates (+ the selected one) */
  var cur=b.logo&&b.logo.src;
  if(remote(cur)){var hit=opts.filter(function(o){return o.src===cur})[0];if(hit)hit.sel=true;else opts.unshift({src:cur,label:'Selected',w:(b.logo&&b.logo.w)||0,sel:true})}
+ else if(cur&&b.logo.builtin&&b.domain&&kbLogo(b.domain)){opts.unshift({src:'builtin:'+String(b.domain).toLowerCase().replace(/^www\./,''),label:String(b.name||'Built-in').slice(0,80),w:(b.logo&&b.logo.w)||0,sel:true})}   /* v88: the selected built-in mark survives a reload as a marker (never the data: URI) */
  var st=APP()&&APP().state();
  var acc=(st&&Array.isArray(st.accents)&&st.accents.length)?st.accents:[b.primary,b.secondary];
  var src=SOURCES.indexOf(b.source)>=0?b.source:'fallback';if(b.blocked)src='blocked';
@@ -3772,6 +3977,7 @@ function bgPayload(sc){
  Object.keys(sc.adj||{}).forEach(function(k){var v=sc.adj[k];if(k==='fgData'||k==='wallData')return;if(typeof v==='string'&&/^(data|blob):/i.test(v))return;adj[k]=v});
  adj.sign={text:(b&&b.wallText!=null)?b.wallText:((b&&b.name)||''),font:(st&&st.signFont&&st.signFont.fam)||null};
  if(sc._starter)adj.starter=true;else delete adj.starter;   /* v82: the machine's starter looks keep their badge across reloads (state.starter) */
+ if(typeof sc._exportHash==='string'&&sc._exportHash)adj.export_hash=sc._exportHash;else delete adj.export_hash;   /* v88: the hash the current exports were rendered from */
  if(!sc._cloudId)sc._cloudId=_bgIds[sc.id]||uuid();
  return {id:sc._cloudId,brand_id:(b&&b._cloudId)||null,label:sc.name||sc.id,look:sc.id,state:adj};
 }
@@ -3808,7 +4014,9 @@ async function loadSession(){
     sc._cloudId=r.id;
     var star=!!(r.state&&typeof r.state==='object'&&r.state.starter===true);   /* v82: written by bgPayload since v82 */
     if(star)flagged.push(sc);else if(r.preview_asset_id)legacy.push({sc:sc,at:Date.parse(r.created_at||'')||0,id:String(r.id||'')});
-    if(r.state&&typeof r.state==='object'){var adj=Object.assign({},r.state);delete adj.sign;delete adj.fgData;delete adj.wallData;delete adj.starter;
+    if(r.export_asset_id&&r.thumb_asset_id){sc._exportIds={background_id:r.id,export:r.export_asset_id,thumb:r.thumb_asset_id,export_jpg:r.export_jpg_asset_id||null}}   /* v88: what the agent can already fetch */
+    sc._exportHash=(r.state&&typeof r.state==='object'&&typeof r.state.export_hash==='string')?r.state.export_hash:null;   /* v88: what those files were rendered from */
+    if(r.state&&typeof r.state==='object'){var adj=Object.assign({},r.state);delete adj.sign;delete adj.fgData;delete adj.wallData;delete adj.starter;delete adj.export_hash;
      if(Object.keys(adj).length){if(sc._adjDefault){sc.adj=adj;delete sc._adjDefault}else sc.adj=Object.assign(adj,sc.adj||{})}} /* v85: the user's saved row replaces a seeded DEFAULT_SETUP; a scene touched in this browser keeps the v77 merge (local keys win, server fills the gaps); no row -> the default stays */
    });
    /* v82: pre-v82 rows carry no flag — when none does, the first three rows with a preview (created_at ascending; only the machine set preview_asset_id before v82) are the starters */
@@ -3905,15 +4113,17 @@ window.__MB_CLOUD={
  isInfraErr:isInfraErr,DB_DOWN_MSG:DB_DOWN_MSG,config:CFG,
  /* v86: My team */
  teamRead:teamRead,teamReturn:teamReturn,teamInvalidate:teamInvalidate,get teamCache(){return _team.data},get lastReturn(){return _lastReturn},navigate:defaultNavigate,
- persistExports:persistExports,ensureExports:ensureExports,csvRow:csvRow,hashParams:hashParams,EXPORT:{bucket:EXPORT_BUCKET,w:EXPORT_W,h:EXPORT_H,thumbW:THUMB_W,thumbH:THUMB_H},TEAM_TTL_MS:TEAM_TTL_MS,
- track:MBTrack,sid:sid,get lastEvents(){return _events.slice()},trackReset:function(){_sent={};_events.length=0},version:'v87'
+ persistExports:persistExports,ensureExports:ensureExports,exportHash:exportHash,exportsCurrent:exportsCurrent,csvRow:csvRow,hashParams:hashParams,EXPORT:{bucket:EXPORT_BUCKET,w:EXPORT_W,h:EXPORT_H,thumbW:THUMB_W,thumbH:THUMB_H},TEAM_TTL_MS:TEAM_TTL_MS,
+ /* v88: the agent */
+ agentBuilds:agentBuilds,agentBuildsUrl:agentBuildsUrl,AGENT:{bucket:AGENT_BUCKET,files:AGENT_FILES.slice(),keyRe:KEY_RE,ttlMs:BUILDS_TTL_MS},
+ track:MBTrack,sid:sid,get lastEvents(){return _events.slice()},trackReset:function(){_sent={};_events.length=0},version:'v88'
 };
 (async function(){try{await loadSession()}catch(e){if(e!=='OFFLINE'&&e!=='NOSESSION'&&window.console)console.warn('[mb-cloud] session restore skipped:',String(e&&e.message||e))}})();
 })();
 
 </script>
 <script id="mb-gate">
-/* MeetingBrand auth gate (v87, 2026-09-16) — signup card + login modal + invite mode + the pre-gate draft snapshot,
+/* MeetingBrand auth gate (v88, 2026-09-17; no gate change since v87) — signup card + login modal + invite mode + the pre-gate draft snapshot,
    and (v79) the signup -> domain -> brand -> starter-set chain (PLAN §3, §5 item 9).
    Source of truth: engine/mb-gate.js; build-vNN.py inlines it as the script block id="mb-gate" right after the
    cloud block (engine/mb-cloud.js), the last thing before the end of body. Donor: the LIVE ProSignature ps-auth-gate
@@ -4585,7 +4795,7 @@ window.__MB_GATE={
  mount:function(f){return mount(f)},close:function(){close()},openLogin:openLogin,closeLogin:closeLogin,isLoginOpen:isLoginOpen,
  signupEmail:signupEmail,doLogin:doLogin,finishSignup:finishSignup,demoContinue:demoContinue,
  runMachine:runMachine,runFallback:runFallback,mbFallback:mbFallback,needsFallback:needsFallback,hydrateBuiltin:hydrateBuiltin,kbLogo:kbLogo,siteSubmit:siteSubmit,siteSkip:siteSkip,joinOrg:joinOrg,ownWorkspace:ownWorkspace,summaryLine:summaryLine,restoredLine:restoredLine,restoreStarter:restoreStarter,joinTitle:joinTitle,cleanDomain:cleanDomain,STARTER:STARTER.slice(),FLOOR_MS:FLOOR_MS,
- saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,version:'v87'
+ saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,version:'v88'
 };
 })();
 
