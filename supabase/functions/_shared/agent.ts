@@ -88,16 +88,24 @@ export function tileLabel(label: string | null | undefined): string {
 
 export const TEAMS_PLATFORM = "teams";
 export const MEET_PLATFORM = "meet";
-/** Where a device delivers: the OS agent writes Teams tiles, the browser extension composites in Meet. */
-export type DeliveryPlatform = "teams" | "meet";
-export const AGENT_OS = ["windows", "macos", "chrome", "edge"] as const;
+/** The Zoom App (os 'zoom'): zoomSdk.setVirtualBackground in the employee's own Zoom client (PLAN-active-push §1.2). */
+export const ZOOM_PLATFORM = "zoom";
+/** Where a device delivers: the OS agent writes Teams tiles, the browser extension composites in Meet, the Zoom App sets the Zoom background. */
+export type DeliveryPlatform = "teams" | "meet" | "zoom";
+export const DELIVERY_PLATFORMS: readonly DeliveryPlatform[] = [TEAMS_PLATFORM, MEET_PLATFORM, ZOOM_PLATFORM];
+export const AGENT_OS = ["windows", "macos", "chrome", "edge", "zoom"] as const;
 export type AgentOs = typeof AGENT_OS[number];
 export function isAgentOs(v: unknown): v is AgentOs {
   return typeof v === "string" && (AGENT_OS as readonly string[]).includes(v);
 }
-/** The platform a device serves by default: browsers → meet, operating systems → teams. */
+/** The platform a device serves by default: browsers → meet, the Zoom App → zoom, operating systems → teams. */
 export function platformForOs(os: string): DeliveryPlatform {
+  if (os === ZOOM_PLATFORM) return ZOOM_PLATFORM;
   return os === "chrome" || os === "edge" ? MEET_PLATFORM : TEAMS_PLATFORM;
+}
+/** Devices that apply ONE look (the Meet extension composites one, the Zoom App sets one) — Teams gets every tile. */
+export function isOneLookPlatform(p: DeliveryPlatform): boolean {
+  return p === MEET_PLATFORM || p === ZOOM_PLATFORM;
 }
 export function pushKey(orgId: string, employeeId: string, backgroundId: string, platform: DeliveryPlatform = TEAMS_PLATFORM): string {
   return `${orgId}:${employeeId}:${backgroundId}:${platform}`;
@@ -225,13 +233,17 @@ export function shapeMeetAssignment(p: {
 
 // ---------------------------------------------------------------- report mapping
 
-export const REPORT_STATES = ["written", "verified", "restart_needed", "removed", "blocked", "error", "applied", "unavailable"] as const;
+export const REPORT_STATES = ["written", "verified", "restart_needed", "removed", "blocked", "error", "applied", "unavailable", "denied"] as const;
 export type ReportState = typeof REPORT_STATES[number];
 /** The states each kind of device may report (an OS agent never says 'applied'; a browser never 'written'). */
 export const AGENT_REPORT_STATES: readonly ReportState[] = ["written", "verified", "restart_needed", "removed", "blocked", "error"];
 export const EXTENSION_REPORT_STATES: readonly ReportState[] = ["applied", "unavailable", "error"];
+/** The Zoom App: applied (setVirtualBackground resolved), denied (the employee refused Zoom's consent dialog), error. */
+export const ZOOM_APP_REPORT_STATES: readonly ReportState[] = ["applied", "denied", "error"];
 export function reportStatesFor(platform: DeliveryPlatform): readonly ReportState[] {
-  return platform === MEET_PLATFORM ? EXTENSION_REPORT_STATES : AGENT_REPORT_STATES;
+  if (platform === MEET_PLATFORM) return EXTENSION_REPORT_STATES;
+  if (platform === ZOOM_PLATFORM) return ZOOM_APP_REPORT_STATES;
+  return AGENT_REPORT_STATES;
 }
 
 export interface ReportEvidence {
@@ -248,6 +260,10 @@ export interface ReportEvidence {
   browser?: string;
   fps?: number;
   segMs?: number;
+  /** Zoom App: the SDK running context when the call was made (inMeeting / inMainClient / …), the client version, the SDK error code */
+  runningContext?: string;
+  clientVersion?: string;
+  code?: number;
 }
 
 /**
@@ -262,12 +278,18 @@ export interface ReportEvidence {
  *   unavailable        → pushed      (the image is cached on the device but not applied: toggle off, Meet's own effect
  *                                     on, no WebGL/WASM, no camera yet — the reason is in `error`)
  *   error              → failed + the extension's message
+ * Zoom App report (platform zoom) → pushes.state:
+ *   applied            → selected    (zoomSdk.setVirtualBackground resolved: the Zoom client shows our image — rung B)
+ *   denied             → awaiting_client + 'declined…' (the employee refused Zoom's consent dialog; the app asks again next open)
+ *   error              → failed + the SDK error (code + message)
  */
-export function mapReportState(state: ReportState, evidence: ReportEvidence | null | undefined): { pushState: "available" | "pushed" | "blocked" | "failed" | "selected"; error: string | null; event: "push_delivered" | "push_removed" | "push_failed" } {
+export function mapReportState(state: ReportState, evidence: ReportEvidence | null | undefined): { pushState: "available" | "pushed" | "blocked" | "failed" | "selected" | "awaiting_client"; error: string | null; event: "push_delivered" | "push_removed" | "push_failed" } {
   const msg = (evidence?.message ?? "").toString().trim().slice(0, 500);
   switch (state) {
     case "applied":
       return { pushState: "selected", error: null, event: "push_delivered" };
+    case "denied":
+      return { pushState: "awaiting_client", error: msg ? `declined in Zoom: ${msg}` : "declined in Zoom (the employee refused the consent dialog for the background)", event: "push_failed" };
     case "unavailable":
       return { pushState: "pushed", error: msg ? `not applied: ${msg}` : "not applied (no reason given by the extension)", event: "push_delivered" };
     case "written":
@@ -301,6 +323,9 @@ export function cleanEvidence(v: unknown): ReportEvidence | null {
   if (typeof o.browser === "string") out.browser = o.browser.replace(/[^\x20-\x7e]/g, "").slice(0, 80);
   if (typeof o.fps === "number" && Number.isFinite(o.fps) && o.fps >= 0) out.fps = Math.round(o.fps * 10) / 10;
   if (typeof o.segMs === "number" && Number.isFinite(o.segMs) && o.segMs >= 0) out.segMs = Math.round(o.segMs * 100) / 100;
+  if (typeof o.runningContext === "string" && /^[A-Za-z]{1,32}$/.test(o.runningContext)) out.runningContext = o.runningContext;
+  if (typeof o.clientVersion === "string") out.clientVersion = o.clientVersion.replace(/[^\x20-\x7e]/g, "").slice(0, 40);
+  if (typeof o.code === "number" && Number.isInteger(o.code) && o.code >= 0 && o.code < 1e6) out.code = o.code;
   return out;
 }
 

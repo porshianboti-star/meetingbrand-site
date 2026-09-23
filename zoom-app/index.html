@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>MeetingBrand for Zoom</title>
+<!--
+  MeetingBrand for Zoom — the Zoom Apps SDK page (PLAN-active-push §1.2, rung B).
+  THE HOME URL IS THE SUPABASE EDGE FUNCTION mb-zoom-app (https://ohobtgbyrlczfdztzvqi.supabase.co/functions/v1/mb-zoom-app):
+  it serves this file with the four OWASP response headers the Zoom client requires and turns the x-zoom-app-context
+  header into the ticket in #mb-ctx. This same file is mirrored on GitHub Pages at https://meetingbrand.com/zoom-app/
+  where no response header can be set: there it always renders the "open this inside Zoom" state.
+  Source of truth for both: zoom-app/index.html + zoom-app/app.js (python3 zoom-app/build-page.py regenerates
+  supabase/functions/mb-zoom-app/page.ts — run it after every edit; the deno tests fail when it is stale).
+  No external assets except the Zoom Apps SDK (https://appssdk.zoom.us/sdk.js, required by the docs).
+-->
+<style>
+:root{--ink:#031436;--vio:#5739FB;--vio-h:#4528E8;--cyan:#00BDDF;--cloud:#F5F7FB;--slate:#667085;--mist:#DDE3EE;--white:#FFFFFF;--ok:#12805C;--warn:#B7791F;--bad:#B3261E}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--cloud);color:var(--ink);font:15px/1.45 Inter,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.card{width:100%;max-width:440px;background:var(--white);border:1px solid var(--mist);border-radius:16px;padding:22px 22px 18px;box-shadow:0 8px 24px rgba(3,20,54,.06)}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.brand .mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--vio),var(--cyan));flex:none}
+.brand b{font-size:14px;letter-spacing:.02em}
+.brand span{color:var(--slate);font-size:12px;margin-left:auto}
+.status{display:flex;align-items:flex-start;gap:12px}
+.dot{width:12px;height:12px;border-radius:50%;margin-top:6px;flex:none;background:var(--mist)}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}.dot.busy{background:var(--vio);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+h1{font-size:17px;margin:0 0 4px;line-height:1.3}
+p{margin:0;color:var(--slate);font-size:13.5px}
+.label{display:inline-block;margin-top:10px;background:#EEEBFF;color:var(--vio);border-radius:99px;font-weight:700;font-size:12px;padding:4px 10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.actions{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}
+button{font:700 13.5px Inter,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;border:0;border-radius:10px;padding:9px 16px;cursor:pointer;background:var(--vio);color:#fff}
+button:hover{background:var(--vio-h)}button:disabled{background:var(--mist);color:var(--slate);cursor:not-allowed}
+button.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--mist)}button.ghost:hover{background:var(--cloud)}
+.meta{margin-top:14px;font-size:11.5px;color:var(--slate);border-top:1px solid var(--mist);padding-top:10px;word-break:break-word}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main class="card" role="main" aria-live="polite">
+    <div class="brand"><div class="mark" aria-hidden="true"></div><b>MeetingBrand</b><span>for Zoom</span></div>
+    <div class="status">
+      <div class="dot busy" id="dot"></div>
+      <div>
+        <h1 id="title">Setting your company background…</h1>
+        <p id="body">Checking with your workspace.</p>
+        <div class="label hidden" id="label"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="retry" class="hidden" type="button">Retry</button>
+      <button id="again" class="ghost hidden" type="button">Set it again</button>
+    </div>
+    <div class="meta" id="meta"></div>
+  </main>
+</div>
+<script id="mb-ctx" type="application/json">{"mode":"outside","apiBase":"https://ohobtgbyrlczfdztzvqi.supabase.co/functions/v1"}</script>
+<script src="https://appssdk.zoom.us/sdk.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -61,6 +61,11 @@ async function hkdf(root: Uint8Array, info: string, algo: AesKeyGenParams | Hmac
   );
 }
 
+/** One more HMAC-SHA256 sub-key from the same root under its own HKDF info (mb-zoom-app tickets). */
+export async function deriveHmac(tokenKeyB64: string, info: string): Promise<CryptoKey> {
+  return hkdf(rootKeyBytes(tokenKeyB64), info, { name: "HMAC", hash: "SHA-256", length: 256 }, ["sign", "verify"]);
+}
+
 export interface VaultKeys {
   aes: CryptoKey;
   hmac: CryptoKey;

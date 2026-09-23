@@ -1,8 +1,26 @@
 // mb-agent — the MeetingBrand Agent's backend (PLAN-active-push §2: enroll → device token → poll → Teams file-drop → report)
 // AND the Meet extension's (PLAN §1.3/§3: the force-installed Chrome/Edge extension enrolls with the same org key,
-// polls the same endpoints with os 'chrome'|'edge' and platform 'meet', and reports applied|unavailable|error).
+// polls the same endpoints with os 'chrome'|'edge' and platform 'meet', and reports applied|unavailable|error)
+// AND the Zoom App's (PLAN §1.2: "MeetingBrand for Zoom", the user-managed Zoom Apps SDK page served by mb-zoom-app,
+// os 'zoom', platform 'zoom' — it has no org key: it resolves a device token from the Zoom user id, see /zoom/resolve).
 // One function, the action is the last path segment (…/mb-agent/enroll) — `?action=` works too.
 //
+//   POST /zoom/resolve {ticket, deviceId?, clientVersion?, version?}   (the Zoom App page; no org key, no Bearer)
+//                     ticket = what mb-zoom-app minted from the decrypted x-zoom-app-context header (HMAC over
+//                     {uid, typ, mid?, iat, exp}, 10 min, key derived from MB_TOKEN_KEY — _shared/zoomapp.ts)
+//                     → the Zoom user id (uid) is looked up in mb.employees (platform 'zoom', ext_id = uid — the rows
+//                       mb-sync-zoom writes) across every workspace whose Zoom integration is 'connected'
+//                       (one Zoom user id is global to Zoom; two workspaces can only share it if both connected the
+//                       same Zoom account — the active row wins, then the most recently synced integration)
+//                     → the (org, 'zoom:'+deviceId) agent row is created/refreshed with os 'zoom', local_identity = uid
+//                     → 200 {deviceToken, tokenExpiresAt, agentId, employee, state:'matched', pollSeconds}
+//                     401 bad/expired/forged ticket (counted by the per-IP failure limiter) · 404 not_enrolled
+//                     {reason: 'no_workspace' | 'not_in_roster'} (honest: the admin has not connected Zoom in MeetingBrand,
+//                     or this Zoom user is not in that workspace's synced Zoom directory) · 503 when MB_TOKEN_KEY is unset
+//                     TRUST ANCHOR: the uid comes from a header only the app's client secret can decrypt, and the ticket
+//                     only from MB_TOKEN_KEY. RESIDUAL RISK (documented, accepted like the agent's org-wide key): whoever
+//                     holds either secret can mint any employee's device token; the token only ever yields that
+//                     employee's own background (a 1 h signed URL of an image the whole org already sees).
 //   POST /enroll      {orgKey, deviceId, os: windows|macos|chrome|edge, hostname?, localIdentity?, version?, employeeEmail?}
 //                     (the extension sends os = its host browser, hostname = "Chrome 152 on macOS"-style description,
 //                      version = the extension version, employeeEmail from managed config / the product page /
@@ -16,10 +34,16 @@
 //                     → 200 {deviceToken, tokenExpiresAt, agentId, employee:{id,email,name,active}|null, state, pollSeconds}
 //                     401 bad key · 410 revoked key · 429 rate-limited (per key: 60/min; per source IP: 30 refused
 //                     keys per 10 min, counted in this isolate only — see FailureLimiter)
-//   GET  /assignments Bearer <deviceToken>   [?platform=teams|meet — must be the device's own platform: meet for
-//                     chrome/edge devices, teams for windows/macos; absent = that platform; another → 400. A browser
-//                     cannot write Teams tiles and an OS agent cannot composite Meet, so neither may queue or move
-//                     the other kind's pushes rows]
+//   GET  /assignments Bearer <deviceToken>   [?platform=teams|meet|zoom — must be the device's own platform: meet for
+//                     chrome/edge devices, zoom for the Zoom App, teams for windows/macos; absent = that platform;
+//                     another → 400. A browser cannot write Teams tiles and an OS agent cannot composite Meet, so
+//                     neither may queue or move the other kind's pushes rows]
+//                     platform zoom (the Zoom App): ONE item, shaped exactly like meet's (JPEG preferred, else PNG —
+//                       zoomSdk.setVirtualBackground({fileUrl}) takes either) → {platform:'zoom', backgroundId, guid, label,
+//                       imageUrl (signed, 1 h), mime, sha256, bytes, action:'apply'}; other 'zoom' App rows of the employee
+//                       in a removable state → action:'remove' (informational: the app never removes a background the
+//                       employee may have chosen); pushes rows platform 'zoom', key org:employee:background:zoom
+//                       (mb-push-zoom's REST library rows have no suffix — two deliveries, two rows)
 //                     platform meet (the extension): ONE item — the first wanted background (assigned_bg in order, else the
 //                       org's starters) that has a 1920×1080 export, JPEG (export_jpg_asset_id) preferred over PNG
 //                       (export_asset_id; Meet's native upload accepts both — the JPEG-only rule was the admin-console
@@ -46,6 +70,9 @@
 //                     extension states (platform meet): applied|unavailable|error, evidence {url, technique, meetVersionHint,
 //                       browser, fps, segMs, message} → applied → selected (rung A), unavailable → pushed + the reason,
 //                       error → failed; events carry {platform:'meet', via:'extension'}
+//                     Zoom App states (platform zoom): applied|denied|error, evidence {runningContext, clientVersion, code,
+//                       message} → applied → selected (rung B), denied → awaiting_client + 'declined in Zoom…',
+//                       error → failed; events carry {platform:'zoom', via:'zoom_app'}
 //                     an item for a pair that was never assigned (on that platform) is rejected per item; an item whose
 //                     platform is not the device's own (a browser saying platform:'teams', an OS agent 'meet') is rejected
 //                     per item, and so is a state outside the device kind's vocabulary; 422 when nothing was accepted
@@ -54,7 +81,8 @@
 // Auth is the device token only (no user session): every table write goes through the service role, every row
 // is pinned to the agent's org / employee. CORS headers are harmless here (native client) and stay for symmetry.
 
-import { notConfiguredBody, supabaseEnv } from "../_shared/env.ts";
+import { appEnv, notConfiguredBody, supabaseEnv } from "../_shared/env.ts";
+import { ticketKey, verifyTicket } from "../_shared/zoomapp.ts";
 import { HttpError, json, readJson, serveFn } from "../_shared/http.ts";
 import { serviceClient } from "../_shared/auth.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
@@ -66,10 +94,12 @@ import {
   assignmentGuid,
   type BackgroundRow,
   cleanEvidence,
+  DELIVERY_PLATFORMS,
   type DeliveryPlatform,
   ENROLL_RATE_LIMIT_PER_MIN,
   isAgentOs,
   isExpired,
+  isOneLookPlatform,
   KEY_RE,
   mapReportState,
   MAX_REPORT_ITEMS,
@@ -91,6 +121,7 @@ import {
   tileLabel,
   TOKEN_RE,
   TOKEN_TTL_MS,
+  ZOOM_PLATFORM,
 } from "../_shared/agent.ts";
 
 export interface Deps {
@@ -143,7 +174,9 @@ export function sourceIp(req: Request): string {
 }
 
 export const EXPORT_BUCKET = "mb-exports";
-const ACTIONS = new Set(["enroll", "assignments", "report", "heartbeat"]);
+const ACTIONS = new Set(["enroll", "assignments", "report", "heartbeat", "resolve"]);
+/** device_id prefix of Zoom App devices (one per Zoom client web view: a random id the page keeps in its storage). */
+export const ZOOM_DEVICE_PREFIX = "zoom:";
 
 interface AgentRow {
   id: string;
@@ -188,7 +221,7 @@ export function makeHandler(deps: Deps = {}) {
   return serveFn("mb-agent", async (req, { log }) => {
     const url = new URL(req.url);
     const action = actionOf(url);
-    if (!ACTIONS.has(action)) throw new HttpError(404, "unknown_action", "use /enroll, /assignments, /report or /heartbeat");
+    if (!ACTIONS.has(action)) throw new HttpError(404, "unknown_action", "use /enroll, /zoom/resolve, /assignments, /report or /heartbeat");
     const wantMethod = action === "assignments" ? "GET" : "POST";
     if (req.method !== wantMethod) throw new HttpError(405, "method_not_allowed", `use ${wantMethod}`);
 
@@ -293,6 +326,98 @@ export function makeHandler(deps: Deps = {}) {
       });
     }
 
+    // ================================================================ /zoom/resolve (the Zoom App: ticket → device token)
+    if (action === "resolve") {
+      const ip = sourceIp(req);
+      if (enrollFailures.limited(ip, now())) {
+        log.warn("resolve_source_limited", { ip });
+        throw new HttpError(429, "rate_limited", "too many refused tickets from this address — retry later", { retry_after_ms: ENROLL_FAIL_WINDOW_MS });
+      }
+      const body = await readJson<Record<string, unknown>>(req);
+      const ticket = typeof body.ticket === "string" ? body.ticket.trim() : "";
+      const app = appEnv();
+      if (!app.ok) return json(req, 503, notConfiguredBody(app.missing));
+      const t = ticket ? await verifyTicket(await ticketKey(app.env.tokenKeyB64), ticket, now()) : null;
+      if (!t) {
+        enrollFailures.fail(ip, now());
+        log.warn("resolve_bad_ticket", { ip, given: !!ticket });
+        throw new HttpError(401, "bad_ticket", "the Zoom App context ticket is missing, expired or not ours — reopen the app inside Zoom");
+      }
+      const rawDevice = typeof body.deviceId === "string" ? body.deviceId.trim() : "";
+      if (rawDevice && !/^[A-Za-z0-9._-]{1,100}$/.test(rawDevice)) throw new HttpError(400, "bad_request", "deviceId must be 1–100 chars of [A-Za-z0-9._-]");
+      const deviceId = ZOOM_DEVICE_PREFIX + (rawDevice || t.uid);
+      const clientVersion = str(body.clientVersion, 40);
+      const version = str(body.version, 40);
+
+      // ---- uid → roster rows (platform zoom, any org) → the ones whose workspace has Zoom connected
+      const { data: emps, error: empErr } = await sb.from("employees").select("id, org_id, platform, email, name, active, assigned_bg").eq("platform", ZOOM_PLATFORM).eq("ext_id", t.uid).limit(20);
+      if (empErr) throw new HttpError(500, "db_error", `employees lookup failed: ${empErr.message}`);
+      const rows = (emps ?? []) as Array<EmployeeRow & { org_id: string }>;
+      if (!rows.length) {
+        log.info("resolve_not_in_roster", { typ: t.typ });
+        throw new HttpError(404, "not_enrolled", "this Zoom user is not in any MeetingBrand workspace's Zoom directory — the admin connects Zoom in My team and syncs the directory", { reason: "not_in_roster" });
+      }
+      const orgIds = [...new Set(rows.map((r) => r.org_id))];
+      const { data: integs, error: intErr } = await sb.from("integrations").select("org_id, status, last_sync_at, connected_at").eq("platform", ZOOM_PLATFORM).eq("status", "connected").in("org_id", orgIds);
+      if (intErr) throw new HttpError(500, "db_error", `integrations lookup failed: ${intErr.message}`);
+      const connected = new Map(((integs ?? []) as Array<{ org_id: string; last_sync_at: string | null; connected_at: string | null }>).map((i) => [i.org_id, i]));
+      const usable = rows.filter((r) => connected.has(r.org_id));
+      if (!usable.length) {
+        log.info("resolve_no_workspace", { orgs: orgIds.length });
+        throw new HttpError(404, "not_enrolled", "your workspace's Zoom connection in MeetingBrand is not active — the admin reconnects Zoom in My team", { reason: "no_workspace" });
+      }
+      usable.sort((a, b) => {
+        if (a.active !== b.active) return a.active ? -1 : 1;
+        const ta = Date.parse(connected.get(a.org_id)?.last_sync_at ?? connected.get(a.org_id)?.connected_at ?? "") || 0;
+        const tb = Date.parse(connected.get(b.org_id)?.last_sync_at ?? connected.get(b.org_id)?.connected_at ?? "") || 0;
+        return tb - ta;
+      });
+      const employee = usable[0];
+      const orgId = employee.org_id;
+
+      // ---- create / refresh the agent row (same shape as /enroll; the binding always follows the uid)
+      const token = newDeviceToken();
+      const tokenHash = await sha256Hex(token);
+      const expiresAt = new Date(now() + TOKEN_TTL_MS).toISOString();
+      const nowIso = new Date(now()).toISOString();
+      const { data: prevRows, error: prevErr } = await sb.from("agents").select("id, employee_id, revoked_at").eq("org_id", orgId).eq("device_id", deviceId).limit(1);
+      if (prevErr) throw new HttpError(500, "db_error", `agents lookup failed: ${prevErr.message}`);
+      const prev = (prevRows ?? [])[0] as { id: string; employee_id: string | null; revoked_at: string | null } | undefined;
+      const patch: Record<string, unknown> = {
+        os: ZOOM_PLATFORM,
+        hostname: clientVersion ? `Zoom client ${clientVersion}` : null,
+        local_identity: t.uid,
+        version,
+        employee_id: employee.id,
+        token_hash: tokenHash,
+        token_expires_at: expiresAt,
+        enrolled_at: nowIso,
+        last_seen_at: nowIso,
+        revoked_at: null,
+      };
+      let agentId: string;
+      if (prev) {
+        const { error } = await sb.from("agents").update(patch).eq("id", prev.id);
+        if (error) throw new HttpError(500, "db_error", `agents update failed: ${error.message}`);
+        agentId = prev.id;
+      } else {
+        const { data: ins, error } = await sb.from("agents").insert({ org_id: orgId, device_id: deviceId, ...patch }).select("id");
+        if (error) throw new HttpError(500, "db_error", `agents insert failed: ${error.message}`);
+        agentId = ((ins ?? [])[0] as { id: string } | undefined)?.id ?? "";
+        if (!agentId) throw new HttpError(500, "db_error", "agents insert returned no id");
+      }
+      await recordEvent(sb, "agent_enrolled", null, { org_id: orgId, agent_id: agentId, os: ZOOM_PLATFORM, matched: true, re_enrolled: !!prev, revived: !!prev?.revoked_at, via: "zoom_app", typ: t.typ });
+      log.info("resolved", { org_id: orgId, agent_id: agentId, employee_id: employee.id, typ: t.typ, re_enrolled: !!prev, candidates: usable.length });
+      return json(req, 200, {
+        deviceToken: token,
+        tokenExpiresAt: expiresAt,
+        agentId,
+        employee: { id: employee.id, email: employee.email, name: employee.name, active: employee.active },
+        state: "matched",
+        pollSeconds: POLL_SECONDS,
+      });
+    }
+
     // ================================================================ device-token auth for everything else
     const { agent, tokenHash } = await requireAgent(req, sb, now());
 
@@ -330,17 +455,18 @@ export function makeHandler(deps: Deps = {}) {
         if (error) throw new HttpError(500, "db_error", `backgrounds lookup failed: ${error.message}`);
         backgrounds = (data ?? []) as BackgroundRow[];
       }
-      const { data: pushRows, error: pErr } = await sb.from("pushes").select("id, background_id, state").eq("org_id", orgId).eq("employee_id", employee.id).eq("platform", platform);
+      const { data: pushRows, error: pErr } = await sb.from("pushes").select("id, background_id, state, idempotency_key").eq("org_id", orgId).eq("employee_id", employee.id).eq("platform", platform);
       if (pErr) throw new HttpError(500, "db_error", `pushes lookup failed: ${pErr.message}`);
-      const existing = (pushRows ?? []) as PushRow[];
+      // platform 'zoom' also holds mb-push-zoom's REST library rows (key without the ':zoom' suffix): only the App's own rows count here
+      const existing = ((pushRows ?? []) as Array<PushRow & { idempotency_key?: string }>).filter((r) => platform !== ZOOM_PLATFORM || (r.idempotency_key ?? "").endsWith(`:${ZOOM_PLATFORM}`));
 
-      // ---------------------------------------------------------- meet: one composited look per employee
-      if (platform === MEET_PLATFORM) {
+      // ---------------------------------------------------------- meet / zoom: one look per employee
+      if (isOneLookPlatform(platform)) {
         const m = shapeMeetAssignment({ assigned, starters, backgrounds, existing, active: employee.active, revoked });
         const items: Array<Record<string, unknown>> = [];
-        for (const bgId of m.remove) items.push({ platform: MEET_PLATFORM, backgroundId: bgId, guid: await assignmentGuid(orgId, employee.id, bgId), action: "remove" });
+        for (const bgId of m.remove) items.push({ platform, backgroundId: bgId, guid: await assignmentGuid(orgId, employee.id, bgId), action: "remove" });
         if (revoked) {
-          throw new HttpError(410, "revoked", "this device was revoked — stop applying the background, drop the cached image and stop polling", { assignments: items, action: "remove_all" });
+          throw new HttpError(410, "revoked", platform === ZOOM_PLATFORM ? "this device was revoked — stop setting the background and stop polling" : "this device was revoked — stop applying the background, drop the cached image and stop polling", { assignments: items, action: "remove_all" });
         }
         const notReady: string[] = [];
         if (m.apply) {
@@ -360,7 +486,7 @@ export function makeHandler(deps: Deps = {}) {
               }
             }
             items.push({
-              platform: MEET_PLATFORM,
+              platform,
               backgroundId: m.apply.bg.id,
               guid: await assignmentGuid(orgId, employee.id, m.apply.bg.id),
               label: tileLabel(m.apply.bg.label ?? m.apply.bg.slug),
@@ -377,17 +503,17 @@ export function makeHandler(deps: Deps = {}) {
         const handed = new Set(items.filter((i) => i.action === "apply").map((i) => i.backgroundId as string));
         const queue = m.queue.filter((id) => handed.has(id));
         if (queue.length) {
-          const rows = queue.map((bgId) => ({ org_id: orgId, employee_id: employee!.id, background_id: bgId, platform: MEET_PLATFORM, state: "queued", idempotency_key: pushKey(orgId, employee!.id, bgId, MEET_PLATFORM), agent_id: agent.id, error: null }));
+          const rows = queue.map((bgId) => ({ org_id: orgId, employee_id: employee!.id, background_id: bgId, platform, state: "queued", idempotency_key: pushKey(orgId, employee!.id, bgId, platform), agent_id: agent.id, error: null }));
           const { error } = await sb.from("pushes").upsert(rows, { onConflict: "idempotency_key" });
-          if (error) log.error("pushes_queue_failed", { org_id: orgId, platform: MEET_PLATFORM, message: error.message });
+          if (error) log.error("pushes_queue_failed", { org_id: orgId, platform, message: error.message });
         }
         const rotated = await touchAndRotate(sb, log, agent, tokenHash, nowIso, now());
-        log.info("assignments", { org_id: orgId, agent_id: agent.id, employee_id: employee.id, platform: MEET_PLATFORM, apply: handed.size, remove: m.remove.length, skipped: m.skipped.length + notReady.length, queued: queue.length, rotated: !!rotated });
+        log.info("assignments", { org_id: orgId, agent_id: agent.id, employee_id: employee.id, platform, apply: handed.size, remove: m.remove.length, skipped: m.skipped.length + notReady.length, queued: queue.length, rotated: !!rotated });
         return json(req, 200, {
           agentId: agent.id,
           employee: { id: employee.id, email: employee.email, name: employee.name, active: employee.active },
           state: employee.active ? "matched" : "inactive",
-          platform: MEET_PLATFORM,
+          platform,
           assignments: items,
           skipped: [...m.skipped, ...notReady],
           expiresAt: new Date(now() + SIGNED_URL_TTL_S * 1000).toISOString(),
@@ -496,7 +622,7 @@ export function makeHandler(deps: Deps = {}) {
       const nowIso = new Date(now()).toISOString();
 
       const defaultPlatform = platformForOs(agent.os);
-      const via = defaultPlatform === MEET_PLATFORM ? "extension" : "agent";
+      const via = defaultPlatform === MEET_PLATFORM ? "extension" : defaultPlatform === ZOOM_PLATFORM ? "zoom_app" : "agent";
       const results: Array<{ backgroundId: string; ok: boolean; state?: string; error?: string }> = [];
       for (const raw of body.items as unknown[]) {
         const it = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
@@ -506,7 +632,7 @@ export function makeHandler(deps: Deps = {}) {
         try {
           platform = ownPlatform(typeof it.platform === "string" ? it.platform : null, agent.os);
         } catch (e) {
-          results.push({ backgroundId: bgId || "?", ok: false, error: e instanceof HttpError ? e.message : "platform must be teams or meet" });
+          results.push({ backgroundId: bgId || "?", ok: false, error: e instanceof HttpError ? e.message : "platform must be teams, meet or zoom" });
           continue;
         }
         const allowed = reportStatesFor(platform);
@@ -567,16 +693,16 @@ async function requireAgent(req: Request, sb: SupabaseClient, nowMs: number): Pr
   return { agent, tokenHash };
 }
 
-/** ?platform= / item.platform → teams|meet; absent → what the device's os implies. */
+/** ?platform= / item.platform → teams|meet|zoom; absent → what the device's os implies. */
 export function deliveryPlatform(v: string | null | undefined, os: string): DeliveryPlatform {
   const p = (v ?? "").trim().toLowerCase();
   if (!p) return platformForOs(os);
-  if (p === TEAMS_PLATFORM || p === MEET_PLATFORM) return p;
-  throw new HttpError(400, "bad_request", "platform must be teams or meet");
+  if ((DELIVERY_PLATFORMS as readonly string[]).includes(p)) return p as DeliveryPlatform;
+  throw new HttpError(400, "bad_request", "platform must be teams, meet or zoom");
 }
 
 /**
- * The platform this device may act on: its own and nothing else (a chrome/edge device → meet, windows/macos → teams).
+ * The platform this device may act on: its own and nothing else (a chrome/edge device → meet, zoom → zoom, windows/macos → teams).
  * A device token authenticates a device kind; letting a browser queue or report Teams rows (or an OS agent Meet rows)
  * would let one device forge the other channel's delivery status for its employee.
  */

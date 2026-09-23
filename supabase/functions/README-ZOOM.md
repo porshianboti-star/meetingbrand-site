@@ -4,6 +4,8 @@
 
 ## 1. What this is
 
+> **The SECOND Zoom app (in-client activation via the Zoom Apps SDK — "MeetingBrand for Zoom", user-managed) is a separate Marketplace app with its own guide: `zoom-app/README-ZOOM-APP.md`.** This file covers the admin-managed REST app (directory + library upload) only.
+
 Four Supabase Edge Functions (shared CompanyCard project `ohobtgbyrlczfdztzvqi`, schema `mb`) that let a
 workspace admin connect the company's Zoom account, pull the employee directory, and upload a branded
 background into every chosen employee's Zoom library:

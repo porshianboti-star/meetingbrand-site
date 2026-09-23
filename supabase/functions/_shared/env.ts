@@ -14,6 +14,9 @@
 //   MS_REDIRECT_URI (optional)          — defaults to <SUPABASE_URL>/functions/v1/mb-oauth-ms/callback
 //   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET — Google Cloud OAuth web client (scope admin.directory.user.readonly)
 //   GOOGLE_REDIRECT_URI (optional)      — defaults to <SUPABASE_URL>/functions/v1/mb-oauth-google/callback
+//   ZOOM_APP_CLIENT_ID, ZOOM_APP_CLIENT_SECRET — the SECOND Zoom Marketplace app ("MeetingBrand for Zoom", type Zoom App,
+//                                         user-managed; zoom-app/README-ZOOM-APP.md). The secret only decrypts the
+//                                         x-zoom-app-context header in mb-zoom-app; no token exchange, nothing stored.
 //
 // Nothing here throws at import time: a missing secret is reported as a 503 {error:"not_configured",
 // missing:[…]} by the caller (see `notConfigured`), never as a crash.
@@ -55,6 +58,8 @@ export const MS_CREDENTIAL_NAMES = ["MS_CLIENT_ID", "MS_CLIENT_SECRET"] as const
 export const MS_SECRET_NAMES = [...MS_CREDENTIAL_NAMES, ...APP_SECRET_NAMES] as const;
 export const GOOGLE_CREDENTIAL_NAMES = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const;
 export const GOOGLE_SECRET_NAMES = [...GOOGLE_CREDENTIAL_NAMES, ...APP_SECRET_NAMES] as const;
+export const ZOOM_APP_CREDENTIAL_NAMES = ["ZOOM_APP_CLIENT_ID", "ZOOM_APP_CLIENT_SECRET"] as const;
+export const ZOOM_APP_SECRET_NAMES = [...ZOOM_APP_CREDENTIAL_NAMES, "MB_TOKEN_KEY"] as const;
 
 /** Which secret names each platform's actions need (the not_configured `missing` list is drawn from these, in this order). */
 export const PLATFORM_SECRET_NAMES = { zoom: ZOOM_SECRET_NAMES, teams: MS_SECRET_NAMES, meet: GOOGLE_SECRET_NAMES } as const;
@@ -193,4 +198,11 @@ export function notConfiguredBody(missing: string[]): { error: "not_configured";
     missing,
     detail: `Set the missing secrets with: supabase secrets set ${missing.map((m) => m.split(" ")[0] + "=…").join(" ")} --project-ref ohobtgbyrlczfdztzvqi`,
   };
+}
+
+/** The Zoom App's credentials + the ticket root key (mb-zoom-app). `missing` lists every absent/invalid name. */
+export function zoomAppEnv(): { ok: true; env: { clientId: string; clientSecret: string; tokenKeyB64: string } } | { ok: false; missing: string[] } {
+  const missing = [...missingSecrets(ZOOM_APP_SECRET_NAMES), ...appEnvProblems().filter((m) => m.startsWith("MB_TOKEN_KEY"))];
+  if (missing.length) return { ok: false, missing: [...new Set(missing)] };
+  return { ok: true, env: { clientId: read("ZOOM_APP_CLIENT_ID")!, clientSecret: read("ZOOM_APP_CLIENT_SECRET")!, tokenKeyB64: read("MB_TOKEN_KEY")! } };
 }

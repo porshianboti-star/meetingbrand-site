@@ -7,7 +7,7 @@
 # No Docker on this Mac → `--use-api` (bundles on Supabase's side). `functions serve` is unavailable.
 project_id = "ohobtgbyrlczfdztzvqi"
 
-# verify_jwt = false on ALL ten — deliberately:
+# verify_jwt = false on ALL eleven — deliberately:
 #  * mb-oauth-zoom / mb-oauth-ms / mb-oauth-google: the platform redirects the admin's browser to /callback with no Supabase JWT at all.
 #  * mb-agent: the MeetingBrand Agent authenticates with a device token (mb.agents.token_hash), not a Supabase JWT.
 #  * the others: this project signs user sessions with an ES256 key (Management API
@@ -57,3 +57,8 @@ entrypoint = "./functions/mb-export-pack/index.ts"
 [functions.mb-agent]
 verify_jwt = false
 entrypoint = "./functions/mb-agent/index.ts"
+
+# mb-zoom-app: the Zoom client GETs the Home URL with x-zoom-app-context and no JWT at all.
+[functions.mb-zoom-app]
+verify_jwt = false
+entrypoint = "./functions/mb-zoom-app/index.ts"

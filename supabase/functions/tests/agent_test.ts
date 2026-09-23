@@ -28,7 +28,9 @@ import {
   uuidV5,
 } from "../_shared/agent.ts";
 import { actionOf, deliveryPlatform, ENROLL_FAILS_PER_WINDOW, escapeLike, FailureLimiter, makeHandler, ownPlatform, sourceIp } from "../mb-agent/handler.ts";
-import { ASSET, BG, configure, EMP, eventsOk, j, JPG, ORG, patchOk, rest, router, rpc, SB_URL, THUMB, type Route } from "./_fake.ts";
+import { ASSET, BG, configure, EMP, eventsOk, j, JPG, ORG, patchOk, rest, router, rpc, SB_URL, THUMB, TOKEN_KEY, type Route } from "./_fake.ts";
+import { ZOOM_DEVICE_PREFIX } from "../mb-agent/handler.ts";
+import { signTicket, ticketKey } from "../_shared/zoomapp.ts";
 
 // ------------------------------------------------------------------ pure rules
 Deno.test("agent: key + token formats; sha256 of the plaintext is what the DB stores", async () => {
@@ -180,6 +182,7 @@ interface Store {
   reports: Array<Record<string, unknown>>;
   events: Array<Record<string, unknown>>;
   patches: Array<{ table: string; query: string; body: Record<string, unknown> }>;
+  integrations: Array<Record<string, unknown>>;
 }
 
 function fresh(over: Partial<Store> = {}): Store {
@@ -196,6 +199,7 @@ function fresh(over: Partial<Store> = {}): Store {
     reports: [],
     events: [],
     patches: [],
+    integrations: [],
     ...over,
   };
 }
@@ -257,6 +261,7 @@ function backend(st: Store) {
     ...table("backgrounds", () => st.backgrounds),
     ...table("brand_assets", () => st.assets),
     ...table("pushes", () => st.pushes),
+    ...table("integrations", () => st.integrations),
     { method: "POST", test: rest("pushes"), reply: (req, _u, body) => {
       assertStringIncludes(req.headers.get("prefer") ?? "", "resolution=merge-duplicates");
       const rows = JSON.parse(body) as Array<Record<string, unknown>>;
@@ -642,8 +647,9 @@ Deno.test("extension: os + platform rules, meet push key, report vocabularies, e
   assertEquals(deliveryPlatform(null, "chrome"), "meet");
   assertEquals(deliveryPlatform("teams", "chrome"), "teams", "an explicit platform wins over the os default");
   assertEquals(deliveryPlatform(" MEET ", "windows"), "meet");
+  assertEquals(deliveryPlatform("zoom", "chrome"), "zoom", "zoom is a delivery platform since 012 (ownPlatform is what refuses it for a browser)");
   let threw = 0;
-  try { deliveryPlatform("zoom", "chrome"); } catch { threw++; }
+  try { deliveryPlatform("zoho", "chrome"); } catch { threw++; }
   assertEquals(threw, 1);
   // what a device may act on: its own platform only
   assertEquals(ownPlatform(null, "chrome"), "meet");
@@ -839,4 +845,263 @@ Deno.test("mb-agent /report from a chrome device: applied → selected, unavaila
   assertEquals(bad2.status, 422);
   assertStringIncludes((await bad2.json()).results[0].error, "teams only");
   assertEquals(st.pushes[0].state, before, "an OS agent cannot forge Meet delivery");
+});
+
+
+// ------------------------------------------------------------------ the Zoom App (os 'zoom', platform 'zoom', /zoom/resolve)
+const ZUID = "AbC123_-xyz";
+const ORG2 = "12121212-1212-4121-8121-121212121212";
+const zoomRoster = (org = ORG, id = EMP(7), active = true) => ({ id, org_id: org, platform: "zoom", ext_id: ZUID, email: "jane@acme.com", name: "Jane", active, assigned_bg: [] });
+const zoomConnected = (org = ORG, extra: Record<string, unknown> = {}) => ({ id: `i-${org.slice(0, 4)}`, org_id: org, platform: "zoom", status: "connected", account_ext_id: "acc-1", last_sync_at: "2026-09-20T00:00:00Z", connected_at: "2026-09-13T00:00:00Z", ...extra });
+async function ticketFor(uid = ZUID, now = Date.UTC(2026, 8, 23), typ = "meeting") {
+  return await signTicket(await ticketKey(TOKEN_KEY), { uid, typ, mid: "m-1" }, now);
+}
+
+Deno.test("zoom app: os + platform rules, report vocabulary, denied mapping, evidence fields", () => {
+  assert(isAgentOs("zoom"));
+  assertEquals(platformForOs("zoom"), "zoom");
+  assertEquals(deliveryPlatform(null, "zoom"), "zoom");
+  assertEquals(deliveryPlatform("zoom", "zoom"), "zoom");
+  assertEquals(ownPlatform(null, "zoom"), "zoom");
+  let err: unknown;
+  try { ownPlatform("meet", "zoom"); } catch (e) { err = e; }
+  assertStringIncludes(String((err as Error).message), "zoom only");
+  try { ownPlatform("zoom", "windows"); } catch (e) { err = e; }
+  assertStringIncludes(String((err as Error).message), "teams only");
+  try { ownPlatform("zoom", "chrome"); } catch (e) { err = e; }
+  assertStringIncludes(String((err as Error).message), "meet only");
+  assertEquals(reportStatesFor("zoom"), ["applied", "denied", "error"]);
+  assertEquals(pushKey(ORG, EMP(7), BG, "zoom"), `${ORG}:${EMP(7)}:${BG}:zoom`);
+  assertNotEquals(pushKey(ORG, EMP(7), BG, "zoom"), `${ORG}:${EMP(7)}:${BG}`, "mb-push-zoom's REST library row has no suffix — a different row");
+  const d = mapReportState("denied", { message: "user denied" });
+  assertEquals(d.pushState, "awaiting_client");
+  assertStringIncludes(d.error!, "declined in Zoom: user denied");
+  assertEquals(d.event, "push_failed");
+  assertEquals(mapReportState("denied", null).error, "declined in Zoom (the employee refused the consent dialog for the background)");
+  assertEquals(mapReportState("applied", null).pushState, "selected");
+  const ev = cleanEvidence({ runningContext: "inMeeting", clientVersion: "6.2.0 (12345)", code: 10017, message: "User denied", fps: 1 });
+  assertEquals(ev, { message: "User denied", fps: 1, runningContext: "inMeeting", clientVersion: "6.2.0 (12345)", code: 10017 });
+  assertEquals(cleanEvidence({ runningContext: "in Meeting!", code: -1 }), {});
+  assertEquals(cleanEvidence({ code: 1.5 }), {});
+});
+
+Deno.test("mb-agent /zoom/resolve: a valid ticket for a synced Zoom user of a connected workspace → device token, agents row os 'zoom' bound to that employee; re-resolve refreshes the same row", async () => {
+  configure();
+  const st = fresh();
+  st.employees.push(zoomRoster());
+  st.integrations.push(zoomConnected());
+  const be = backend(st);
+  const NOW = Date.UTC(2026, 8, 23);
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW });
+  const ticket = await ticketFor(ZUID, NOW - 1000);
+  const r = await h(post("zoom/resolve", { ticket, deviceId: "web-view-abc123", clientVersion: "6.2.0", version: "1.0.0" }));
+  assertEquals(r.status, 200);
+  const b = await r.json();
+  assert(TOKEN_RE.test(b.deviceToken));
+  assertEquals(b.state, "matched");
+  assertEquals(b.employee, { id: EMP(7), email: "jane@acme.com", name: "Jane", active: true });
+  assertEquals(b.agentId, AGENT);
+  assertEquals(b.tokenExpiresAt, new Date(NOW + TOKEN_TTL_MS).toISOString());
+  assertEquals(st.agents.length, 1);
+  const row = st.agents[0];
+  assertEquals(row.os, "zoom");
+  assertEquals(row.device_id, ZOOM_DEVICE_PREFIX + "web-view-abc123");
+  assertEquals(row.local_identity, ZUID);
+  assertEquals(row.hostname, "Zoom client 6.2.0");
+  assertEquals(row.employee_id, EMP(7));
+  assertEquals(row.org_id, ORG);
+  assertEquals(row.token_hash, await sha256Hex(b.deviceToken));
+  assert(!JSON.stringify(st).includes(b.deviceToken), "only the hash is stored");
+  assert(!JSON.stringify(be.seen).includes(ticket) || be.seen.every((s) => !s.path.includes(ticket)), "the ticket never becomes a query filter");
+  assertEquals(be.seen.filter((s) => s.path.includes("enrollment_key_use")).length, 0, "no org key involved");
+  const emp = be.calls("GET", "/rest/v1/employees")[0];
+  assertStringIncludes(emp.path, "platform=eq.zoom");
+  assertStringIncludes(emp.path, `ext_id=eq.${ZUID}`);
+  const integ = be.calls("GET", "/rest/v1/integrations")[0];
+  assertStringIncludes(integ.path, "status=eq.connected");
+  const ev = st.events.find((e) => e.event === "agent_enrolled")!;
+  assertEquals((ev.props as Record<string, unknown>).via, "zoom_app");
+  assertEquals((ev.props as Record<string, unknown>).os, "zoom");
+  // same web view again (Auto-open next meeting): same row, new token, revoked flag cleared
+  row.revoked_at = "2026-09-22T00:00:00Z";
+  const r2 = await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: "web-view-abc123" }));
+  const b2 = await r2.json();
+  assertEquals(r2.status, 200);
+  assertEquals(b2.agentId, AGENT);
+  assertNotEquals(b2.deviceToken, b.deviceToken);
+  assertEquals(st.agents.length, 1);
+  assertEquals(st.agents[0].revoked_at, null);
+  // no deviceId → the uid is the device
+  const r3 = await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW) }));
+  assertEquals(r3.status, 200);
+  assertEquals(st.agents.length, 2, "another device id (the uid itself) → its own row");
+  assertEquals(st.agents[1].device_id, ZOOM_DEVICE_PREFIX + ZUID);
+});
+
+Deno.test("mb-agent /zoom/resolve: refusals — missing/forged/expired ticket 401 (per-IP limiter counts), not in any roster 404 not_in_roster, roster but Zoom not connected 404 no_workspace, bad deviceId 400, MB_TOKEN_KEY unset 503; wrong method 405", async () => {
+  configure();
+  const st = fresh();
+  const be = backend(st);
+  const NOW = Date.UTC(2026, 8, 23);
+  const lim = new FailureLimiter();
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW, enrollFailures: lim });
+  const from = (body: unknown, ip = "203.0.113.9") => new Request(fnUrl("zoom/resolve"), { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": ip }, body: JSON.stringify(body) });
+  let r = await h(from({}));
+  assertEquals(r.status, 401);
+  assertEquals((await r.json()).error, "bad_ticket");
+  r = await h(from({ ticket: "eyJ.forged" }));
+  assertEquals(r.status, 401);
+  const good = await ticketFor(ZUID, NOW);
+  const [body, mac] = good.split(".");
+  r = await h(from({ ticket: `${body}.${mac.slice(0, -1)}${mac.endsWith("A") ? "B" : "A"}` }));
+  assertEquals(r.status, 401, "tampered mac");
+  r = await h(from({ ticket: await ticketFor(ZUID, NOW - 11 * 60_000) }));
+  assertEquals(r.status, 401, "expired ticket");
+  r = await h(from({ ticket: await signTicket(await ticketKey("b".repeat(43)), { uid: ZUID, typ: "meeting" }, NOW) }));
+  assertEquals(r.status, 401, "another root key");
+  assertEquals(be.seen.length, 0, "no database call for any refused ticket");
+  assertEquals(st.agents.length, 0);
+  // the limiter counts refused tickets like refused keys
+  for (let i = 0; i < ENROLL_FAILS_PER_WINDOW; i++) await h(from({ ticket: "x" }, "203.0.113.10"));
+  r = await h(from({ ticket: good }, "203.0.113.10"));
+  assertEquals(r.status, 429);
+  // valid ticket, nobody in a roster
+  r = await h(from({ ticket: good }));
+  assertEquals(r.status, 404);
+  let jb = await r.json();
+  assertEquals(jb.error, "not_enrolled");
+  assertEquals(jb.reason, "not_in_roster");
+  // in a roster, but that workspace's Zoom integration is not connected (or absent)
+  st.employees.push(zoomRoster());
+  r = await h(from({ ticket: good }));
+  assertEquals(r.status, 404);
+  jb = await r.json();
+  assertEquals(jb.reason, "no_workspace");
+  st.integrations.push(zoomConnected(ORG, { status: "needs_reconnect" }));
+  r = await h(from({ ticket: good }));
+  assertEquals((await r.json()).reason, "no_workspace", "needs_reconnect is not connected");
+  assertEquals(st.agents.length, 0, "no agent row on any refusal");
+  // a CSV row with the same e-mail is never used: only platform 'zoom' rows carry a Zoom user id
+  assertEquals(st.employees.filter((e) => e.platform === "csv").length, 1);
+  st.integrations[0].status = "connected";
+  r = await h(from({ ticket: good, deviceId: "bad id!" }));
+  assertEquals(r.status, 400);
+  r = await h(from({ ticket: good }));
+  assertEquals(r.status, 200);
+  assertEquals(st.agents[0].employee_id, EMP(7), "the zoom directory row, not the csv row");
+  assertEquals((await h(get("zoom/resolve"))).status, 405);
+  Deno.env.delete("MB_TOKEN_KEY");
+  r = await h(from({ ticket: good }));
+  assertEquals(r.status, 503);
+  assertEquals((await r.json()).error, "not_configured");
+  configure();
+});
+
+Deno.test("mb-agent /zoom/resolve: the same Zoom user in two workspaces → the active row of a connected workspace wins, then the most recently synced", async () => {
+  configure();
+  const st = fresh();
+  st.employees.push(zoomRoster(ORG, EMP(7), false));
+  st.employees.push(zoomRoster(ORG2, EMP(8), true));
+  st.integrations.push(zoomConnected(ORG), zoomConnected(ORG2, { last_sync_at: "2026-09-01T00:00:00Z" }));
+  const be = backend(st);
+  const NOW = Date.UTC(2026, 8, 23);
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW });
+  let r = await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: "d1" }));
+  assertEquals(r.status, 200);
+  assertEquals((await r.json()).employee.id, EMP(8), "active beats inactive");
+  st.employees[2].active = false;
+  r = await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: "d2" }));
+  assertEquals((await r.json()).employee.id, EMP(7), "both inactive: the workspace synced most recently");
+  st.integrations[0].status = "disconnected";
+  r = await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: "d3" }));
+  assertEquals((await r.json()).employee.id, EMP(8), "only connected workspaces count");
+});
+
+Deno.test("mb-agent /assignments + /report for a zoom device: one item platform 'zoom' (JPEG preferred), queued ':zoom' push row, other platforms refused; applied → selected, denied → awaiting_client, error → failed; other devices cannot touch zoom rows", async () => {
+  configure();
+  const st = fresh();
+  st.employees.push(zoomRoster());
+  st.integrations.push(zoomConnected());
+  st.backgrounds[0].export_jpg_asset_id = JPG;
+  st.assets.push({ id: JPG, org_id: ORG, bucket: "mb-exports", storage_path: `${ORG}/${STARTER}.jpg`, mime: "image/jpeg", bytes: null, sha256: null });
+  // mb-push-zoom's REST library row for the same pair (no suffix) must never be touched by the Zoom App
+  st.pushes.push({ id: "rest-1", org_id: ORG, employee_id: EMP(7), background_id: STARTER, platform: "zoom", state: "awaiting_client", idempotency_key: `${ORG}:${EMP(7)}:${STARTER}` });
+  const be = backend(st);
+  const NOW = Date.UTC(2026, 8, 23);
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW });
+  const tok = (await (await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: "wv-1" }))).json()).deviceToken as string;
+
+  const r = await h(get("assignments?platform=zoom", tok));
+  assertEquals(r.status, 200);
+  const b = await r.json();
+  assertEquals(b.platform, "zoom");
+  assertEquals(b.state, "matched");
+  assertEquals(b.assignments.length, 1);
+  const a = b.assignments[0];
+  assertEquals(a.platform, "zoom");
+  assertEquals(a.action, "apply");
+  assertEquals(a.backgroundId, STARTER);
+  assertEquals(a.mime, "image/jpeg");
+  assertStringIncludes(a.imageUrl, `/object/sign/mb-exports/${ORG}/${STARTER}.jpg?token=sig`);
+  assertEquals(a.sha256, await sha256Hex(JPEG));
+  assertEquals(a.label, "MeetingBrand - Walnut lobby");
+  assertEquals(a.guid, await assignmentGuid(ORG, EMP(7), STARTER));
+  assertEquals(b.expiresAt, new Date(NOW + 3600_000).toISOString(), "signed for 1 h");
+  const appRows = st.pushes.filter((p) => p.idempotency_key === pushKey(ORG, EMP(7), STARTER, "zoom"));
+  assertEquals(appRows.length, 1, "one App row, key with the :zoom suffix");
+  assertEquals(appRows[0].state, "queued");
+  assertEquals(appRows[0].agent_id, AGENT);
+  assertEquals(st.pushes.find((p) => p.id === "rest-1")!.state, "awaiting_client", "the REST library row is separate and untouched");
+  assertEquals((await h(get("assignments", tok))).status, 200, "platform absent = zoom for a zoom device");
+  for (const p of ["meet", "teams"]) {
+    const bad = await h(get(`assignments?platform=${p}`, tok));
+    assertEquals(bad.status, 400);
+    assertStringIncludes(JSON.stringify(await bad.json()), "zoom only");
+  }
+  assertEquals(st.pushes.length, 2, "nothing else queued");
+
+  // report: applied → selected (+ event via zoom_app), denied → awaiting_client + reason, error → failed; extension/agent states refused
+  let rr = await h(post("report", { items: [{ backgroundId: STARTER, state: "applied", platform: "zoom", evidence: { runningContext: "inMeeting", clientVersion: "6.2.0" } }] }, tok));
+  assertEquals(rr.status, 200);
+  assertEquals(appRows[0].state, "selected");
+  const ev = appRows[0].evidence as Record<string, unknown>;
+  assertEquals(ev.via, "zoom_app");
+  assertEquals(ev.runningContext, "inMeeting");
+  assertEquals(ev.os, "zoom");
+  assertEquals(st.reports[0].state, "applied");
+  const delivered = st.events.filter((e) => e.event === "push_delivered");
+  assertEquals(delivered.length, 1);
+  assertEquals((delivered[0].props as Record<string, unknown>).platform, "zoom");
+  assertEquals((delivered[0].props as Record<string, unknown>).via, "zoom_app");
+  rr = await h(post("report", { items: [{ backgroundId: STARTER, state: "denied", evidence: { code: 10017, message: "User denied", runningContext: "inMainClient" } }] }, tok));
+  assertEquals(rr.status, 200);
+  assertEquals(appRows[0].state, "awaiting_client");
+  assertStringIncludes(String(appRows[0].error), "declined in Zoom: User denied");
+  assertEquals((appRows[0].evidence as Record<string, unknown>).code, 10017);
+  assertEquals(st.events.filter((e) => e.event === "push_failed").length, 1);
+  rr = await h(post("report", { items: [{ backgroundId: STARTER, state: "error", evidence: { code: 10031, message: "Virtual backgrounds setting is not enabled" } }] }, tok));
+  assertEquals(appRows[0].state, "failed");
+  assertStringIncludes(String(appRows[0].error), "not enabled");
+  rr = await h(post("report", { items: [{ backgroundId: STARTER, state: "unavailable" }, { backgroundId: STARTER, state: "written" }, { backgroundId: STARTER, state: "applied", platform: "meet" }] }, tok));
+  assertEquals(rr.status, 422);
+  const res = (await rr.json()).results as Array<{ error: string }>;
+  assertStringIncludes(res[0].error, "applied|denied|error");
+  assertStringIncludes(res[1].error, "applied|denied|error");
+  assertStringIncludes(res[2].error, "zoom only");
+  assertEquals(st.pushes.find((p) => p.id === "rest-1")!.state, "awaiting_client", "the REST row never moved");
+
+  // a chrome device (same employee) cannot report platform zoom; an OS agent neither
+  const tok2 = newDeviceToken();
+  st.agents.push({ id: "77777777-7777-4777-8777-777777777779", org_id: ORG, employee_id: EMP(7), device_id: "ext-9", os: "chrome", version: "1.0.0", token_hash: await sha256Hex(tok2), token_expires_at: "2099-01-01T00:00:00Z", revoked_at: null });
+  const cross = await h(post("report", { items: [{ backgroundId: STARTER, state: "applied", platform: "zoom" }] }, tok2));
+  assertEquals(cross.status, 422);
+  assertStringIncludes((await cross.json()).results[0].error, "meet only");
+  assertEquals(appRows[0].state, "failed", "unchanged by the browser device");
+
+  // revoked zoom device → 410 remove_all, and the report path answers 410 too
+  st.agents[0].revoked_at = "2026-09-23T01:00:00Z";
+  const rv = await h(get("assignments?platform=zoom", tok));
+  assertEquals(rv.status, 410);
+  assertEquals((await rv.json()).action, "remove_all");
+  assertEquals((await h(post("report", { items: [{ backgroundId: STARTER, state: "applied" }] }, tok))).status, 410);
 });
