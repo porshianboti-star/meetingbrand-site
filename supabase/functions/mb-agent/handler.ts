@@ -12,7 +12,9 @@
 //                       mb-sync-zoom writes) across every workspace whose Zoom integration is 'connected'
 //                       (one Zoom user id is global to Zoom; two workspaces can only share it if both connected the
 //                       same Zoom account — the active row wins, then the most recently synced integration)
-//                     → the (org, 'zoom:'+deviceId) agent row is created/refreshed with os 'zoom', local_identity = uid
+//                     → the (org, 'zoom:'+uid+':'+deviceId) agent row is created/refreshed with os 'zoom', local_identity = uid
+//                       (the uid is part of the device key: one employee's page cannot pick another's row; at most
+//                       RESOLVE_GRANTS_PER_WINDOW grants per uid per 10 min — a ticket is replayable within its TTL)
 //                     → 200 {deviceToken, tokenExpiresAt, agentId, employee, state:'matched', pollSeconds}
 //                     401 bad/expired/forged ticket (counted by the per-IP failure limiter) · 404 not_enrolled
 //                     {reason: 'no_workspace' | 'not_in_roster'} (honest: the admin has not connected Zoom in MeetingBrand,
@@ -129,7 +131,11 @@ export interface Deps {
   now?: () => number;
   /** Failed-/enroll limiter (per source IP, in this isolate); a fresh one per handler so tests are independent. */
   enrollFailures?: FailureLimiter;
+  /** Successful /zoom/resolve grants per Zoom user id (security review 2026-09-23): a valid 10-minute ticket is
+   *  replayable by design, so without this one employee could mint an unbounded number of device rows + tokens. */
+  resolveGrants?: FailureLimiter;
 }
+export const RESOLVE_GRANTS_PER_WINDOW = 20;
 
 /**
  * Best-effort brake on /enroll guessing: after ENROLL_FAILS_PER_WINDOW refused keys from one source IP within
@@ -175,8 +181,14 @@ export function sourceIp(req: Request): string {
 
 export const EXPORT_BUCKET = "mb-exports";
 const ACTIONS = new Set(["enroll", "assignments", "report", "heartbeat", "resolve"]);
-/** device_id prefix of Zoom App devices (one per Zoom client web view: a random id the page keeps in its storage). */
+/** device_id prefix of Zoom App devices: 'zoom:<uid>:<web view id>' — the Zoom user id is part of the key, so a device id
+ *  chosen by one employee's page can never select (and re-bind) a row of another employee of the same workspace
+ *  (security review 2026-09-23: the caller picks the web-view id; the uid comes from the verified ticket). */
 export const ZOOM_DEVICE_PREFIX = "zoom:";
+export const ZOOM_DEVICE_ID_RE = /^[A-Za-z0-9._-]{1,56}$/;
+export function zoomDeviceId(uid: string, webViewId: string): string {
+  return `${ZOOM_DEVICE_PREFIX}${uid}:${webViewId || "default"}`;
+}
 
 interface AgentRow {
   id: string;
@@ -217,6 +229,7 @@ export function makeHandler(deps: Deps = {}) {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const now = deps.now ?? Date.now;
   const enrollFailures = deps.enrollFailures ?? new FailureLimiter();
+  const resolveGrants = deps.resolveGrants ?? new FailureLimiter(RESOLVE_GRANTS_PER_WINDOW, ENROLL_FAIL_WINDOW_MS);
 
   return serveFn("mb-agent", async (req, { log }) => {
     const url = new URL(req.url);
@@ -344,8 +357,12 @@ export function makeHandler(deps: Deps = {}) {
         throw new HttpError(401, "bad_ticket", "the Zoom App context ticket is missing, expired or not ours — reopen the app inside Zoom");
       }
       const rawDevice = typeof body.deviceId === "string" ? body.deviceId.trim() : "";
-      if (rawDevice && !/^[A-Za-z0-9._-]{1,100}$/.test(rawDevice)) throw new HttpError(400, "bad_request", "deviceId must be 1–100 chars of [A-Za-z0-9._-]");
-      const deviceId = ZOOM_DEVICE_PREFIX + (rawDevice || t.uid);
+      if (rawDevice && !ZOOM_DEVICE_ID_RE.test(rawDevice)) throw new HttpError(400, "bad_request", "deviceId must be 1–56 chars of [A-Za-z0-9._-]");
+      const deviceId = zoomDeviceId(t.uid, rawDevice);
+      if (resolveGrants.limited(t.uid, now())) {
+        log.warn("resolve_uid_limited", { typ: t.typ });
+        throw new HttpError(429, "rate_limited", `at most ${RESOLVE_GRANTS_PER_WINDOW} Zoom App sign-ins per user per ${ENROLL_FAIL_WINDOW_MS / 60_000} minutes — reopen the app later`, { retry_after_ms: ENROLL_FAIL_WINDOW_MS });
+      }
       const clientVersion = str(body.clientVersion, 40);
       const version = str(body.version, 40);
 
@@ -406,6 +423,7 @@ export function makeHandler(deps: Deps = {}) {
         agentId = ((ins ?? [])[0] as { id: string } | undefined)?.id ?? "";
         if (!agentId) throw new HttpError(500, "db_error", "agents insert returned no id");
       }
+      resolveGrants.fail(t.uid, now()); // counts a grant, not a failure: the class is a windowed hit counter
       await recordEvent(sb, "agent_enrolled", null, { org_id: orgId, agent_id: agentId, os: ZOOM_PLATFORM, matched: true, re_enrolled: !!prev, revived: !!prev?.revoked_at, via: "zoom_app", typ: t.typ });
       log.info("resolved", { org_id: orgId, agent_id: agentId, employee_id: employee.id, typ: t.typ, re_enrolled: !!prev, candidates: usable.length });
       return json(req, 200, {

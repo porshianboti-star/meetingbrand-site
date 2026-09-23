@@ -82,7 +82,7 @@ test("happy path: config → resolve (deviceId, clientVersion) → assignment �
   const state = await app.run();
   assert.equal(state, "applied");
   assert.deepEqual(sdk.calls.config[0], { capabilities: MB.CAPABILITIES, version: "0.16" });
-  assert.ok(MB.CAPABILITIES.includes("setVirtualBackground"));
+  assert.deepEqual(MB.CAPABILITIES, ["setVirtualBackground", "onRunningContextChange"], "only the APIs the page calls (scope minimisation)");
   const resolve = fetch.of("/zoom/resolve")[0];
   assert.equal(resolve.method, "POST");
   assert.equal(resolve.body.ticket, "eyJ.sig");
@@ -308,4 +308,33 @@ test("auto-boot: loading app.js in a page that has #mb-ctx boots on its own (a f
   } finally {
     if (prevSelf === undefined) delete globalThis.self; else globalThis.self = prevSelf;
   }
+});
+
+test("host pinning (security review 2026-09-23): an imageUrl outside the API origin, or plain http, is never handed to setVirtualBackground and never reported; an http apiBase makes a zoom ctx 'outside'", async () => {
+  for (const bad of ["https://evil.example/bg.jpg?token=x", "http://ohobtgbyrlczfdztzvqi.supabase.co/storage/v1/object/sign/mb-exports/o/bg.jpg", "https://ohobtgbyrlczfdztzvqi.supabase.co.evil.example/x.jpg", "not a url", ""]) {
+    const sdk = mockSdk();
+    const fetch = mockFetch({ assignments: [{ ...ITEM, imageUrl: bad }] });
+    const render = renders();
+    const logs = [];
+    const app = MB.createZoomApp({ sdk, fetch, ctx: ctxZoom, storage: memStorage(), render, log: (e, d) => logs.push([e, d]) });
+    const state = await app.run();
+    assert.equal(sdk.calls.vb.length, 0, "no SDK call for " + JSON.stringify(bad));
+    assert.equal(fetch.of("/report").length, 0, "no report for " + JSON.stringify(bad));
+    if (bad) {
+      assert.equal(state, "error");
+      assert.match(render.last().data.hint, /not hosted by MeetingBrand/);
+      assert.ok(logs.some(([e]) => e === "image_host_refused"));
+      assert.ok(!logs.some(([, d]) => String(d).includes("token=")), "the refused URL's query never reaches the console");
+    } else {
+      assert.equal(state, "no_background", "an empty imageUrl is 'no apply item'");
+    }
+  }
+  assert.equal(MB.pinnedImageUrl(API, IMG), true);
+  assert.equal(MB.pinnedImageUrl(API, "https://ohobtgbyrlczfdztzvqi.supabase.co:8443/x.jpg"), false, "port is part of the origin");
+  assert.equal(MB.pinnedImageUrl("http://ohobtgbyrlczfdztzvqi.supabase.co/functions/v1", IMG), false, "an http API base pins nothing");
+  const sdk = mockSdk();
+  const fetch = mockFetch();
+  const app = MB.createZoomApp({ sdk, fetch, ctx: { mode: "zoom", ticket: "t.t", apiBase: "http://ohobtgbyrlczfdztzvqi.supabase.co/functions/v1" }, storage: memStorage(), render: renders(), outsideConfigTimeoutMs: 20 });
+  assert.equal(await app.run(), "outside");
+  assert.equal(fetch.seen.length, 0, "the ticket is never posted over http");
 });

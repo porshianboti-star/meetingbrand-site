@@ -51,14 +51,19 @@ export function subPath(url: URL): string {
 /** The page with #mb-ctx and the app.js src filled in (JSON is escaped so no `</script` can break out). */
 export function renderPage(ctx: Record<string, unknown>, appJsPath: string): string {
   const data = JSON.stringify(ctx).replace(/</g, "\\u003c").replace(/\u2028|\u2029/g, "");
-  let html = INDEX_HTML.replace(/<script id="mb-ctx" type="application\/json">[\s\S]*?<\/script>/, `<script id="mb-ctx" type="application/json">${data}</script>`);
-  html = html.replace(/<script src="app\.js"><\/script>/, `<script src="${appJsPath}"></script>`);
+  // function replacers: a literal `$&` / `$'` inside the data must never be interpreted as a replacement pattern
+  let html = INDEX_HTML.replace(/<script id="mb-ctx" type="application\/json">[\s\S]*?<\/script>/, () => `<script id="mb-ctx" type="application/json">${data}</script>`);
+  html = html.replace(/<script src="app\.js"><\/script>/, () => `<script src="${appJsPath}"></script>`);
   return html;
 }
+
+/** /health's self-probe is memoised per isolate for this long: the endpoint is public, and one outbound request per hit would otherwise let anyone double our own traffic. */
+export const HEALTH_PROBE_MEMO_MS = 60_000;
 
 export function makeHandler(deps: Deps = {}) {
   const now = deps.now ?? Date.now;
   const fetchImpl = deps.fetch ?? fetch;
+  let probeMemo: { at: number; html: Record<string, unknown> } | null = null;
   return serveFn(FN_NAME, async (req, { log }) => {
     if (req.method !== "GET" && req.method !== "HEAD") throw new HttpError(405, "method_not_allowed", "use GET");
     const url = new URL(req.url);
@@ -71,6 +76,9 @@ export function makeHandler(deps: Deps = {}) {
     if (sub === "/health") {
       // Live self-check of the hosting workaround: GET our own root the way a browser (the Zoom client) does.
       let html: { passthrough: boolean | null; contentType?: string; csp?: string; error?: string } = { passthrough: null };
+      if (probeMemo && now() - probeMemo.at < HEALTH_PROBE_MEMO_MS) {
+        return json(req, 200, { ok: true, configured: zEnv.ok, missing: zEnv.ok ? [] : zEnv.missing, page: PAGE_HASH, homeUrl: fnBase, html: probeMemo.html, probedAt: new Date(probeMemo.at).toISOString() });
+      }
       try {
         const r = await fetchImpl(`${fnBase}/`, { method: "HEAD", headers: { accept: "text/html,application/xhtml+xml,*/*;q=0.8", "user-agent": "Mozilla/5.0 (MeetingBrand health probe) Chrome/128.0" }, signal: AbortSignal.timeout(6000) });
         const p = htmlPassthrough(r.headers);
@@ -79,7 +87,8 @@ export function makeHandler(deps: Deps = {}) {
       } catch (e) {
         html = { passthrough: null, error: e instanceof Error ? e.message.slice(0, 120) : "probe failed" };
       }
-      return json(req, 200, { ok: true, configured: zEnv.ok, missing: zEnv.ok ? [] : zEnv.missing, page: PAGE_HASH, homeUrl: fnBase, html });
+      probeMemo = { at: now(), html };
+      return json(req, 200, { ok: true, configured: zEnv.ok, missing: zEnv.ok ? [] : zEnv.missing, page: PAGE_HASH, homeUrl: fnBase, html, probedAt: new Date(probeMemo.at).toISOString() });
     }
     if (sub === "/app.js") {
       return new Response(APP_JS, { status: 200, headers: { "Content-Type": "application/javascript; charset=utf-8", "X-Content-Type-Options": "nosniff", "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });

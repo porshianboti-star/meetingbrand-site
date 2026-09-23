@@ -29,7 +29,7 @@ import {
 } from "../_shared/agent.ts";
 import { actionOf, deliveryPlatform, ENROLL_FAILS_PER_WINDOW, escapeLike, FailureLimiter, makeHandler, ownPlatform, sourceIp } from "../mb-agent/handler.ts";
 import { ASSET, BG, configure, EMP, eventsOk, j, JPG, ORG, patchOk, rest, router, rpc, SB_URL, THUMB, TOKEN_KEY, type Route } from "./_fake.ts";
-import { ZOOM_DEVICE_PREFIX } from "../mb-agent/handler.ts";
+import { RESOLVE_GRANTS_PER_WINDOW, ZOOM_DEVICE_PREFIX, zoomDeviceId } from "../mb-agent/handler.ts";
 import { signTicket, ticketKey } from "../_shared/zoomapp.ts";
 
 // ------------------------------------------------------------------ pure rules
@@ -905,7 +905,8 @@ Deno.test("mb-agent /zoom/resolve: a valid ticket for a synced Zoom user of a co
   assertEquals(st.agents.length, 1);
   const row = st.agents[0];
   assertEquals(row.os, "zoom");
-  assertEquals(row.device_id, ZOOM_DEVICE_PREFIX + "web-view-abc123");
+  assertEquals(row.device_id, `${ZOOM_DEVICE_PREFIX}${ZUID}:web-view-abc123`, "the uid is part of the device key");
+  assertEquals(zoomDeviceId(ZUID, "web-view-abc123"), row.device_id);
   assertEquals(row.local_identity, ZUID);
   assertEquals(row.hostname, "Zoom client 6.2.0");
   assertEquals(row.employee_id, EMP(7));
@@ -935,7 +936,7 @@ Deno.test("mb-agent /zoom/resolve: a valid ticket for a synced Zoom user of a co
   const r3 = await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW) }));
   assertEquals(r3.status, 200);
   assertEquals(st.agents.length, 2, "another device id (the uid itself) → its own row");
-  assertEquals(st.agents[1].device_id, ZOOM_DEVICE_PREFIX + ZUID);
+  assertEquals(st.agents[1].device_id, `${ZOOM_DEVICE_PREFIX}${ZUID}:default`);
 });
 
 Deno.test("mb-agent /zoom/resolve: refusals — missing/forged/expired ticket 401 (per-IP limiter counts), not in any roster 404 not_in_roster, roster but Zoom not connected 404 no_workspace, bad deviceId 400, MB_TOKEN_KEY unset 503; wrong method 405", async () => {
@@ -995,6 +996,46 @@ Deno.test("mb-agent /zoom/resolve: refusals — missing/forged/expired ticket 40
   assertEquals(r.status, 503);
   assertEquals((await r.json()).error, "not_configured");
   configure();
+});
+
+Deno.test("mb-agent /zoom/resolve (security review 2026-09-23): a colleague's ticket with the SAME deviceId never touches another employee's row; at most RESOLVE_GRANTS_PER_WINDOW grants per uid per window → 429 (other uids unaffected); a 57-char deviceId is refused", async () => {
+  configure();
+  const st = fresh();
+  const ZUID2 = "colleague-uid-2";
+  st.employees.push(zoomRoster(ORG, EMP(7), true), { ...zoomRoster(ORG, EMP(8), true), ext_id: ZUID2, email: "bob@acme.com", name: "Bob" });
+  st.integrations.push(zoomConnected());
+  const be = backend(st);
+  const NOW = Date.UTC(2026, 8, 23);
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW });
+  const a = await (await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: "shared-id" }))).json();
+  assertEquals(st.agents.length, 1);
+  assertEquals(st.agents[0].employee_id, EMP(7));
+  // Bob's page (or Bob by hand) posts Jane's device id: his own row, Jane's token untouched
+  const b = await (await h(post("zoom/resolve", { ticket: await ticketFor(ZUID2, NOW), deviceId: "shared-id" }))).json();
+  assertEquals(st.agents.length, 2, "a second row, not a re-bind of Jane's");
+  assertEquals(st.agents[0].employee_id, EMP(7));
+  assertEquals(st.agents[0].token_hash, await sha256Hex(a.deviceToken), "Jane's token still valid");
+  assertEquals(st.agents[1].employee_id, EMP(8));
+  assertEquals(st.agents[1].device_id, `${ZOOM_DEVICE_PREFIX}${ZUID2}:shared-id`);
+  assert(b.deviceToken && b.deviceToken !== a.deviceToken, "Bob gets his own token"); // (the fake store mints one constant agent id, so agentId is not compared)
+  // Bob posting Jane's uid as HIS deviceId still lands in his own namespace
+  await h(post("zoom/resolve", { ticket: await ticketFor(ZUID2, NOW), deviceId: ZUID }));
+  assertEquals(st.agents.length, 3);
+  assertEquals(st.agents[2].device_id, `${ZOOM_DEVICE_PREFIX}${ZUID2}:${ZUID}`);
+  assertEquals(st.agents.filter((r) => r.employee_id === EMP(7)).length, 1);
+  // grant cap per uid: Jane has 1 grant so far; RESOLVE_GRANTS_PER_WINDOW - 1 more succeed, the next is 429, Bob is unaffected
+  for (let i = 1; i < RESOLVE_GRANTS_PER_WINDOW; i++) assertEquals((await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: `wv-${i}` }))).status, 200, `grant ${i}`);
+  const capped = await h(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW), deviceId: "wv-x" }));
+  assertEquals(capped.status, 429);
+  assertEquals((await capped.json()).error, "rate_limited");
+  assertEquals(st.agents.filter((r) => r.local_identity === ZUID).length, RESOLVE_GRANTS_PER_WINDOW, "no row for the capped call");
+  assertEquals((await h(post("zoom/resolve", { ticket: await ticketFor(ZUID2, NOW), deviceId: "wv-y" }))).status, 200, "another uid is not capped");
+  // after the window Jane is fine again
+  const later = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW + 11 * 60_000, resolveGrants: undefined });
+  assertEquals((await later(post("zoom/resolve", { ticket: await ticketFor(ZUID, NOW + 11 * 60_000), deviceId: "wv-z" }))).status, 200);
+  assertEquals((await h(post("zoom/resolve", { ticket: await ticketFor(ZUID2, NOW), deviceId: "a".repeat(57) }))).status, 400, "device id longer than 56 chars");
+  assertEquals((await h(post("zoom/resolve", { ticket: await ticketFor(ZUID2, NOW), deviceId: "a".repeat(56) }))).status, 200);
+  assert(st.agents.every((r) => String(r.device_id).length <= 128), "fits agents.device_id (≤ 128)");
 });
 
 Deno.test("mb-agent /zoom/resolve: the same Zoom user in two workspaces → the active row of a connected workspace wins, then the most recently synced", async () => {

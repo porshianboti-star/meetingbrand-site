@@ -102,10 +102,10 @@ Be honest about what this is: **a workaround that Supabase could close any day.*
      `ohobtgbyrlczfdztzvqi.supabase.co` (the page, the signed background images AND the `mb-agent` API — all on this
      host), `appssdk.zoom.us`, `meetingbrand.com`. (A wildcard needs domain-ownership proof — devforum 99405; list the
      hosts exactly instead.)
-3. **Features ▸ Surface**: enable **Zoom App SDK**; under *Add APIs* select
-   `getRunningContext`, `getUserContext`, `getMeetingContext`, `setVirtualBackground`, `onRunningContextChange`,
-   `onMyMediaChange` (exactly the `capabilities` list in `app.js` — an API that is not enabled here fails with
-   "No Permission for this API"). Products: **Meetings** (and Webinars if you want panelists covered). Running
+3. **Features ▸ Surface**: enable **Zoom App SDK**; under *Add APIs* select exactly two:
+   `setVirtualBackground` and `onRunningContextChange` (the `capabilities` list in `app.js` — nothing else is called;
+   `config()` already returns the running context and client version. Zoom's review checks scope minimisation. An API
+   that is not enabled here fails with "No Permission for this API", code 10013). Products: **Meetings** (and Webinars if you want panelists covered). Running
    contexts: **In Meeting** + **Main client** (setVirtualBackground works in both from client 5.13.5). Leave Guest Mode
    on (setVirtualBackground supports it; the page still needs a roster match).
 4. **Scopes**: only `zoomapp:inmeeting` (+ `zoomapp:inwebinar` if webinars). Nothing else — no user/account read scopes;
@@ -149,12 +149,50 @@ Be honest about what this is: **a workaround that Supabase could close any day.*
    asks Zoom's one permission."*
 4. The employee sees Zoom's consent dialog ("Allow MeetingBrand for Zoom to set your virtual background") **[test:
    once vs per call]**; the card then says **"Your company background is set"** with the look's name. My team shows the
-   chip from `pushes` (`selected`); a refusal shows as `awaiting_client` "declined in Zoom".
+   chip from `pushes` (`selected`); a refusal shows as `awaiting_client` "declined in Zoom". **Be honest about what
+   `selected` proves here:** it is the page's own report that `zoomSdk.setVirtualBackground` resolved (self-attested,
+   like the Meet extension's `applied`) — Zoom has no REST call that reads a user's current background, so the server
+   cannot verify it. It is accepted only from the device the image was handed to, for that pair, on platform `zoom`.
+
+### Security model (review 2026-09-23 — what an attacker cannot do)
+
+- **No org key, no e-mail, no guessing:** the only input to `/zoom/resolve` is a ticket that `mb-zoom-app` minted from
+  a `x-zoom-app-context` header it decrypted with the Zoom App's client secret (AES-256-GCM, key = SHA-256(secret) —
+  the header can only be produced by Zoom). The ticket is an HMAC over `{uid, typ, mid?, iat, exp}` with a key derived
+  from `MB_TOKEN_KEY`, 10 minutes. A forged / stale / foreign ticket is a 401 that counts toward the per-IP limiter
+  (30 refusals per 10 min → 429); nothing touches the database before the signature verifies. Live-proven 2026-09-23.
+- **Identity = the Zoom user id**, matched to `mb.employees.ext_id` on platform `zoom` — rows that only the REST app's
+  directory sync (service role) can write: the client insert policy + `guard_employee_insert` pin client rows to
+  platform `csv`, and `guard_employee_columns` makes `platform` / `ext_id` immutable. So a uid resolves into a workspace
+  only if Zoom's own `/users` listing of that workspace's connected account contained it. Residual: two workspaces that
+  connected the *same* Zoom account both hold the uid — the active row, then the most recently synced, wins.
+- **Own rows only:** the device row key is `zoom:<uid>:<web view id>` — the web-view id is the page's choice, the uid is
+  the ticket's, so one employee's page can never select or re-bind a colleague's row (the previous `zoom:<web view id>`
+  key let a colleague who knew a device id replace its token and binding).
+- **Replay bounded:** a ticket is reusable within its 10 minutes by design (Auto-open, Retry); grants are capped at 20
+  per uid per 10 minutes (429), so one employee cannot mint unbounded device rows / tokens.
+- **The page trusts nothing it did not verify:** `imageUrl` must be `https` on the API origin
+  (`ohobtgbyrlczfdztzvqi.supabase.co`, where the signed Storage URLs live) or the page refuses to call
+  `setVirtualBackground` and reports nothing; the ticket is only ever posted over https; every string is rendered
+  with `textContent` (no HTML from the server or Zoom reaches the DOM); `#mb-ctx` is an `application/json` block with
+  `<` escaped, written with function replacers (a `$&` in any value is literal). CSP: `script-src 'self'
+  https://appssdk.zoom.us`, `connect-src`/`img-src` the API origin only, no inline script, `base-uri 'none'`,
+  `form-action 'none'`.
+- **Nothing to steal on the page:** no client secret, no service key, no org key; the device token is held in memory
+  for the open; storage keeps only a random web-view id and the sha256 of the last applied image.
+- **`/health` is public but cheap:** its self-probe is memoised for 60 s per isolate, so it cannot be used to double
+  the function's own traffic.
+- **Reports are scoped:** a `zoom` device may report only `applied | denied | error`, only for platform `zoom`, only
+  for a pair that was handed to it (`pushes.idempotency_key = org:employee:background:zoom`); a Teams/Meet device
+  cannot touch those rows and vice versa (`ownPlatform`).
 
 ## 5. The [test] list (needs your Zoom tenant — nothing else can answer these)
 
 - Consent dialog: once per app, once per background, or every `setVirtualBackground` call? (Zoom docs only say the
   client "will subsequently show the consent dialog"; the only "once is enough" staff statement is about OAuth.)
+- A refused consent dialog: does `setVirtualBackground` reject with code **10017**? (The SDK reference documents 10017
+  only for `removeVirtualBackground`'s dialog; `app.js` also treats any "denied / declined / cancelled" message as
+  `denied`, everything else as `error`.)
 - Does the background **persist** after the meeting / client restart (`VirtualBkgnd_Custom` slot written)?
 - Admin-level **Auto-open** control: does it exist on your account/group settings page? If yes: does the app open in the
   meeting context or on the main-client page (devforum 88879)? The page handles both (re-applies on
@@ -229,8 +267,8 @@ participantUUID / role בלבד, אומת 2026-09-23). הזהות המאומתת
 2. **Basic Information**: שם `MeetingBrand for Zoom`; **User-managed** (לא admin-managed — זו האפליקציה השנייה; לא ניתן לשנות אחרי פרסום);
    OAuth Redirect URL ו‑**Home URL**: `https://ohobtgbyrlczfdztzvqi.supabase.co/functions/v1/mb-zoom-app`; OAuth allow list: אותו URL +
    `https://meetingbrand.com/zoom-app/`; **Domain Allow List**: `ohobtgbyrlczfdztzvqi.supabase.co` (הדף, התמונות החתומות וה‑API), `appssdk.zoom.us`, `meetingbrand.com`.
-3. **Features ▸ Surface**: הפעל **Zoom App SDK**; ב‑Add APIs סמן `getRunningContext`, `getUserContext`, `getMeetingContext`,
-   `setVirtualBackground`, `onRunningContextChange`, `onMyMediaChange`; מוצרים: Meetings; הקשרים: In Meeting + Main client.
+3. **Features ▸ Surface**: הפעל **Zoom App SDK**; ב‑Add APIs סמן בדיוק שניים: `setVirtualBackground` ו‑`onRunningContextChange`
+   (רק מה שהדף קורא — Zoom בודקים מינימיזציה של הרשאות); מוצרים: Meetings; הקשרים: In Meeting + Main client.
 4. **Scopes**: רק `zoomapp:inmeeting` (+ `zoomapp:inwebinar` אם רוצים וובינרים).
 5. **App Credentials**: העתק Client ID ו‑Client Secret ל‑`~/.config/meetingbrand/zoom-app.env` (שתי שורות `ZOOM_APP_CLIENT_ID=` /
    `ZOOM_APP_CLIENT_SECRET=`, `chmod 600`, לא ל‑git) ותגיד לי — אני מגדיר אותם ב‑`supabase secrets set`, ו‑`/health` עובר ל‑`"configured":true`.
@@ -248,7 +286,12 @@ participantUUID / role בלבד, אומת 2026-09-23). הזהות המאומתת
    לפני שמבטיחים. עד אז המשפט הכן ללקוח: *"העובדים פותחים את MeetingBrand פעם אחת מפאנל האפליקציות (או מפעילים Auto-open בהגדרות Zoom שלהם);
    האפליקציה מגדירה את רקע החברה ומבקשת את ההרשאה האחת של Zoom."*
 4. העובד רואה את דיאלוג ההסכמה של Zoom **[test: פעם אחת או בכל קריאה]**; הכרטיס אומר **"Your company background is set"** עם שם הלוק;
-   ב‑My team הצ'יפ מגיע מ‑`pushes` (`selected`; סירוב = `awaiting_client` "declined in Zoom").
+   ב‑My team הצ'יפ מגיע מ‑`pushes` (`selected`; סירוב = `awaiting_client` "declined in Zoom"). **בכנות:** `selected` כאן הוא
+   דיווח עצמי של הדף שהקריאה `setVirtualBackground` הצליחה (כמו `applied` של תוסף Meet) — ל‑Zoom אין REST שקורא את הרקע
+   הנוכחי של משתמש, אז השרת לא יכול לאמת. הוא מתקבל רק מהמכשיר שקיבל את התמונה, לאותו זוג, בפלטפורמה `zoom`.
+   **מודל האבטחה (סקירה 2026-09-23):** הכניסה היחידה היא כרטיס HMAC שנוצר מהכותרת המוצפנת של Zoom (רק Zoom יכולה לייצר אותה);
+   הזהות היא ה‑Zoom user id מול שורות שרק סנכרון ה‑REST כותב; מפתח שורת המכשיר הוא `zoom:<uid>:<web view id>` (עובד לא יכול
+   לגעת בשורה של עמית); עד 20 כניסות ל‑uid ב‑10 דקות; הדף שולח ל‑Zoom רק תמונות ב‑https מה‑origin של ה‑API. פירוט באנגלית למעלה.
 
 ## 5. רשימת ה‑[test] (דורש את הטננט שלך)
 

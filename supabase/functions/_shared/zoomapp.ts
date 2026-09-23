@@ -94,8 +94,8 @@ export async function decryptAppContext(header: string, clientSecret: string, no
   }
   const uid = typeof o.uid === "string" ? o.uid.trim() : "";
   if (!/^[A-Za-z0-9_-]{1,64}$/.test(uid)) throw new ZoomAppContextError("context has no usable uid");
-  const typ = typeof o.typ === "string" ? o.typ.trim().toLowerCase().slice(0, 16) : "";
-  if (!typ) throw new ZoomAppContextError("context has no typ");
+  const typ = typeof o.typ === "string" ? o.typ.trim().toLowerCase() : "";
+  if (!/^[a-z_-]{1,16}$/.test(typ)) throw new ZoomAppContextError("context has no usable typ"); // panel | meeting | webinar | chat
   const exp = toMs(o.exp);
   const ts = toMs(o.ts);
   if (!Number.isFinite(exp)) throw new ZoomAppContextError("context has no exp");

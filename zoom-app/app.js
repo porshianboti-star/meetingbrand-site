@@ -24,7 +24,9 @@
   var root = typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : {};
 
   var SDK_VERSION = "0.16";
-  var CAPABILITIES = ["getRunningContext", "getUserContext", "getMeetingContext", "setVirtualBackground", "onRunningContextChange", "onMyMediaChange"];
+  /** Exactly the APIs this page calls — nothing more (Zoom's review checks scope minimisation; config() already
+   *  returns runningContext + clientVersion, so getRunningContext / getUserContext / getMeetingContext are not needed). */
+  var CAPABILITIES = ["setVirtualBackground", "onRunningContextChange"];
   /** Running contexts in which setVirtualBackground is documented to work (desktop ≥ 5.6.7; inMainClient ≥ 5.13.5). */
   var APPLY_CONTEXTS = ["inMeeting", "inWebinar", "inImmersive", "inCamera", "inMainClient", "inCollaborate"];
   var DEVICE_KEY = "mb.zoom.deviceId";
@@ -42,7 +44,10 @@
     });
   }
 
-  /** Zoom Apps SDK error codes for setVirtualBackground (appssdk.zoom.us class docs, verified 2026-09-23). */
+  /** Zoom Apps SDK error codes for setVirtualBackground (appssdk.zoom.us class docs, re-read 2026-09-23 from the raw
+   *  page: 10030/10031/10032/10044/10045/10056/10064/10150/10151 verbatim). 10017 is documented on removeVirtualBackground
+   *  ("if the user does not allow the action, the client will return 10017") — the same consent dialog; [test] that
+   *  setVirtualBackground rejects with it too. 10013 = "No Permission for this API" (API not enabled in the Marketplace). */
   var SDK_ERRORS = {
     10017: { state: "denied", hint: "You chose not to allow the background." },
     10030: { state: "error", hint: "This device does not support virtual backgrounds." },
@@ -91,6 +96,16 @@
     }
   }
 
+  /** The only image host the page will hand to Zoom: the API origin (Supabase Storage signed URLs live there). A URL on
+   *  any other host — or plain http — is refused before setVirtualBackground, whatever the server said. */
+  function originOf(url) {
+    try { var u = new URL(String(url)); return u.protocol === "https:" ? u.origin : null; } catch (e) { return null; }
+  }
+  function pinnedImageUrl(apiBase, url) {
+    var api = originOf(apiBase), img = originOf(url);
+    return !!(api && img && api === img);
+  }
+
   function randomId() {
     var s = "";
     try {
@@ -106,7 +121,7 @@
   function deviceIdFrom(storage) {
     var id = null;
     try { id = storage && storage.getItem(DEVICE_KEY); } catch (e) { id = null; }
-    if (!id || !/^[A-Za-z0-9._-]{8,100}$/.test(id)) {
+    if (!id || !/^[A-Za-z0-9._-]{8,56}$/.test(id)) {
       id = randomId();
       try { storage && storage.setItem(DEVICE_KEY, id); } catch (e) { /* private mode: a fresh id per open is fine */ }
     }
@@ -173,6 +188,8 @@
     var configTimeoutMs = deps.configTimeoutMs || CONFIG_TIMEOUT_MS;
     var outsideConfigTimeoutMs = deps.outsideConfigTimeoutMs || OUTSIDE_CONFIG_TIMEOUT_MS;
     var apiBase = String(ctx.apiBase || "").replace(/\/+$/, "");
+    // the ticket is only ever posted to an https API; a page whose ctx points elsewhere is treated as outside Zoom
+    if (ctx.mode === "zoom" && !originOf(apiBase)) ctx = { mode: "outside", apiBase: apiBase };
 
     var app = { state: "loading", last: null, token: null, runningContext: null, clientVersion: null, subscribed: false, applying: null };
 
@@ -280,6 +297,11 @@
         set("wrong_context", base);
         return Promise.resolve("wrong_context");
       }
+      if (!pinnedImageUrl(apiBase, item.imageUrl)) {
+        log("image_host_refused", originOf(item.imageUrl) || "(unparseable)");
+        set("error", { label: item.label, runningContext: app.runningContext, clientVersion: app.clientVersion, hint: "The background image is not hosted by MeetingBrand — nothing was sent to Zoom." });
+        return Promise.resolve("error");
+      }
       if (!force && recentlyApplied(item)) {
         set("applied", base);
         return Promise.resolve("applied");
@@ -369,7 +391,7 @@
     return app;
   }
 
-  var api = { instance: null, createZoomApp: createZoomApp, classifySdkError: classifySdkError, deviceIdFrom: deviceIdFrom, readCtx: readCtx, boot: boot, withTimeout: withTimeout, CAPABILITIES: CAPABILITIES, SDK_VERSION: SDK_VERSION, APPLY_CONTEXTS: APPLY_CONTEXTS, COPY: COPY, SDK_ERRORS: SDK_ERRORS, CONFIG_TIMEOUT_MS: CONFIG_TIMEOUT_MS };
+  var api = { instance: null, createZoomApp: createZoomApp, classifySdkError: classifySdkError, deviceIdFrom: deviceIdFrom, readCtx: readCtx, boot: boot, withTimeout: withTimeout, pinnedImageUrl: pinnedImageUrl, CAPABILITIES: CAPABILITIES, SDK_VERSION: SDK_VERSION, APPLY_CONTEXTS: APPLY_CONTEXTS, COPY: COPY, SDK_ERRORS: SDK_ERRORS, CONFIG_TIMEOUT_MS: CONFIG_TIMEOUT_MS };
   if (root && root.document && root.document.getElementById && root.document.getElementById("mb-ctx")) {
     try { boot(root); } catch (e) { try { root.console && root.console.error("[MeetingBrand for Zoom] boot failed", e); } catch (e2) { /* ignore */ } }
   }

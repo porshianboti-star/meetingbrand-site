@@ -3,7 +3,7 @@
 // app.js, health, page.ts in sync with zoom-app/index.html + app.js).
 import { assert, assertEquals, assertMatch, assertNotEquals, assertRejects, assertStringIncludes } from "jsr:@std/assert@1";
 import { decryptAppContext, encryptAppContext, owaspHeaders, signTicket, TICKET_RE, TICKET_TTL_MS, ticketKey, unpackAppContext, verifyTicket, ZoomAppContextError } from "../_shared/zoomapp.ts";
-import { makeHandler, renderPage, subPath } from "../mb-zoom-app/handler.ts";
+import { HEALTH_PROBE_MEMO_MS, makeHandler, renderPage, subPath } from "../mb-zoom-app/handler.ts";
 import { HTML_CONTENT_TYPE, htmlPassthrough } from "../_shared/zoomapp.ts";
 
 /** What the Supabase gateway lets through today (Text/HTML untouched) — /health probes it; tests never touch the network. */
@@ -54,6 +54,8 @@ Deno.test("zoomapp: decrypt refuses the wrong secret, tampering, expiry, junk, a
   await assertRejects(async () => decryptAppContext(await encryptAppContext({ uid: "u", exp: CTX.exp }, SECRET), SECRET, NOW), ZoomAppContextError, "typ");
   await assertRejects(async () => decryptAppContext(await encryptAppContext({ uid: "u", typ: "panel" }, SECRET), SECRET, NOW), ZoomAppContextError, "exp");
   await assertRejects(async () => decryptAppContext(await encryptAppContext({ uid: "bad uid with spaces", typ: "panel", exp: CTX.exp }, SECRET), SECRET, NOW), ZoomAppContextError, "uid");
+  await assertRejects(async () => decryptAppContext(await encryptAppContext({ uid: "u", typ: "$'</script>", exp: CTX.exp }, SECRET), SECRET, NOW), ZoomAppContextError, "typ");
+  assertEquals((await decryptAppContext(await encryptAppContext({ uid: "u", typ: " Panel ", exp: CTX.exp }, SECRET), SECRET, NOW)).typ, "panel");
 });
 
 Deno.test("zoomapp: tickets — sign/verify, TTL, tamper, another root key, malformed", async () => {
@@ -201,6 +203,12 @@ Deno.test("mb-zoom-app: a real x-zoom-app-context → mode 'zoom' with a ticket 
   const evil = renderPage({ mode: "zoom", ticket: "</script><script>alert(1)</script>" }, "/x/app.js");
   assert(!evil.includes("</script><script>alert"));
   assertEquals(ctxOf(evil).ticket, "</script><script>alert(1)</script>");
+  // String.replace patterns ($&, $', $`) in the data are literal, never expanded into the surrounding page
+  const dollars = renderPage({ mode: "zoom", ticket: "a$&b$'c$`d$1e", typ: "$'" }, "/x/app.js$&");
+  assertEquals(ctxOf(dollars).ticket, "a$&b$'c$`d$1e");
+  assertEquals(ctxOf(dollars).typ, "$'");
+  assertStringIncludes(dollars, '<script src="/x/app.js$&"></script>');
+  assertEquals(dollars.split("<script").length, INDEX_HTML.split("<script").length, "no extra script element");
 });
 
 Deno.test("mb-zoom-app: a context that does not decrypt → mode 'bad_context' (200, page still renders); expired → bad_context; secrets unset → 'not_configured' + health says which", async () => {
@@ -249,6 +257,16 @@ Deno.test("mb-zoom-app: /health probes the live Home URL like a browser — pass
   he = await (await makeHandler({ now: () => NOW, fetch: () => Promise.reject(new Error("boom")) })(new Request(fnUrl("/health")))).json();
   assertEquals(he.html.passthrough, null);
   assertEquals(he.ok, true, "health itself still answers");
+  // the probe is memoised per isolate (public endpoint: no 1:1 outbound amplification)
+  let clock = NOW;
+  let probes = 0;
+  const counting: typeof fetch = (i, init) => { probes++; return passFetch(i, init); };
+  const hm = makeHandler({ now: () => clock, fetch: counting });
+  for (let i = 0; i < 5; i++) assertEquals((await (await hm(new Request(fnUrl("/health")))).json()).html.passthrough, true);
+  assertEquals(probes, 1, "five health calls within a minute → one probe");
+  clock = NOW + HEALTH_PROBE_MEMO_MS + 1;
+  await hm(new Request(fnUrl("/health")));
+  assertEquals(probes, 2, "re-probed after the memo expired");
   assertEquals(htmlPassthrough(new Headers({ "content-type": "TEXT/HTML; charset=utf-8", "content-security-policy": "default-src 'self'" })).ok, true);
   assertEquals(htmlPassthrough(new Headers({ "content-type": "text/html", "content-security-policy": "default-src 'none'; sandbox" })).ok, false);
   assertEquals(htmlPassthrough(new Headers({ "content-type": "text/plain" })).ok, false);
