@@ -28,6 +28,7 @@ import {
   uuidV5,
 } from "../_shared/agent.ts";
 import { actionOf, deliveryPlatform, ENROLL_FAILS_PER_WINDOW, escapeLike, FailureLimiter, makeHandler, ownPlatform, sourceIp } from "../mb-agent/handler.ts";
+import { isSafeOrgStoragePath } from "../_shared/platform.ts";
 import { ASSET, BG, configure, EMP, eventsOk, j, JPG, ORG, patchOk, rest, router, rpc, SB_URL, THUMB, TOKEN_KEY, type Route } from "./_fake.ts";
 import { RESOLVE_GRANTS_PER_WINDOW, ZOOM_DEVICE_PREFIX, zoomDeviceId } from "../mb-agent/handler.ts";
 import { signTicket, ticketKey } from "../_shared/zoomapp.ts";
@@ -183,6 +184,7 @@ interface Store {
   events: Array<Record<string, unknown>>;
   patches: Array<{ table: string; query: string; body: Record<string, unknown> }>;
   integrations: Array<Record<string, unknown>>;
+  objects?: Record<string, Uint8Array>;
 }
 
 function fresh(over: Partial<Store> = {}): Store {
@@ -283,6 +285,8 @@ function backend(st: Store) {
     { method: "POST", test: (u) => u.pathname.startsWith("/storage/v1/object/sign/mb-exports/"), reply: (_r, u) => j(200, { signedURL: `${u.pathname.replace("/storage/v1", "")}?token=sig` }) },
     { method: "GET", test: (u) => u.pathname === `/storage/v1/object/mb-exports/${ORG}/${STARTER}.png`, reply: () => new Response(PNG, { status: 200, headers: { "content-type": "image/png" } }) },
     { method: "GET", test: (u) => u.pathname === `/storage/v1/object/mb-exports/${ORG}/${STARTER}.jpg`, reply: () => new Response(JPEG, { status: 200, headers: { "content-type": "image/jpeg" } }) },
+    // product v92: content-addressed export objects <org>/<bg>[_thumb].<sha256[0:16]>.<ext> (served from st.objects by path)
+    { method: "GET", test: (u) => !!st.objects && u.pathname.replace("/storage/v1/object/mb-exports/", "") in st.objects, reply: (_r, u) => new Response(st.objects![u.pathname.replace("/storage/v1/object/mb-exports/", "")], { status: 200 }) },
   ];
   return router(routes);
 }
@@ -1145,4 +1149,48 @@ Deno.test("mb-agent /assignments + /report for a zoom device: one item platform 
   assertEquals(rv.status, 410);
   assertEquals((await rv.json()).action, "remove_all");
   assertEquals((await h(post("report", { items: [{ backgroundId: STARTER, state: "applied" }] }, tok))).status, 410);
+});
+
+Deno.test("mb-agent /assignments (product v92): content-addressed exports — a re-render lands at a NEW path + a NEW asset row, the next poll signs the new path and hands out the new sha256; the old path is never signed or downloaded again (no CDN-cached object is ever re-served under a current id)", async () => {
+  configure();
+  const PNG2 = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 5, 6, 7, 8, 9]);
+  const h1 = (await sha256Hex(PNG)).slice(0, 16), h2 = (await sha256Hex(PNG2)).slice(0, 16);
+  const A2 = "5a5a5a5a-5a5a-45a5-85a5-5a5a5a5a5a5a", T2 = "5b5b5b5b-5b5b-45b5-85b5-5b5b5b5b5b5b";
+  const p1 = `${ORG}/${STARTER}.${h1}.png`, t1 = `${ORG}/${STARTER}_thumb.${h1}.png`, p2 = `${ORG}/${STARTER}.${h2}.png`, t2 = `${ORG}/${STARTER}_thumb.${h2}.png`;
+  for (const p of [p1, t1, p2, t2]) assert(isSafeOrgStoragePath(p, ORG), "v92 path shape passes the service-role path guard: " + p);
+  assert(!isSafeOrgStoragePath(`${ORG}/../${STARTER}.${h1}.png`, ORG) && !isSafeOrgStoragePath(`${STARTER}.${h1}.png`, ORG), "traversal / foreign org still refused");
+  const st = fresh({
+    assets: [
+      { id: ASSET, org_id: ORG, bucket: "mb-exports", storage_path: p1, mime: "image/png", bytes: PNG.byteLength, sha256: await sha256Hex(PNG) },
+      { id: THUMB, org_id: ORG, bucket: "mb-exports", storage_path: t1, mime: "image/png", bytes: 100, sha256: null },
+    ],
+    objects: { [p1]: PNG, [p2]: PNG2 },
+  });
+  const be = backend(st);
+  const NOW = Date.UTC(2026, 8, 24);
+  const h = makeHandler({ fetchImpl: be.fetchImpl, now: () => NOW });
+  const tok = newDeviceToken();
+  st.agents.push({ id: AGENT, org_id: ORG, employee_id: EMP(1), device_id: "d", os: "macos", version: "0.1.0", token_hash: await sha256Hex(tok), token_expires_at: new Date(NOW + TOKEN_TTL_MS).toISOString(), revoked_at: null });
+  const a1 = (await (await h(get("assignments", tok))).json()).assignments[0];
+  assertStringIncludes(a1.pngUrl, `/object/sign/mb-exports/${p1}?token=sig`);
+  assertStringIncludes(a1.thumbUrl, `/object/sign/mb-exports/${t1}?token=sig`);
+  assertEquals(a1.sha256, await sha256Hex(PNG));
+  assertEquals(be.calls("GET", "/storage/v1/object/mb-exports/").length, 0, "the product stored the sha256: nothing downloaded");
+  // the product re-renders (v92 persistExports): new objects + new rows (sha256 null here: an old browser without WebCrypto), the background points at them, the old rows are gone
+  st.assets.splice(0, st.assets.length,
+    { id: A2, org_id: ORG, bucket: "mb-exports", storage_path: p2, mime: "image/png", bytes: PNG2.byteLength, sha256: null },
+    { id: T2, org_id: ORG, bucket: "mb-exports", storage_path: t2, mime: "image/png", bytes: 100, sha256: null });
+  Object.assign(st.backgrounds[0], { export_asset_id: A2, thumb_asset_id: T2 });
+  const a2 = (await (await h(get("assignments", tok))).json()).assignments[0];
+  assertEquals(a2.action, "write");
+  assertEquals(a2.guid, a1.guid, "same file name in the Teams folder: the agent overwrites it");
+  assertStringIncludes(a2.pngUrl, `/object/sign/mb-exports/${p2}?token=sig`);
+  assertStringIncludes(a2.thumbUrl, `/object/sign/mb-exports/${t2}?token=sig`);
+  assertEquals(a2.sha256, await sha256Hex(PNG2), "the NEW bytes' hash (downloaded from the new path)");
+  assertNotEquals(a2.sha256, a1.sha256);
+  const gets = be.calls("GET", "/storage/v1/object/mb-exports/");
+  assertEquals(gets.length, 1);
+  assert(gets[0].path.endsWith(`/${p2}`), "only the new object was read");
+  assert(![a2.pngUrl, a2.thumbUrl].some((u: string) => u.includes(`.${h1}.`)), "the superseded path is never signed again");
+  assertEquals(st.assets[0].sha256, await sha256Hex(PNG2), "sha256 stored on the new row");
 });
