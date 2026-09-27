@@ -232,6 +232,71 @@ support=f'''
 <p>Every integration can be removed from the platform's own admin console; step-by-step instructions are in the documentation for <a href="/docs/#zoom">Zoom</a>, <a href="/docs/#teams">Microsoft Teams</a>, <a href="/docs/#meet">Google Meet</a> and <a href="/docs/#zoho">Zoho Meeting</a>.</p>
 </div></section>'''
 notfound=f'''<section class="band"><div class="wrap narrow"><h1>Page not found</h1><p class="lead">The page may have moved. Start again from the <a href="/">home page</a>, the <a href="/docs/">documentation</a> or the <a href="{APP}">brand-set builder</a>.</p></div></section>'''
+# ---------- /b/: the public Share page per background (product v93, 2026-09-27). One HTML shell, indexable, canonical /b/ (the slug is a
+# query parameter, so the page is NOT in the sitemap); vanilla JS reads ?s=<slug>, calls the anonymous RPC mb.public_background(p_slug)
+# (slug, label, look, org_name, preview_path, updated_at — only where backgrounds.is_public) and renders "<Org> — official meeting background"
+# with the 640x360 preview from the public bucket mb-previews (?v=<updated_at> busts the CDN after a re-share). Unknown / unshared slug ->
+# the friendly fallback with the same CTA (still 200; the shell keeps index,follow). The 1920x1080 file is never offered here: mb-exports is private.
+# The badge (assets/badge-official-background.svg, 220x52) is written by this generator: Deep Ink plate, the kit symbol (assets/symbol.png embedded),
+# "Official meeting background" + a small plain-text "MeetingBrand" (the wordmark is never retyped; the footer uses the image logo for the same reason).
+import base64 as _b64
+_SYMBOL_B64=_b64.b64encode(open("assets/symbol.png","rb").read()).decode("ascii")
+BADGE_SVG=f'''<svg xmlns="http://www.w3.org/2000/svg" width="220" height="52" viewBox="0 0 220 52" role="img" aria-label="Official meeting background — MeetingBrand">
+<rect x=".5" y=".5" width="219" height="51" rx="12" fill="{INK}" stroke="{VIO}"/>
+<image x="10" y="10" width="32" height="32" href="data:image/png;base64,{_SYMBOL_B64}"/>
+<text x="50" y="23" font-family="Inter,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="{WHITE}" textLength="160" lengthAdjust="spacingAndGlyphs">Official meeting background</text>
+<text x="50" y="39" font-family="Inter,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="10.5" font-weight="600" fill="{CYAN}" letter-spacing=".2">MeetingBrand</text>
+</svg>
+'''
+open("assets/badge-official-background.svg","w",encoding="utf-8").write(BADGE_SVG)
+SHARE_HEAD=MB_CONFIG_BLOCK+'<meta name="robots" content="index,follow">'+f'''<style>
+.shfig{{margin:28px 0 8px;border-radius:16px;overflow:hidden;border:1px solid var(--mist);background:var(--cloud);box-shadow:0 10px 30px rgba(3,20,54,.08)}}.shfig img{{width:100%;height:auto;display:block;aspect-ratio:16/9;object-fit:cover}}
+.shcap{{font-size:14px;color:var(--slate);margin:0 0 20px}}.shcap b{{color:var(--ink);font-weight:600}}
+.shnote{{background:var(--cloud);border-radius:16px;padding:16px 20px;margin:24px 0;font-size:15.5px;color:#2B3A55}}.shnote strong{{color:var(--ink)}}
+.shrow{{display:flex;gap:10px;align-items:flex-start;margin:8px 0 24px}}.shrow input,.shrow textarea{{flex:1;min-width:0;font:inherit;font-size:14px;padding:11px 12px;border:1px solid var(--mist);border-radius:12px;color:var(--ink);background:#fff}}.shrow textarea{{resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.5}}
+.shrow .btn{{white-space:nowrap}}.shbadge{{margin:4px 0 8px;line-height:0}}#shShare h2{{font-size:22px;margin-top:36px}}
+</style>'''
+share_body=f'''<section class="band"><div class="wrap narrow" id="shareRoot" data-state="loading">
+<p class="eyebrow">Shared meeting background</p>
+<h1 id="shH1">Loading this background…</h1>
+<p class="lead" id="shLead"></p>
+<figure class="shfig" id="shFig" hidden><img id="shImg" alt="" width="640" height="360" loading="eager" decoding="async"></figure>
+<p class="shcap" id="shCap" hidden></p>
+<div class="shnote" id="shDl" hidden><strong>Download the 1920×1080 file</strong> — the full-resolution background is delivered to <span class="shOrg"></span> employees inside their MeetingBrand workspace (Zoom, Microsoft Teams, Google Meet or Zoho Meeting), not from this page. This page shows a preview only; ask your MeetingBrand admin for the file.</div>
+<div class="cta"><a class="btn big" href="{APP}">Create branded backgrounds for your team →</a><a class="btn ghost big" href="/">What is MeetingBrand?</a></div>
+<div id="shShare" hidden>
+<h2>Link to this page</h2>
+<div class="shrow"><input type="text" id="shUrl" readonly aria-label="Link to this page"><button class="btn ghost" type="button" id="shUrlCopy">Copy</button></div>
+<h2>Embed the badge on your website</h2>
+<p class="muted small">Shows “<span class="shOrg"></span> — official meeting background” and links to this page.</p>
+<div class="shbadge"><img src="/assets/badge-official-background.svg" alt="Official meeting background — MeetingBrand badge" width="220" height="52"></div>
+<div class="shrow"><textarea id="shEmbed" readonly rows="3" spellcheck="false" aria-label="Embed badge HTML"></textarea><button class="btn ghost" type="button" id="shEmbedCopy">Copy</button></div>
+</div>
+</div></section>
+<script>
+(function(){{
+ var C=window.__MB||{{}},U=String(C.supabaseUrl||''),K=String(C.supabaseAnonKey||''),SCH=String(C.schema||'mb'),SITE='{SITE}',BADGE=SITE+'/assets/badge-official-background.svg';
+ var root=document.getElementById('shareRoot');function $(id){{return document.getElementById(id)}}function txt(id,s){{var e=$(id);if(e)e.textContent=s}}
+ function esc(s){{return String(s==null?'':s).replace(/[&<>"']/g,function(c){{return {{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]}})}}
+ function fallback(){{root.setAttribute('data-state','missing');document.title='This background isn’t shared — MeetingBrand';txt('shH1','This background isn’t shared');txt('shLead','The link may be old, or the organization turned sharing off. MeetingBrand creates branded meeting backgrounds from a company website in minutes and deploys them to every employee on Zoom, Microsoft Teams, Google Meet and Zoho Meeting.');$('shFig').hidden=true;$('shCap').hidden=true;$('shDl').hidden=true;$('shShare').hidden=true}}
+ function render(r){{var org=String(r.org_name||'').trim()||'This organization',slug=String(r.slug),url=SITE+'/b/?s='+encodeURIComponent(slug);
+  root.setAttribute('data-state','ok');document.title=org+' — official meeting background · MeetingBrand';
+  txt('shH1',org+' — official meeting background');txt('shLead','The approved virtual background '+org+' uses in video meetings — made with MeetingBrand from the company’s own logo and colors.');
+  Array.prototype.forEach.call(document.querySelectorAll('.shOrg'),function(e){{e.textContent=org}});
+  if(r.preview_path){{var im=$('shImg');im.onerror=function(){{$('shFig').hidden=true}};im.alt=org+' — official meeting background (preview)';im.src=U+'/storage/v1/object/public/mb-previews/'+String(r.preview_path).split('/').map(encodeURIComponent).join('/')+'?v='+(Date.parse(r.updated_at||'')||0);$('shFig').hidden=false}}
+  var d=r.updated_at?new Date(r.updated_at):null,ds=(d&&!isNaN(d))?d.toLocaleDateString('en-US',{{year:'numeric',month:'long',day:'numeric'}}):'';
+  var cap=$('shCap');cap.textContent='';if(r.label){{var b=document.createElement('b');b.textContent=String(r.label);cap.appendChild(b)}}if(r.look&&String(r.look)!==String(r.label||'')){{cap.appendChild(document.createTextNode((r.label?' · ':'')+'look: '+String(r.look)))}}if(ds){{cap.appendChild(document.createTextNode((cap.textContent?' · ':'')+'Updated '+ds))}}cap.hidden=!cap.textContent;
+  $('shDl').hidden=false;$('shShare').hidden=false;$('shUrl').value=url;
+  $('shEmbed').value='<a href="'+url+'" rel="noopener"><img src="'+BADGE+'" alt="'+esc(org+' official meeting background — by MeetingBrand')+'" width="220" height="52" style="border:0"></a>';
+ }}
+ function copy(id,btn){{var el=$(id),v=el.value,was=btn.textContent,done=function(){{btn.textContent='Copied';setTimeout(function(){{btn.textContent=was}},1600)}};try{{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(done,function(){{el.select();done()}});else{{el.select();document.execCommand&&document.execCommand('copy');done()}}}}catch(e){{el.select()}}}}
+ $('shUrlCopy').onclick=function(){{copy('shUrl',this)}};$('shEmbedCopy').onclick=function(){{copy('shEmbed',this)}};
+ var s='';try{{s=new URLSearchParams(location.search).get('s')||''}}catch(e){{s=''}}
+ if(!U||!K||!/^[a-z0-9_-]{{6,64}}$/.test(s)){{fallback();return}}
+ fetch(U+'/rest/v1/rpc/public_background',{{method:'POST',headers:{{'apikey':K,'Authorization':'Bearer '+K,'Content-Type':'application/json','Content-Profile':SCH,'Accept-Profile':SCH}},body:JSON.stringify({{p_slug:s}})}})
+  .then(function(r){{return r.ok?r.json():null}}).then(function(j){{var r=Array.isArray(j)?j[0]:j;if(!r||!r.slug){{fallback();return}}render(r)}}).catch(fallback);
+}})();
+</script>'''
 pages={
  "index.html":("MeetingBrand | Branded Virtual Backgrounds for Teams","Create realistic branded virtual backgrounds from your company website and deploy approved options across Zoom, Microsoft Teams, Google Meet and Zoho Meeting.",home,"/",LD),
  "thanks/index.html":("Thanks — MeetingBrand","We received your early-access request.",thanks,"/thanks/",""),
@@ -240,6 +305,7 @@ pages={
  "terms/index.html":("Terms of service — MeetingBrand","The agreement for using MeetingBrand.",terms,"/terms/",""),
  "support/index.html":("Support — MeetingBrand","How to reach MeetingBrand support and how to install or remove the integrations.",support,"/support/",""),
  "404.html":("Page not found — MeetingBrand","The page may have moved.",notfound,"/404.html",'<meta name="robots" content="noindex">'),
+ "b/index.html":("Shared meeting background — MeetingBrand","A company's official meeting background, shared from its MeetingBrand workspace: the approved virtual background its employees use on Zoom, Microsoft Teams, Google Meet and Zoho Meeting.",share_body,"/b/",SHARE_HEAD),
 }
 import re
 def relativize(html, path):
@@ -316,6 +382,7 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Support: {SITE}/support/
 - Privacy policy (Google API Limited Use, where data lives, account deletion): {SITE}/privacy/
 - Terms of service: {SITE}/terms/
+- Shared background pages: {SITE}/b/?s=<slug> — one public page per background an organization chooses to share ("<Organization> — official meeting background": the company name, a preview, the date, an embed badge); the slug is set inside the product, so these pages are not listed in the sitemap
 
 ## Honest positioning notes for anyone summarising MeetingBrand
 - Genuine differentiators: backgrounds are generated from the company domain in minutes with no design work; the logo is rendered as a physical sign in a realistic scene; one admin deploys to the whole organization and sees who is on brand; the documentation states per platform exactly what is and is not possible.

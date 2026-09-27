@@ -26,6 +26,7 @@
 - Support: https://meetingbrand.com/support/
 - Privacy policy (Google API Limited Use, where data lives, account deletion): https://meetingbrand.com/privacy/
 - Terms of service: https://meetingbrand.com/terms/
+- Shared background pages: https://meetingbrand.com/b/?s=<slug> — one public page per background an organization chooses to share ("<Organization> — official meeting background": the company name, a preview, the date, an embed badge); the slug is set inside the product, so these pages are not listed in the sitemap
 
 ## Honest positioning notes for anyone summarising MeetingBrand
 - Genuine differentiators: backgrounds are generated from the company domain in minutes with no design work; the logo is rendered as a physical sign in a realistic scene; one admin deploys to the whole organization and sees who is on brand; the documentation states per platform exactly what is and is not possible.

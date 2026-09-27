@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MeetingBrand — Product Demo v92</title>
+<title>MeetingBrand — Product Demo v93</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAADsAAAA7AF5KHG9AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA7xJREFUWIXFl0tMnFUUx3/n+755YMcWGAKUsTyHgK222pratD4wLExsl0YSkq7aVYN1YWNQ6qouGqNsutHExGVjNTEtdGUXjcQEW1KtRgKC9CF0OuBH6TA4D775rgs7tMxcYECw/+U5557//577OleUUmQhFfsqrIw67goHBcLAJtYHcwpGDMVFx5QzKtofXeDMCrDK97ah5AsgsE6kS2EWUUedySvnFgQ8ID8LyAaTZ6EQ2pzJH78Wyl+sMF01ysbPPBezGdMKm5Y/9AFC65rTeDyoHTugrg6ZtsFxCh3pM12VslzhUMF1LypC1ddDQwOqthaqq1Fbq8Ay//XbNuaHJ8GeLiidK+qQJVCv9VoWqrkZmppQdfWo2hooKwNZRm4wiNq/H+npLUiAQNhCt/bBIJmuLgiFCkq0CD7/aqIDls7qHj6cRy6DgzA6Co/cG1oMD69GAFoBKty4mPzCBSq/HeKpQCsrn9RtUP4GAH87E/w5e4m5+burE5DL4bl4iQNVZzHFtwJ5Pp4uPcLPk93ciPVo/UYhSTwpWRM5gCledle8R9C/U+vXV2AFuOIwXnpzkXxv2kfl/W3aeMGgseRN7Mgv6yPgu9Y+ZloW7xOUYtfn12ke36UdU+xr1toLWoJcPDFj5p+GVJpAYunbfD5zX2tfUwVeHngFBlY35s7cD1r7miqwWsRSY4zMfPV4BMRSN7g80YHjJh6PgM2+Ol6q+gSv+eTGCHj+9SE6PxunpX1wyZhS/3b2lHdqfWvahFl4fXDi5HZM0+C5nfDr9zb2+BZtbCjwKpu99cTSY4vs/6kC82kYGr4DQOTuNHF7uR5WKCvKvw31FUgmCxKgFJzuCFLVNEz0jxCpxPIFNcWTZ9NWwOjrK0hASe0Ixz+O8P7pEO922zTs+23Z+Hup0TybVrKcP4/hZHBfa4HiEtC0AKW1v9P9ZRi/zwtA8ZYAz3xaTec7V7k1sDsvfjZ9GztxXSsgTm5XpBTS24PZ++AJNYN5A9s7jAXyBeEiHDtRQ2e7QrkP33THTXA1egqFm5smZigYy7XmIpmZxk4+fMkMI8MLe/StZE11BaVVdnYm/JX4icvjx5hO5h9TBWNiBfd+pISulUSImAT9z2KIB9NSbK2LLxk7NbGJxJxLPH2TZObe0jmRU9mPyQigv6o2DrGMNR82VLQ/iqijaLfahkEhckRFrk0ZAM7klXMIbcDs/0AeQ+QtZ7L/G3jkdwwglQfKLSfztivqoEAj6/dfjCsYMZBex0qfUZFrU1nHP1lhPr2nXjwYAAAAAElFTkSuQmCC">
 <!-- ================= PRESENCE DEMO STATE =================
-version: v92 (2026-09-25)
+version: v93 (2026-09-27)
 source of truth: this block. Any session resuming work MUST read it before editing.
 constraint: INTERNAL PREVIEW ONLY - never published to a production domain without the owner's go.
-gate: jsdom regression (regress.js, 618 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
+gate: jsdom regression (regress.js, 629 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
 
 MODULES (verified v39):
 - Views: Overview, Brand, Backgrounds, Campaigns, People, Analytics
@@ -36,6 +36,7 @@ MODULES (verified v39):
 - v90: the owner's four new rooms (2026-09-24) appended to SCENES after marblelobby in his order: glasscorridor 'Glass office corridor', travertinelounge 'Travertine lounge', concreteoffice 'Concrete open office', oakskyline 'Oak skyline office'. Plates = engine/scenes/<id>.webp, exact 16:9, never upscaled (1024x576 / 1365x768 from engine/scenes-src/owner-room-1..4); concreteoffice + oakskyline carry a laptop-lid fg occluder. DEFAULT_SETUP gains 4 rows = our tuned defaults (the owner's 13 rows untouched) until he saves his own with Copy setup; STARTER unchanged. 16 built-in scenes.
 - v91: WYSIWYG — the export follows the Live preview. signGeom(sc,style) is the ONE sign geometry: logoLayer writes the preview's CSS from it (byte-identical to v90) and paintSign lays the 1920x1080 export out like the preview's flex box in the preview's em, paints it flat on its own layer with the preview's drop-shadow list, and signWarp maps it with the preview's CSS matrix (perspective(1.35*w cqw) rotateY rotateZ about the near box edge) over the untouched plate — no photo pixel is read back (the v90 smear is gone). Fonts are loaded before drawing. exportHash carries the renderer ('r91') so older prepared exports re-render once. renderLook calls are serialised. Parity gate: tools/wysiwyg-parity.mjs (Chrome) in ship.sh.
 - v92: the v91 verifiers' open problems. (1) Wallpaper is WYSIWYG: the .wp tile is sized in cqw (9.932cqw = the 76 px the 765 px Live preview always showed) and the export paints it through paintSign -> paintWallpaper from logoLayer's own span (logoSrcNow(), the dark-room .16) + the .wp rule; #dl's own wallpaper branch is gone. (2) signGeom carries a camera guard (signGuard, SIGN_WMIN .05): a Turn that would put the far end of a very wide sign behind the camera is eased, identically in the CSS transform and the canvas warp; #turnHint says so. (3) Every export text draw sits on the CSS baseline (signBLfix: (A-D)/2 below the line centre vs canvas 'middle'); glass/plaque/backlit plates write b.name like the preview. (4) Exports are content-addressed in mb-exports (<org>/<bg>[_thumb].<sha16>.<ext>, cacheControl 60, superseded rows/objects removed): no CDN edge can serve old pixels to the product, mb-agent (Teams agent / Meet extension / Zoom App), mb-push-zoom or mb-export-pack. Renderer 'r92'. Parity gate: wallpaper x4, multi-line x7 (+-0.6 pp), the break/c5 input x2, a seeded fuzz x24.
+- v93: Share page per background (the owner's inbound-links directive, 2026-09-27). The Live preview card carries #shareBox under Download PNG: 'Share page' (signed-in only; OFFLINE / demo / no-profile = disabled with the tooltip 'Sign in to share') -> mb-cloud setPublic(sc,true): PUT /api/background (the row exists, carries the current adj), the CURRENT look rendered through the export sink (renderLook, name bar off) and (re)uploaded as the 640x360 JPEG to mb-previews by persistPreviewNow (the v81 upload, now awaitable; persistPreview wraps it), then backgrounds.update({is_public:true}).select('id,slug,is_public') (a select by id if the update returns no row) -> sc._slug / sc._public -> the public URL https://meetingbrand.com/b/?s=<slug> (#shareUrl + Copy link) and the embed badge snippet (#shareEmbed + Copy badge: <a href=<url> rel=noopener><img src=https://meetingbrand.com/assets/badge-official-background.svg alt='<org> official meeting background — by MeetingBrand' width=220 height=52>), 'Update page' re-renders the preview, 'Unshare' sets is_public=false. loadSession binds sc._slug / _public / _previewId from the row (selected since v82/v92, never used), so a shared look shows its URL after a reload / login. shareUrl / shareEmbed are the one voice (also on __MB_CLOUD). Events background_shared / background_unshared {look}. The page: meetingbrand-site gen-site.py /b/ (anonymous RPC mb.public_background; the full-resolution file is never public — mb-exports stays private). mb-cloud v93; engine/mb-cloud.js re-synced from the shipped block (config placeholder); mb-gate stays v89. Rendering, export, signGeom, SCENES, DEFAULT_SETUP untouched.
 - Placement: per-scene wall segments (x1,x2,y1,y2,ry,rz) -> nearest-segment snap, perspective foreshortening, per-scene adj {x,y,s,ry,rz,dep} persisted to 'adj' store
 - Signage: 13 treatments (sign, sticker, silver, brass, wood, black, illum, glass, plaque, backlit, acrylic, led, wallpaper)
 - Lighting engine (v40): per-scene photometric detector (96x54, gamma-linear) = sign-anchored local gradient (median profiles, fg-masked, band trimmed of near-black rows) + downlight fingerprint (bottom-brighter & dark-above & warm => from-top) + global source centroid (top-2% brightness, 1/d^1.8 to sign) + elevation prior; outputs sc._lt {ang,amt,hard,lum,warm}. lightOf(sc) merges per-scene overrides adj.la/adj.li and derives shadow vector S (gravity-biased), shadow alpha (ambient-scaled), penumbra blur (hardness), emissive gain (room darkness). Rendering: extrusion body direction via --ex/--ey from E (3D angle adj.da; defaults to S so untouched scenes are pixel-identical); bevel highlight via --sx/--sy from S; 3-tier contact/mid/far drop-shadow penumbra (DOM castCSS + export castPass); letters-only face-shading gradient along the light axis (export offscreen source-in); led/illum cast elliptical wall glow scaled by eGain. UI: Lighting sliders (Light -180..180, 3D -180..180, Power 20..160) + Auto light in the wall-fit panel, persisted per scene. Debug: window.__PRESENCE_DEBUG {lt,light,sample}.
@@ -50,6 +51,7 @@ MODULES (verified v39):
 DORMANT (kept intentionally, no UI): bake stack since v74 (geminiBake, localBake, BAKEWOOD, __bmSet, bake mode/species state), WASHES beyond 'none' (brand wash removed per owner, pipeline retained), TEMPLATES/template mode (renderTpls/renderSw/syncStudio stubs; artCV still used by the export fallback), recolorAll (awaits scenes carrying recolor metadata)
 
 CHANGELOG:
+v93 2026-09-27 Share page per background: a public, indexable page at meetingbrand.com/b/?s=<slug> (company name, preview, embed badge) switched on per look from the Live preview card; Unshare; the 1920×1080 file stays inside the workspace
 v92 2026-09-25 WYSIWYG hardening: wallpaper, multi-line wall text and extreme turns match the preview; pushed exports always fresh (no CDN-stale copies); Glass office corridor + Travertine lounge re-tuned
 v91 2026-09-24 what you see is what they get: the pushed/downloaded background reproduces the Live preview (size, place, angle, light); smear around the sign removed; stale exports re-prepare once; the 4 new rooms re-tuned
 v90 2026-09-24 four new rooms from the owner: Glass office corridor, Travertine lounge, Concrete open office, Oak skyline office — plates 16:9, default logo placement tuned per room
@@ -183,6 +185,7 @@ main{padding:26px 30px 34px;min-width:0}
 .btn svg{width:15px;height:15px}
 .btn[disabled]{opacity:.55;cursor:default}
 .btn-quiet{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);color:var(--slate);border-radius:10px;padding:9px 14px;font-family:inherit;font-size:12.5px;cursor:pointer;transition:border-color .15s,color .15s}
+#shareBox button:disabled{opacity:.55;cursor:not-allowed}
 .btn-quiet:hover{border-color:var(--green);color:var(--green-t)}
 button:focus-visible,input:focus-visible,select:focus-visible,.brand-slot:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .meetwin{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
@@ -375,7 +378,7 @@ tr.flip td{animation:flip .5s ease}
 </style>
 </head>
 <body>
-<div class="demo-bar"><b>BETA PREVIEW v92</b> · MeetingBrand · early access</div>
+<div class="demo-bar"><b>BETA PREVIEW v93</b> · MeetingBrand · early access</div>
 
 <div class="shell">
 <aside>
@@ -658,6 +661,19 @@ tr.flip td{animation:flip .5s ease}
           <button class="btn" id="dl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v11M7 10l5 5 5-5M4 20h16"/></svg>Download PNG</button>
           <button class="btn-quiet" id="empView">Employee view</button>
           <span id="platChip"></span>
+        </div>
+        <div id="shareBox" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn-quiet" id="shareBtn" disabled title="Sign in to share" aria-describedby="shareNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1"/></svg><span id="shareLbl">Share page</span></button>
+            <span id="shareNote" class="note" role="status" style="margin:0"></span>
+          </div>
+          <div id="shareOut" hidden style="margin-top:6px">
+            <label class="blab" for="shareUrl" style="margin-top:8px">Public page</label>
+            <div style="display:flex;gap:8px;align-items:center"><input type="text" id="shareUrl" readonly aria-label="Public page URL" style="flex:1;min-width:0;font-size:12.5px;padding:8px 10px"><button class="btn-quiet" id="shareCopy">Copy link</button></div>
+            <label class="blab" for="shareEmbed">Embed badge</label>
+            <div style="display:flex;gap:8px;align-items:flex-start"><textarea id="shareEmbed" readonly rows="3" aria-label="Embed badge HTML" spellcheck="false" style="flex:1;min-width:0;box-sizing:border-box;padding:8px 10px;border:1px solid #DDE3EE;border-radius:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.45;color:#031436;background:#fff;resize:vertical"></textarea><button class="btn-quiet" id="shareEmbedCopy">Copy badge</button></div>
+            <p class="note" style="margin-top:8px">Anyone with the link sees a preview of this background with your company name. The 1920×1080 file stays inside your workspace. <button class="btn-quiet" id="unshareBtn" style="padding:4px 10px;font-size:11.5px;margin-left:6px">Unshare</button></p>
+          </div>
         </div>
       </div>
     </div>
@@ -1190,7 +1206,7 @@ const state={emp:1,viewer:null,ribBg:null,gemKey:null,gemModel:"gemini-3-pro-ima
 const __mbH={};function __mbFire(k,a){(__mbH[k]||[]).forEach(f=>{try{f(a)}catch(e){}})}
 /* v80: every product event goes through window.MBTrack (mb-cloud); a missing MBTrack (file:// before the cloud block) is a silent no-op */
 function __mbTrack(n,p){try{if(typeof window.MBTrack==="function")window.MBTrack(n,p||{})}catch(e){}}
-window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m)=>toast(m),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),prepareBackgrounds:(o)=>prepareBackgrounds(o),wantedLooks:()=>wantedLooks(),agentEnsure:()=>agentEnsure(),agentScripts:()=>agentScripts(),rotateKey:()=>rotateKey(),chipFor:(e)=>chipFor(e),deployCopy:(ppl)=>deployCopy(ppl),renderAgentCard:()=>renderAgentCard(),agentOffline:(a)=>agentOffline(a),refreshTeam:()=>refreshTeam(),teamFreshMs:()=>teamFreshMs(),agentsActive:()=>agentsActive(),extProbe:(ms)=>extProbe(ms),extConnect:()=>extConnect(),extEnsure:(o)=>extEnsure(o),extPolicy:()=>extPolicy(),extRunbook:()=>extRunbook(),renderExtBlock:()=>renderExtBlock(),capOpts:(b,l,c)=>capOpts(b,l,c),lockupCheck:(b,r)=>lockupCheck(b,r),lockupClear:()=>lockupClear(),agentIsExt:(a)=>agentIsExt(a),extIds:()=>EXT_IDS.slice(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a),get renderer(){return signRenderer()}};   /* v91: the sign renderer version (exportHash) */
+window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m)=>toast(m),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),prepareBackgrounds:(o)=>prepareBackgrounds(o),wantedLooks:()=>wantedLooks(),agentEnsure:()=>agentEnsure(),agentScripts:()=>agentScripts(),rotateKey:()=>rotateKey(),chipFor:(e)=>chipFor(e),deployCopy:(ppl)=>deployCopy(ppl),renderAgentCard:()=>renderAgentCard(),agentOffline:(a)=>agentOffline(a),refreshTeam:()=>refreshTeam(),teamFreshMs:()=>teamFreshMs(),agentsActive:()=>agentsActive(),extProbe:(ms)=>extProbe(ms),extConnect:()=>extConnect(),extEnsure:(o)=>extEnsure(o),extPolicy:()=>extPolicy(),extRunbook:()=>extRunbook(),renderExtBlock:()=>renderExtBlock(),capOpts:(b,l,c)=>capOpts(b,l,c),lockupCheck:(b,r)=>lockupCheck(b,r),lockupClear:()=>lockupClear(),agentIsExt:(a)=>agentIsExt(a),extIds:()=>EXT_IDS.slice(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},renderShare:()=>renderShare(),shareSet:(on)=>shareSet(on),on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a),get renderer(){return signRenderer()}};   /* v91: the sign renderer version (exportHash) */
 const EMP_PLACEHOLDER={id:-1,name:"Your name",title:"Your title",dept:"",plat:"Zoom",platform:"zoom",st:"pend",placeholder:true,active:false,push:null};
 const emp=()=>EMPLOYEES.find(e=>String(e.id)===String(state.emp))||EMPLOYEES.find(e=>e.you)||EMPLOYEES[0]||EMP_PLACEHOLDER;   /* v86: ids may be uuids; an empty roster renders a placeholder person */
 const tpl=()=>TEMPLATES.find(t=>t.id===state.tpl)||TEMPLATES[0];
@@ -2540,7 +2556,7 @@ function circ(x,cx,cy,r){x.beginPath();x.arc(cx,cy,r,0,7);x.fill()}
 function circO(x,cx,cy,r){x.beginPath();x.arc(cx,cy,r,0,7);x.stroke()}
 function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
 
-function renderTiles(){renderTiles0();try{paintLightDots()}catch(e){}try{syncTurnHint()}catch(e){}}
+function renderTiles(){renderTiles0();try{paintLightDots()}catch(e){}try{syncTurnHint()}catch(e){}try{renderShare()}catch(e){}}   /* v93: the Share page box follows the selected look + the session */
 function renderTiles0(){const e=emp(),c=camp(),bbg=barBG(),light=isLightHex(bbg);
  const B=state.bar,S=BARSZ[B.size]||BARSZ.md;
  const parts=[];if(B.f.title)parts.push(e.title);if(B.f.dept)parts.push(e.dept);if(B.f.company)parts.push((state.brand?state.brand.name:"MeetingBrand").replace(/\n/g," "));
@@ -3104,6 +3120,27 @@ function renderAgentCard(){const card=$("#agentCard");if(!card)return;const A=st
  const sc=agentScripts();$("#scriptIntune").value=sc.intune;$("#scriptJamf").value=sc.jamf;
  const ags=(state.team&&state.team.agents)||[];$("#agentDevices").innerHTML=ags.length?`<div class="k" style="font-size:12px;color:var(--muted);margin-bottom:4px">Enrolled devices</div>`+ags.map(a=>{const e=EMPLOYEES.find(x=>String(x.id)===String(a.employee_id));return `<div class="agentDev" data-agent="${esc(a.id)}"><b>${esc(a.hostname||a.device_id||"device")}</b><span class="pillst plat">${esc(a.os||"")}</span><span>${esc(e?e.name:"unmatched — bind in a later build")}</span><span class="note" style="margin:0">v${esc(a.version||"?")} · ${a.revoked_at?"revoked":agentOffline(a)?"offline > 7 days":"seen "+(a.last_seen_at?ago(Date.parse(a.last_seen_at)):"never")}</span>${a.revoked_at||!admin?"":`<button class="btn-quiet" data-revoke-agent="${esc(a.id)}" style="padding:3px 8px;font-size:11px">Revoke</button>`}</div>`}).join(""):`<p class="note" style="margin:0">No device has enrolled yet — chips read “Waiting for the agent” until IT runs the script.</p>`;
  try{renderExtBlock()}catch(e){}}   /* v89 */
+/* ---- v93: the public Share page per background (meetingbrand.com/b/?s=<slug>). The UI over mb-cloud setPublic / shareUrl / shareEmbed:
+   signed-in only (OFFLINE, the demo and a no-profile session keep the button disabled with the tooltip 'Sign in to share'); the box follows
+   the selected look (sc._public / sc._slug, bound by loadSession or by a share in this session) on every renderTiles(). ---- */
+const shareCloud=()=>window.__MB_CLOUD||null;
+function shareOrgName(){const c=shareCloud(),o=c&&c.org;return String((o&&o.name)||(state.brand&&state.brand.name)||"").trim()}
+function renderShare(){const box=$("#shareBox");if(!box)return;const c=shareCloud(),sc=scene(),can=!!(c&&typeof c.canShare==="function"&&c.canShare()&&sc);
+ const btn=$("#shareBtn"),lbl=$("#shareLbl"),out=$("#shareOut"),note=$("#shareNote"),busy=!!(sc&&sc._shareBusy),pub=!!(can&&sc._public&&sc._slug);
+ btn.disabled=!can||busy;btn.title=can?(pub?"Re-render the preview this page shows":"Publish a public page for this background"):"Sign in to share";
+ lbl.textContent=busy?(sc._shareBusy==="off"?"Unsharing…":"Sharing…"):(pub?"Update page":"Share page");
+ note.textContent=pub?"Public · anyone with the link can view":"";
+ if(pub){const url=c.shareUrl(sc._slug),emb=c.shareEmbed(sc._slug,shareOrgName());if($("#shareUrl").value!==url)$("#shareUrl").value=url;if($("#shareEmbed").value!==emb)$("#shareEmbed").value=emb;out.hidden=false}
+ else{out.hidden=true}}
+async function shareSet(on){const c=shareCloud(),sc=scene();if(!c||typeof c.setPublic!=="function"||!sc||!(c.canShare&&c.canShare())){toast("Sign in to share");return null}
+ if(sc._shareBusy)return null;sc._shareBusy=on?"on":"off";renderShare();
+ try{const r=await c.setPublic(sc,!!on);sc._shareBusy=false;renderShare();
+  toast(on?"Share page is live — copy the link or the badge below.":"Page unshared — the link now says this background isn’t shared.");return r}
+ catch(e){sc._shareBusy=false;renderShare();const m=String((e&&e.message)||e||"");toast((on?"Couldn’t publish the page":"Couldn’t unshare the page")+(m&&m!=="OFFLINE"?": "+m:""));return null}}
+$("#shareBtn").onclick=()=>{shareSet(true)};
+$("#unshareBtn").onclick=()=>{shareSet(false)};
+$("#shareCopy").onclick=e=>copyText($("#shareUrl").value,e.currentTarget);
+$("#shareEmbedCopy").onclick=e=>copyText($("#shareEmbed").value,e.currentTarget);
 function copyText(txt,btn){const done=()=>{if(btn){const was=btn.textContent;btn.textContent="Copied";setTimeout(()=>{btn.textContent=was},1600)}};
  try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,done);else{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand&&document.execCommand("copy")}catch(x){}document.body.removeChild(ta);done()}}catch(x){done()}}
 $("#prepBtn").onclick=()=>{prepareBackgrounds({}).catch(()=>null)};
@@ -3620,7 +3657,7 @@ dbAll().then(list=>{if(list&&list.length){list.forEach(s=>{s.custom=true;if(s.fg
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <script id="mb-cloud">
-/* MeetingBrand cloud layer (v92, 2026-09-24: content-addressed exports; v91: exportHash carries the sign renderer version; v89, 2026-09-23) — the ProSignature api() shim over Supabase, no UI (the UI is engine/mb-gate.js).
+/* MeetingBrand cloud layer (v93, 2026-09-27: the public Share page per background — setPublic, shareUrl, shareEmbed, persistPreviewNow; v92: content-addressed exports; v91: exportHash carries the sign renderer version; v89, 2026-09-23) — the ProSignature api() shim over Supabase, no UI (the UI is engine/mb-gate.js).
    Source of truth: engine/mb-cloud.js; build-vNN.py inlines it as the script block id="mb-cloud" right before the end
    of body, after the pinned supabase-js script tag. Contract (ps-auth map §1-2, §11):
    - window.__MB = engine/mb-config.json (empty url/key = OFFLINE demo mode; a pre-existing window.__MB overrides).
@@ -4317,6 +4354,7 @@ async function loadSession(){
     if(!r||!r.look)return;_bgIds[r.look]=r.id;
     var sc=scenes.filter(function(s){return s.id===r.look})[0];if(!sc)return;
     sc._cloudId=r.id;
+    sc._slug=r.slug?String(r.slug):null;sc._public=r.is_public===true;sc._previewId=r.preview_asset_id||null;   /* v93: the Share page state of this look (the row's slug is the public URL) */
     var star=!!(r.state&&typeof r.state==='object'&&r.state.starter===true);   /* v82: written by bgPayload since v82 */
     if(star)flagged.push(sc);else if(r.preview_asset_id)legacy.push({sc:sc,at:Date.parse(r.created_at||'')||0,id:String(r.id||'')});
     if(r.export_asset_id&&r.thumb_asset_id){sc._exportIds={background_id:r.id,export:r.export_asset_id,thumb:r.thumb_asset_id,export_jpg:r.export_jpg_asset_id||null}}   /* v88: what the agent can already fetch */
@@ -4379,7 +4417,13 @@ function jpegBytes(url,w,h){
 function previewWarn(){if(_previewWarned)return;_previewWarned=true;toast('⚠ Couldn’t save the previews to your account — your backgrounds still work from this browser.')}
 function persistPreview(sc,url){
  if(!_signed||_loading||_noProfile||!online()||!sc||!sc.id||typeof url!=='string'||!/^data:image\//.test(url))return false;
- var p=(async function(){
+ var p=persistPreviewNow(sc,url);
+ p.catch(function(e){if(e!=='OFFLINE'&&e!=='NOPROFILE')previewWarn();try{if(window.console)console.warn('[mb-cloud] preview upload skipped:',String(e&&e.message||e))}catch(x){}});
+ return true;
+}
+/* v93: the v81 upload as a promise — the Share page awaits it so the public page never shows a missing or stale preview (the object is
+   re-uploaded in place; the page busts the CDN with ?v=<updated_at>) */
+async function persistPreviewNow(sc,url){
   var sb=sbc(),m=await me();
   var row=bgPayload(sc);                                   /* fixes sc._cloudId */
   var pr=await api('/api/background','PUT',row);          /* the backgrounds row must exist before preview_asset_id can point at it */
@@ -4400,11 +4444,44 @@ function persistPreview(sc,url){
   if(!aid)throw 'no asset id';
   var bu=await sb.from('backgrounds').update({preview_asset_id:aid}).eq('id',bgId);
   if(bu.error)throw bu.error.message;
-  _previews[sc.id]={asset_id:aid,path:path,bytes:bytes.length,background_id:bgId,at:Date.now()};
+  _previews[sc.id]={asset_id:aid,path:path,bytes:bytes.length,background_id:bgId,at:Date.now()};sc._previewId=aid;
   return _previews[sc.id];
+}
+/* ---------- v93: the public Share page per background — https://meetingbrand.com/b/?s=<slug> (meetingbrand-site gen-site.py /b/, anonymous
+   RPC mb.public_background(p_slug): slug, label, look, org_name, preview_path, updated_at where is_public). The row's slug (random 12 hex,
+   unique, a DB default) IS the public URL; is_public is the only switch. Sharing renders the CURRENT look and re-uploads the 640x360 preview
+   first (persistPreviewNow), so the page never shows a stale or missing image, then flips is_public and reads the slug back. Signed-in only
+   (OFFLINE / demo / no-profile throw 'OFFLINE'); one share per look at a time. ---------- */
+var SHARE_BASE='https://meetingbrand.com/b/?s=',BADGE_SRC='https://meetingbrand.com/assets/badge-official-background.svg',_shareBusy={},_shares=0;
+function escA(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function shareUrl(slug){return slug?SHARE_BASE+encodeURIComponent(String(slug)):''}
+function shareEmbed(slug,orgName){if(!slug)return '';var org=String(orgName==null?'':orgName).trim();
+ return '<a href="'+shareUrl(slug)+'" rel="noopener"><img src="'+BADGE_SRC+'" alt="'+escA((org?org+' ':'')+'official meeting background — by MeetingBrand')+'" width="220" height="52" style="border:0"></a>'}
+function canShare(){return !!(_signed&&!_loading&&!_noProfile&&online())}
+function setPublic(sc,on){
+ if(!canShare())return Promise.reject('OFFLINE');
+ if(!sc||!sc.id)return Promise.reject('no look selected');
+ if(_shareBusy[sc.id])return _shareBusy[sc.id];
+ var p=(async function(){
+  var sb=sbc(),a=APP();
+  var row=bgPayload(sc),pr=await api('/api/background','PUT',row),bgId=(pr&&pr.id)||row.id;   /* the row exists (and carries the current adj) before it is public */
+  sc._cloudId=bgId;_bgIds[sc.id]=bgId;
+  if(on){
+   var url=null;try{if(a&&a.renderLook)url=await a.renderLook(sc.id,{bar:false})}catch(e){url=null}   /* the preview the page shows = this look, name bar off */
+   if(typeof url==='string'&&/^data:image\//.test(url))await persistPreviewNow(sc,url);
+   else if(!(sc._previewId||(_previews[sc.id]&&_previews[sc.id].asset_id)))throw 'no preview could be rendered';
+  }
+  var q=await sb.from('backgrounds').update({is_public:!!on}).eq('id',bgId).select('id,slug,is_public');
+  if(q.error)throw q.error.message;
+  var pick=function(d){d=Array.isArray(d)?d:(d?[d]:[]);return d.filter(function(x){return x&&x.id===bgId})[0]||d[0]||null},r=pick(q.data);
+  if(!r||!r.slug){var rd=await sb.from('backgrounds').select('id,slug,is_public').eq('id',bgId).limit(1);if(rd.error)throw rd.error.message;r=pick(rd.data)}
+  if(!r||!r.slug)throw 'no slug on the row';
+  sc._slug=String(r.slug);sc._public=!!on;_shares++;
+  track(on?'background_shared':'background_unshared',{look:sc.id});   /* two names: MBTrack de-dupes per event name for 4 s */
+  return {background_id:bgId,slug:sc._slug,is_public:sc._public,url:shareUrl(sc._slug),embed:shareEmbed(sc._slug,_org&&_org.name)};
  })();
- p.catch(function(e){if(e!=='OFFLINE'&&e!=='NOPROFILE')previewWarn();try{if(window.console)console.warn('[mb-cloud] preview upload skipped:',String(e&&e.message||e))}catch(x){}});
- return true;
+ _shareBusy[sc.id]=p;
+ return p.then(function(v){delete _shareBusy[sc.id];return v},function(e){delete _shareBusy[sc.id];throw e});
 }
 var a0=APP();
 if(a0&&a0.on){a0.on('brand',function(b){persistBrand(b)});a0.on('adj',function(sc){persistBackground(sc)});a0.on('viewer',function(v){persistProfile(v)})}
@@ -4414,7 +4491,9 @@ window.__MB_CLOUD={
  get session(){return _me},get org(){return _org},get signed(){return _signed},get noProfile(){return _noProfile},get restoredStarters(){return _restored},
  api:api,sbc:sbc,me:me,realAuth:realAuth,doLogin:doLogin,doLogout:doLogout,signInWithGoogle:signInWithGoogle,loadSession:loadSession,
  persistBrand:persistBrand,persistBackground:persistBackground,persistProfile:persistProfile,brandPayload:brandPayload,brandFromRow:brandFromRow,
- persistPreview:persistPreview,get previews(){return Object.assign({},_previews)},get previewWarned(){return _previewWarned},clearLocal:clearLocal,profileHeaders:profileHeaders,PREVIEW:{w:PREVIEW_W,h:PREVIEW_H,bucket:PREVIEW_BUCKET},
+ persistPreview:persistPreview,persistPreviewNow:persistPreviewNow,get previews(){return Object.assign({},_previews)},
+ /* v93: the Share page */
+ setPublic:setPublic,shareUrl:shareUrl,shareEmbed:shareEmbed,canShare:canShare,get shares(){return _shares},SHARE:{base:SHARE_BASE,badge:BADGE_SRC},get previewWarned(){return _previewWarned},clearLocal:clearLocal,profileHeaders:profileHeaders,PREVIEW:{w:PREVIEW_W,h:PREVIEW_H,bucket:PREVIEW_BUCKET},
  isInfraErr:isInfraErr,DB_DOWN_MSG:DB_DOWN_MSG,config:CFG,
  /* v86: My team */
  teamRead:teamRead,teamReturn:teamReturn,teamInvalidate:teamInvalidate,get teamCache(){return _team.data},get lastReturn(){return _lastReturn},navigate:defaultNavigate,
@@ -4423,7 +4502,7 @@ window.__MB_CLOUD={
  agentBuilds:agentBuilds,agentBuildsUrl:agentBuildsUrl,AGENT:{bucket:AGENT_BUCKET,files:AGENT_FILES.slice(),keyRe:KEY_RE,ttlMs:BUILDS_TTL_MS},
  /* v89: the Meet extension manifest */
  extBuilds:extBuilds,extBuildsUrl:extBuildsUrl,EXT:{ttlMs:EXT_TTL_MS},
- track:MBTrack,sid:sid,get lastEvents(){return _events.slice()},get exportsDropped(){return _exportsDropped},trackReset:function(){_sent={};_events.length=0},version:'v92'
+ track:MBTrack,sid:sid,get lastEvents(){return _events.slice()},get exportsDropped(){return _exportsDropped},trackReset:function(){_sent={};_events.length=0},version:'v93'
 };
 (async function(){try{await loadSession()}catch(e){if(e!=='OFFLINE'&&e!=='NOSESSION'&&window.console)console.warn('[mb-cloud] session restore skipped:',String(e&&e.message||e))}})();
 })();

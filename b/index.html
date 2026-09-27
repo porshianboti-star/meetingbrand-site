@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shared meeting background — MeetingBrand</title>
+<meta name="description" content="A company's official meeting background, shared from its MeetingBrand workspace: the approved virtual background its employees use on Zoom, Microsoft Teams, Google Meet and Zoho Meeting.">
+<link rel="canonical" href="https://meetingbrand.com/b/">
+<meta property="og:type" content="website"><meta property="og:site_name" content="MeetingBrand"><meta property="og:title" content="Shared meeting background — MeetingBrand"><meta property="og:description" content="A company's official meeting background, shared from its MeetingBrand workspace: the approved virtual background its employees use on Zoom, Microsoft Teams, Google Meet and Zoho Meeting."><meta property="og:url" content="https://meetingbrand.com/b/"><meta property="og:image" content="https://meetingbrand.com/assets/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon-48.png" type="image/png" sizes="48x48"><link rel="icon" href="../favicon.ico" sizes="any"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../assets/apple-touch-icon-180.png">
+<meta name="theme-color" content="#031436">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<script id="mb-config">window.__MB={"supabaseUrl":"https://ohobtgbyrlczfdztzvqi.supabase.co","supabaseAnonKey":"sb_publishable_H3hDKJRE0oOH7dkg7496Rw_trmUMPW9","googleClientId":"","ga4Id":"","supabaseJs":"2.116.0","product":"meetingbrand","schema":"mb"};</script><meta name="robots" content="index,follow"><style>
+.shfig{margin:28px 0 8px;border-radius:16px;overflow:hidden;border:1px solid var(--mist);background:var(--cloud);box-shadow:0 10px 30px rgba(3,20,54,.08)}.shfig img{width:100%;height:auto;display:block;aspect-ratio:16/9;object-fit:cover}
+.shcap{font-size:14px;color:var(--slate);margin:0 0 20px}.shcap b{color:var(--ink);font-weight:600}
+.shnote{background:var(--cloud);border-radius:16px;padding:16px 20px;margin:24px 0;font-size:15.5px;color:#2B3A55}.shnote strong{color:var(--ink)}
+.shrow{display:flex;gap:10px;align-items:flex-start;margin:8px 0 24px}.shrow input,.shrow textarea{flex:1;min-width:0;font:inherit;font-size:14px;padding:11px 12px;border:1px solid var(--mist);border-radius:12px;color:var(--ink);background:#fff}.shrow textarea{resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.5}
+.shrow .btn{white-space:nowrap}.shbadge{margin:4px 0 8px;line-height:0}#shShare h2{font-size:22px;margin-top:36px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap nav"><a class="logo" href="../" aria-label="MeetingBrand home"><img src="../assets/logo.png" alt="MeetingBrand" width="170" height="33"></a><nav aria-label="Main"><a href="../#how">How it works</a><a href="../#platforms">Platforms</a><a href="../docs/">Docs</a><a href="../support/">Support</a><a href="../app/#login">Log in</a><a class="btn" href="../app/">Create MeetingBrand</a></nav></div></header>
+<main id="main">
+<section class="band"><div class="wrap narrow" id="shareRoot" data-state="loading">
+<p class="eyebrow">Shared meeting background</p>
+<h1 id="shH1">Loading this background…</h1>
+<p class="lead" id="shLead"></p>
+<figure class="shfig" id="shFig" hidden><img id="shImg" alt="" width="640" height="360" loading="eager" decoding="async"></figure>
+<p class="shcap" id="shCap" hidden></p>
+<div class="shnote" id="shDl" hidden><strong>Download the 1920×1080 file</strong> — the full-resolution background is delivered to <span class="shOrg"></span> employees inside their MeetingBrand workspace (Zoom, Microsoft Teams, Google Meet or Zoho Meeting), not from this page. This page shows a preview only; ask your MeetingBrand admin for the file.</div>
+<div class="cta"><a class="btn big" href="../app/">Create branded backgrounds for your team →</a><a class="btn ghost big" href="../">What is MeetingBrand?</a></div>
+<div id="shShare" hidden>
+<h2>Link to this page</h2>
+<div class="shrow"><input type="text" id="shUrl" readonly aria-label="Link to this page"><button class="btn ghost" type="button" id="shUrlCopy">Copy</button></div>
+<h2>Embed the badge on your website</h2>
+<p class="muted small">Shows “<span class="shOrg"></span> — official meeting background” and links to this page.</p>
+<div class="shbadge"><img src="../assets/badge-official-background.svg" alt="Official meeting background — MeetingBrand badge" width="220" height="52"></div>
+<div class="shrow"><textarea id="shEmbed" readonly rows="3" spellcheck="false" aria-label="Embed badge HTML"></textarea><button class="btn ghost" type="button" id="shEmbedCopy">Copy</button></div>
+</div>
+</div></section>
+<script>
+(function(){
+ var C=window.__MB||{},U=String(C.supabaseUrl||''),K=String(C.supabaseAnonKey||''),SCH=String(C.schema||'mb'),SITE='https://meetingbrand.com',BADGE=SITE+'/assets/badge-official-background.svg';
+ var root=document.getElementById('shareRoot');function $(id){return document.getElementById(id)}function txt(id,s){var e=$(id);if(e)e.textContent=s}
+ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+ function fallback(){root.setAttribute('data-state','missing');document.title='This background isn’t shared — MeetingBrand';txt('shH1','This background isn’t shared');txt('shLead','The link may be old, or the organization turned sharing off. MeetingBrand creates branded meeting backgrounds from a company website in minutes and deploys them to every employee on Zoom, Microsoft Teams, Google Meet and Zoho Meeting.');$('shFig').hidden=true;$('shCap').hidden=true;$('shDl').hidden=true;$('shShare').hidden=true}
+ function render(r){var org=String(r.org_name||'').trim()||'This organization',slug=String(r.slug),url=SITE+'/b/?s='+encodeURIComponent(slug);
+  root.setAttribute('data-state','ok');document.title=org+' — official meeting background · MeetingBrand';
+  txt('shH1',org+' — official meeting background');txt('shLead','The approved virtual background '+org+' uses in video meetings — made with MeetingBrand from the company’s own logo and colors.');
+  Array.prototype.forEach.call(document.querySelectorAll('.shOrg'),function(e){e.textContent=org});
+  if(r.preview_path){var im=$('shImg');im.onerror=function(){$('shFig').hidden=true};im.alt=org+' — official meeting background (preview)';im.src=U+'/storage/v1/object/public/mb-previews/'+String(r.preview_path).split('/').map(encodeURIComponent).join('/')+'?v='+(Date.parse(r.updated_at||'')||0);$('shFig').hidden=false}
+  var d=r.updated_at?new Date(r.updated_at):null,ds=(d&&!isNaN(d))?d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}):'';
+  var cap=$('shCap');cap.textContent='';if(r.label){var b=document.createElement('b');b.textContent=String(r.label);cap.appendChild(b)}if(r.look&&String(r.look)!==String(r.label||'')){cap.appendChild(document.createTextNode((r.label?' · ':'')+'look: '+String(r.look)))}if(ds){cap.appendChild(document.createTextNode((cap.textContent?' · ':'')+'Updated '+ds))}cap.hidden=!cap.textContent;
+  $('shDl').hidden=false;$('shShare').hidden=false;$('shUrl').value=url;
+  $('shEmbed').value='<a href="'+url+'" rel="noopener"><img src="'+BADGE+'" alt="'+esc(org+' official meeting background — by MeetingBrand')+'" width="220" height="52" style="border:0"></a>';
+ }
+ function copy(id,btn){var el=$(id),v=el.value,was=btn.textContent,done=function(){btn.textContent='Copied';setTimeout(function(){btn.textContent=was},1600)};try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(done,function(){el.select();done()});else{el.select();document.execCommand&&document.execCommand('copy');done()}}catch(e){el.select()}}
+ $('shUrlCopy').onclick=function(){copy('shUrl',this)};$('shEmbedCopy').onclick=function(){copy('shEmbed',this)};
+ var s='';try{s=new URLSearchParams(location.search).get('s')||''}catch(e){s=''}
+ if(!U||!K||!/^[a-z0-9_-]{6,64}$/.test(s)){fallback();return}
+ fetch(U+'/rest/v1/rpc/public_background',{method:'POST',headers:{'apikey':K,'Authorization':'Bearer '+K,'Content-Type':'application/json','Content-Profile':SCH,'Accept-Profile':SCH},body:JSON.stringify({p_slug:s})})
+  .then(function(r){return r.ok?r.json():null}).then(function(j){var r=Array.isArray(j)?j[0]:j;if(!r||!r.slug){fallback();return}render(r)}).catch(fallback);
+})();
+</script>
+</main>
+<footer class="foot"><div class="wrap"><div class="fgrid"><div><a class="logo" href="../" aria-label="MeetingBrand home"><img src="../assets/logo-reversed.png" alt="MeetingBrand" width="170" height="35"></a><p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="../#how">How it works</a><a href="../#platforms">Platforms</a><a href="../app/">Create MeetingBrand</a><a href="../docs/">Documentation</a></div><div><h4>Company</h4><a href="../support/">Support</a><a href="../privacy/">Privacy policy</a><a href="../terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:support@meetingbrand.com">support@meetingbrand.com</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC; Zoho Meeting of Zoho Corporation. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
+</body>
+</html>
