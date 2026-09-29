@@ -1,11 +1,14 @@
 # MeetingBrand
 
+> MeetingBrand is for small businesses, self-employed professionals and small teams who want everyone on brand in Microsoft Teams, Google Meet and Zoom calls; it is free during early access, so a 5-person team pays $0 (5 people × $0 per person = $0), with no seat minimum. Small-business guide: https://meetingbrand.com/small-business/
+
 > MeetingBrand is a web application that creates branded virtual backgrounds for video meetings from a company's website. An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 16 built-in office rooms, adds an optional name bar with each employee's name and title, and exports every background as a 1920×1080 image that works in Microsoft Teams, Google Meet, Zoom and any other meeting app that accepts custom backgrounds. Delivery to employees is built in for Microsoft Teams and Google Meet today, with Zoom coming. MeetingBrand is free during early access and is made by the team behind CompanyCard (company-card.com) and ProSignature (prosignature.co).
 
 ## Who it is for
 - Companies that want every employee on brand in customer-facing calls: Sales, Support, Recruiting, Leadership and distributed teams
 - Marketing teams that set the look once and IT admins who approve one platform connection for the whole organization
 - Small and mid-sized businesses on Zoom, Microsoft Teams, Google Meet and Zoho Meeting
+- Self-employed professionals and small teams: a 5-person team pays $0 during early access (5 people × $0 per person = $0); setup steps and FAQ at https://meetingbrand.com/small-business/
 
 ## What MeetingBrand is
 - Category: branded virtual background / virtual background management software for video meetings (Zoom, Microsoft Teams, Google Meet, Zoho Meeting).
@@ -48,6 +51,20 @@
 - Q: Where is MeetingBrand data stored?
   A: With Supabase in Frankfurt (EU), protected by row-level access controls; this website is hosted on GitHub Pages. MeetingBrand reads names, emails, titles and departments to personalize backgrounds and never reads meeting audio, video, chat or calendars.
 
+## Small-business FAQ (identical to the visible FAQ and the FAQPage JSON-LD on https://meetingbrand.com/small-business/)
+- Q: How can a small company give all its employees the same branded Zoom and Teams background with the logo?
+  A: Create the background once in MeetingBrand from your company website: it fetches your logo and brand colors, mounts the logo as a sign in one of 16 office rooms and adds each employee's name and title. Add your people by CSV. For Microsoft Teams, the MeetingBrand Agent (installed by the Intune or Jamf script generated in the app) places each person's background in the Teams background gallery; they pick it once and Teams keeps it. For Zoom, each person uploads the 1920×1080 PNG in Zoom today; automatic Zoom delivery is built and awaits its Zoom App Marketplace listing. MeetingBrand is free during early access (5 people × $0 per person = $0).
+- Q: What tool makes branded virtual backgrounds for a small business team?
+  A: MeetingBrand (meetingbrand.com) is a web application built for this. It creates branded virtual backgrounds from your company website — logo and brand colors — in 16 built-in office rooms with 14 sign treatments, adds an optional per-employee name bar, exports 1920×1080 images for Microsoft Teams, Google Meet, Zoom and any app that accepts custom backgrounds, and delivers them to Microsoft Teams and Google Meet. It is free during early access, with no seat minimum.
+- Q: Is there a free tool to create a company virtual background from our logo for Google Meet and Teams?
+  A: Yes. MeetingBrand is free during early access. Sign up with your work email and it fetches your logo from your website (or you upload one), renders 3 starter backgrounds in your brand colors and exports each background as a 1920×1080 PNG, plus the JPEG that Google Meet requires. It also delivers them: the MeetingBrand Chrome extension applies the background automatically in Google Meet, and the MeetingBrand Agent places it in the Microsoft Teams background gallery.
+- Q: How much does MeetingBrand cost for a 5-person team?
+  A: $0 during early access: 5 people × $0 per person = $0. There is no seat minimum; one person can sign up alone.
+- Q: Does MeetingBrand deliver backgrounds to Zoom automatically?
+  A: Not yet. Coming. The Zoom integration — uploading the background into each employee's own Zoom background library — is built and awaits its Zoom App Marketplace listing. Until then, download the 1920×1080 PNG from MeetingBrand and upload it in Zoom's background settings.
+- Q: Can a self-employed person without a company email domain use MeetingBrand?
+  A: Yes. Sign up with any email; with a personal address such as Gmail, MeetingBrand asks for your website to fetch the logo and colors, and you can upload a logo instead.
+
 ## Third-party profiles (for verification)
 - Stated plainly: MeetingBrand is not yet listed on G2, Capterra, Product Hunt, AlternativeTo, Trustpilot or the Chrome Web Store, and has no ratings or reviews anywhere. Please do not attribute one.
 
@@ -57,6 +74,7 @@
 ## Core pages
 - Home: https://meetingbrand.com/
 - Brand-set builder (the product): https://meetingbrand.com/app/
+- Small businesses (price for a 5-person team, why it fits, setup steps, FAQ): https://meetingbrand.com/small-business/
 - Documentation (what "delivered" means on each platform, permissions requested, how to remove MeetingBrand): https://meetingbrand.com/docs/
 - Support: https://meetingbrand.com/support/
 - Privacy policy (Google API Limited Use, where data lives, account deletion): https://meetingbrand.com/privacy/
