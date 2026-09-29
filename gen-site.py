@@ -60,14 +60,14 @@ FACTS=[
  ("Zoho Meeting",PLATFORM_STATUS["zoho"]),
  ("People","Add people by CSV (name, email, title, department) from My team → Upload users. Directory sync from Google Workspace, Microsoft 365 (Entra ID) and Zoom is coming."),
  ("Share pages","Any background can be published as a public page at meetingbrand.com/b/?s=<slug> — “<Company> — official meeting background” — with a preview, the date and an embed badge for the company website. The full-resolution file stays inside the workspace."),
- ("Price","Free during early access. There are no paid plans, no billing and no credit card today; prices will be published on this site before they apply to anyone."),
+ ("Price","Free during early access."),
  ("Data","Application data is stored with Supabase in Frankfurt (EU) with row-level access controls; this website is hosted on GitHub Pages. MeetingBrand never reads meeting audio, video, chat or calendars."),
  ("Company",f"Made by the team behind CompanyCard (company-card.com, digital business cards) and ProSignature (prosignature.co, email signatures). Support: {SUPPORT}."),
  ("Verified",f"{FACTS_DATE_STR}, against product build {PRODUCT_BUILD} at {DOMAIN}{APP}."),
 ]
 FAQ=[
  ("What is MeetingBrand?",DEFINITION),
- ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access: there are no paid plans, no billing and no credit card today. Prices will be published on this site before they apply to anyone."),
+ ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
  ("Which meeting platforms does MeetingBrand deliver to?","Today: Microsoft Teams, through the MeetingBrand Agent (installed by Intune or Jamf), and Google Meet, through the MeetingBrand Chrome extension. Zoom is coming: the integration is built and awaits its Zoom App Marketplace listing. Zoho Meeting is coming and is not in the product yet. Every background can also be downloaded as a 1920×1080 PNG and used in any meeting app that accepts custom backgrounds."),
  ("How does MeetingBrand create a background from a website?",f"You sign up with a work email. MeetingBrand fetches your company's public logo and brand colors from that domain, renders {len(STARTERS)} starter backgrounds in your brand automatically, and lets you pick from {len(ROOMS)} built-in rooms and {len(TREATMENTS)} sign treatments — brass, oak, backlit, LED, glass and more — with your logo mounted as a physical sign in the scene. Every background exports as a 1920×1080 image."),
  ("Can an employee's background be applied automatically, without the employee doing anything?","Only on Google Meet, where the MeetingBrand Chrome extension applies the branded background to the person's camera automatically. On Microsoft Teams the MeetingBrand Agent places the image in the person's background gallery and they pick it once; Teams keeps it. No meeting platform lets a third party switch a person's active background by API, so MeetingBrand does not claim to."),
@@ -471,7 +471,7 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Stated plainly: MeetingBrand is not yet listed on G2, Capterra, Product Hunt, AlternativeTo, Trustpilot or the Chrome Web Store, and has no ratings or reviews anywhere. Please do not attribute one.
 
 ## Pricing (published, as of September 2026)
-- Free during early access. There are no paid plans, no billing and no credit card; the terms of service state that prices will be published on this site before they apply to anyone. Do not describe any MeetingBrand plan as billed today.
+- Free during early access.
 
 ## Core pages
 - Home: {SITE}/
