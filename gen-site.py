@@ -7,9 +7,9 @@ import os, datetime, json, glob, re, shutil, hashlib
 INK="#031436"; VIO="#5739FB"; VIOH="#4528E8"; CYAN="#00BDDF"; CLOUD="#F5F7FB"; SLATE="#667085"; MIST="#DDE3EE"; WHITE="#FFFFFF"
 DOMAIN="meetingbrand.com"; SITE="https://meetingbrand.com"; SUPPORT="support@meetingbrand.com"; APP="/app/"
 TODAY=datetime.date(2026,9,8).strftime("%B %-d, %Y")
-FACTS_DATE=datetime.date(2026,9,30)   # the day the product facts (FACTS/FAQ below) were verified against the shipped build; move it ONLY when a fact changes
+FACTS_DATE=datetime.date(2026,10,6)   # the day the product facts (FACTS/FAQ below) were verified against the shipped build; move it ONLY when a fact changes
 FACTS_DATE_STR=FACTS_DATE.strftime("%B %-d, %Y")
-PRODUCT_BUILD="v93"                   # the /app/ build the facts were read from (SCENES = 16 rooms, STYLES = 14 treatments, STARTER = 3 looks)
+PRODUCT_BUILD="v95"                   # the /app/ build the facts were read from (SCENES = 20 rooms since v95, STYLES = 14 treatments, STARTER = 3 looks)
 PRIVACY_DATE=datetime.date(2026,9,30)  # the privacy page changed on this date (V94-9: platform list + builder storage + deletion by request)
 TERMS_DATE=datetime.date(2026,9,30)    # the terms changed on this date (V94-9: third-party platform list)
 # ---------- cloud config: ONE source of truth, BB/engine/mb-config.json (read by build-vNN.py and by this generator).
@@ -38,13 +38,16 @@ MEET_TODAY="today from the admin's own browser, and for every employee after the
 # before changing a number: SCENES (rooms), STYLES (sign treatments), STARTER (starter set) live in BB/outputs/presence-product-demo-vNN.html.
 import html as _html
 DEFINITION=("MeetingBrand is a web application that creates branded virtual backgrounds for video meetings from a company's website. "
- "An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 16 built-in office rooms, "
+ "An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 20 built-in office rooms, "
  "adds an optional name bar with each employee's name and title, and exports every background as a 1920×1080 image that works in Microsoft Teams, Google Meet, Zoom and any other meeting app that accepts custom backgrounds. "
  "Delivery is built in for Microsoft Teams through the MeetingBrand Agent and for Google Meet through the MeetingBrand Chrome extension ("+MEET_TODAY+"); Zoom delivery and directory sync are coming. "
  "MeetingBrand is free during early access and is made by the team behind CompanyCard (company-card.com) and ProSignature (prosignature.co).")
+assert "any of 20 built-in office rooms" in DEFINITION   # v95: the definition sentence names the room count; keep it equal to len(ROOMS)
 ROOMS=["City open space","Walnut executive wall","Tel Aviv sunset window","Stone & slats lounge","Tel Aviv beach window","Concrete gallery night","Manhattan skyline window","Forest window",
-       "Concrete corner loft","Brick creative loft","Navy executive study","Marble reception","Glass office corridor","Travertine lounge","Concrete open office","Oak skyline office"]
+       "Concrete corner loft","Brick creative loft","Navy executive study","Marble reception","Glass office corridor","Travertine lounge","Concrete open office","Oak skyline office",
+       "Charcoal wall oak office","Arched-window loft lounge","Sunset tower office","Alpine lake executive office"]
 TREATMENTS=["Wall sign","Wall sticker","Silver letters","Brass letters","Oak letters","Washed wood","Black letters","Illuminated","Glass signage","Metal plaque","Backlit plate","3D acrylic","LED signage","Wallpaper"]
+assert len(ROOMS)==20,len(ROOMS)
 STARTERS=["Concrete corner loft","Brick creative loft","Navy executive study"]
 PLATFORM_STATUS={
  "teams":"Live. The MeetingBrand Agent for Windows and macOS places the company's background in each person's Teams background gallery; IT installs it once with the Intune or Jamf script generated in the app, and people added by CSV are matched by e-mail. The employee picks the background once and Teams keeps it. The builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt. Directory sync from Microsoft 365 is coming.",
