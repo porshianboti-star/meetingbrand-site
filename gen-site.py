@@ -7,9 +7,9 @@ import os, datetime, json, glob, re, shutil, hashlib
 INK="#031436"; VIO="#5739FB"; VIOH="#4528E8"; CYAN="#00BDDF"; CLOUD="#F5F7FB"; SLATE="#667085"; MIST="#DDE3EE"; WHITE="#FFFFFF"
 DOMAIN="meetingbrand.com"; SITE="https://meetingbrand.com"; SUPPORT="support@meetingbrand.com"; APP="/app/"
 TODAY=datetime.date(2026,9,8).strftime("%B %-d, %Y")
-FACTS_DATE=datetime.date(2026,10,6)   # the day the product facts (FACTS/FAQ below) were verified against the shipped build; move it ONLY when a fact changes
+FACTS_DATE=datetime.date(2026,10,10)   # the day the product facts (FACTS/FAQ below) were verified against the shipped build; move it ONLY when a fact changes
 FACTS_DATE_STR=FACTS_DATE.strftime("%B %-d, %Y")
-PRODUCT_BUILD="v95"                   # the /app/ build the facts were read from (SCENES = 20 rooms since v95, STYLES = 14 treatments, STARTER = 3 looks)
+PRODUCT_BUILD="v96"                   # the /app/ build the facts were read from (SCENES = 22 rooms since v96, STYLES = 14 treatments, STARTER = 3 looks)
 PRIVACY_DATE=datetime.date(2026,9,30)  # the privacy page changed on this date (V94-9: platform list + builder storage + deletion by request)
 TERMS_DATE=datetime.date(2026,9,30)    # the terms changed on this date (V94-9: third-party platform list)
 # ---------- cloud config: ONE source of truth, BB/engine/mb-config.json (read by build-vNN.py and by this generator).
@@ -38,16 +38,18 @@ MEET_TODAY="today from the admin's own browser, and for every employee after the
 # before changing a number: SCENES (rooms), STYLES (sign treatments), STARTER (starter set) live in BB/outputs/presence-product-demo-vNN.html.
 import html as _html
 DEFINITION=("MeetingBrand is a web application that creates branded virtual backgrounds for video meetings from a company's website. "
- "An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 20 built-in office rooms, "
+ "An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 22 built-in office rooms, "
  "adds an optional name bar with each employee's name and title, and exports every background as a 1920×1080 image that works in Microsoft Teams, Google Meet, Zoom and any other meeting app that accepts custom backgrounds. "
  "Delivery is built in for Microsoft Teams through the MeetingBrand Agent and for Google Meet through the MeetingBrand Chrome extension ("+MEET_TODAY+"); Zoom delivery and directory sync are coming. "
  "MeetingBrand is free during early access and is made by the team behind CompanyCard (company-card.com) and ProSignature (prosignature.co).")
-assert "any of 20 built-in office rooms" in DEFINITION   # v95: the definition sentence names the room count; keep it equal to len(ROOMS)
+assert "any of 22 built-in office rooms" in DEFINITION   # v95/v96: the definition sentence names the room count; keep it equal to len(ROOMS)
 ROOMS=["City open space","Walnut executive wall","Tel Aviv sunset window","Stone & slats lounge","Tel Aviv beach window","Concrete gallery night","Manhattan skyline window","Forest window",
        "Concrete corner loft","Brick creative loft","Navy executive study","Marble reception","Glass office corridor","Travertine lounge","Concrete open office","Oak skyline office",
-       "Charcoal wall oak office","Arched-window loft lounge","Sunset tower office","Alpine lake executive office"]
+       "Charcoal wall oak office","Arched-window loft lounge","Sunset tower office","Alpine lake executive office",
+       "Farmhouse meadow studio","Stone farmhouse study"]
 TREATMENTS=["Wall sign","Wall sticker","Silver letters","Brass letters","Oak letters","Washed wood","Black letters","Illuminated","Glass signage","Metal plaque","Backlit plate","3D acrylic","LED signage","Wallpaper"]
-assert len(ROOMS)==20,len(ROOMS)
+assert len(ROOMS)==22,len(ROOMS)
+assert f"any of {len(ROOMS)} built-in office rooms" in DEFINITION
 STARTERS=["Concrete corner loft","Brick creative loft","Navy executive study"]
 PLATFORM_STATUS={
  "teams":"Live. The MeetingBrand Agent for Windows and macOS places the company's background in each person's Teams background gallery; IT installs it once with the Intune or Jamf script generated in the app, and people added by CSV are matched by e-mail. The employee picks the background once and Teams keeps it. The builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt. Directory sync from Microsoft 365 is coming.",
@@ -158,6 +160,10 @@ home=f'''
     <figure><img src="/assets/virtual-background-corner-office-loft.jpg" alt="Company sign on a concrete wall in a corner office over the city — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Concrete corner loft</figcaption></figure>
     <figure><img src="/assets/virtual-background-sunset-window.jpg" alt="Company sign beside a sunset window over the Tel Aviv beach — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Tel Aviv sunset window</figcaption></figure>
     <figure><img src="/assets/virtual-background-marble-reception.jpg" alt="Company sign on a marble reception wall — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Marble reception</figcaption></figure>
+  </div>
+  <div class="scenes pair">
+    <figure><img src="/assets/virtual-background-farmhouse-meadow-studio.jpg" alt="Company sign on a white wall in a farmhouse studio with glass doors open onto green meadows — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Farmhouse meadow studio</figcaption></figure>
+    <figure><img src="/assets/virtual-background-stone-farmhouse-study.jpg" alt="Company sign on a white wall in a stone farmhouse study overlooking a wheat field — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Stone farmhouse study</figcaption></figure>
   </div>
 </div></section>
 
@@ -518,7 +524,7 @@ p{{margin:0 0 1em}}a{{color:var(--vio)}}a:hover{{color:var(--vio-h)}}
 .namebar{{position:absolute;left:20px;bottom:20px;background:#fff;color:var(--ink);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 24px rgba(3,20,54,.18);font-size:14px;line-height:1.25}}.namebar b{{font-weight:700;font-size:15px}}.namebar span{{color:var(--slate);font-size:12.5px}}
 .band{{padding:80px 0}}.band.alt{{background:var(--cloud)}}.band.dark{{background:var(--ink);color:#fff}}.band.dark h2,.band.dark .lead{{color:#fff}}.band.dark .muted{{color:#B7C0D0}}
 .three{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px}}.feature h2{{font-size:24px}}.feature p{{color:var(--slate);margin:0}}
-.scenes{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:48px}}.scenes figure{{margin:0}}.scenes img{{width:100%;height:auto;display:block;border-radius:16px;border:1px solid var(--mist)}}.scenes figcaption{{font-size:13px;color:var(--slate);margin-top:8px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}}
+.scenes{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:48px}}.scenes figure{{margin:0}}.scenes img{{width:100%;height:auto;display:block;border-radius:16px;border:1px solid var(--mist)}}.scenes figcaption{{font-size:13px;color:var(--slate);margin-top:8px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}}.scenes.pair{{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:20px}}
 .steps{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-top:32px}}.step{{background:#fff;border:1px solid var(--mist);border-radius:24px;padding:26px;box-shadow:0 10px 30px rgba(3,20,54,.06)}}.step .n{{display:inline-flex;width:34px;height:34px;border-radius:10px;background:var(--cyan);color:var(--ink);font-weight:800;align-items:center;justify-content:center;margin-bottom:14px}}.step h3{{font-size:19px}}.step p{{margin:0;font-size:15.5px;color:var(--slate)}}
 .cards{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:32px}}.card{{background:var(--cloud);border-radius:24px;padding:30px}}.card p{{margin:0;font-size:16px;color:var(--slate)}}.card h3{{color:var(--vio)}}
 .two{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}}.two p{{color:var(--slate)}}
@@ -528,7 +534,7 @@ p{{margin:0 0 1em}}a{{color:var(--vio)}}a:hover{{color:var(--vio-h)}}
 .faq h3{{font-size:20px;margin:28px 0 6px}}.faq p{{color:#2B3A55}}
 .status{{font-size:14.5px;color:#2B3A55;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--mist)}}.card .status{{color:#2B3A55;font-size:14.5px}}.status b{{color:var(--ink)}}
 @media(max-width:900px){{.facts,.facts caption,.facts tbody,.facts tr,.facts th,.facts td{{display:block;width:auto}}.facts th,.facts td{{padding:8px 0}}.facts th{{border-bottom:0;padding-bottom:0}}}}
-@media(max-width:900px){{.herogrid,.three,.scenes,.steps,.cards,.two,.fgrid{{grid-template-columns:1fr}}.nav nav a:not(.btn){{display:none}}.nav nav .btn{{white-space:nowrap;padding:9px 14px;font-size:14px}}.hero{{padding:56px 0 40px}}.band{{padding:56px 0}}.logo img{{width:140px}}}}
+@media(max-width:900px){{.herogrid,.three,.scenes,.scenes.pair,.steps,.cards,.two,.fgrid{{grid-template-columns:1fr}}.nav nav a:not(.btn){{display:none}}.nav nav .btn{{white-space:nowrap;padding:9px 14px;font-size:14px}}.hero{{padding:56px 0 40px}}.band{{padding:56px 0}}.logo img{{width:140px}}}}
 '''
 open("styles.css","w").write(css)
 # ---------- robots.txt: normal crawlers keep Allow: /; the AI-crawler block is the CompanyCard one (cc-work/robots.txt:9-46) verbatim.
@@ -585,7 +591,7 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Trade-offs, stated plainly: Microsoft Teams and Google Meet have no background API, so delivery there depends on IT tooling (the Agent), the Chrome extension ({MEET_TODAY}) or one click by the employee; Zoom delivery and directory sync are coming; the product is in early access.
 ''')
 urls=[("/",FACTS_DATE.isoformat()),("/docs/",FACTS_DATE.isoformat()),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/",TERMS_DATE.isoformat()),("/support/",FACTS_DATE.isoformat()),(SMB_PATH,SMB_MODIFIED.isoformat())]
-# Image sitemap (Google Images eligibility) — the four branded-background scenes
+# Image sitemap (Google Images eligibility) — the six branded-background scenes
 # shown on the home page are the site's only images and are exactly what should
 # rank for "branded/company/zoom/teams virtual background" image queries.
 PAGE_IMAGES={"/":[
@@ -593,6 +599,8 @@ PAGE_IMAGES={"/":[
     ("virtual-background-sunset-window.jpg","Branded virtual background — company sign beside a sunset window over the Tel Aviv beach","Tel Aviv sunset window — a branded video-call background"),
     ("virtual-background-marble-reception.jpg","Branded virtual background — company sign on a marble reception wall","Marble reception — a branded video-call background"),
     ("virtual-background-navy-study.jpg","Branded virtual background — company sign in a navy study for a professional video call","Navy study — a branded video-call background"),
+    ("virtual-background-farmhouse-meadow-studio.jpg","Branded virtual background — company sign on a white wall in a farmhouse studio overlooking meadows","Farmhouse meadow studio — a branded video-call background"),
+    ("virtual-background-stone-farmhouse-study.jpg","Branded virtual background — company sign on a white wall in a stone farmhouse study overlooking a wheat field","Stone farmhouse study — a branded video-call background"),
 ]}
 def _sm_imgs(u):
     return "".join(f"<image:image><image:loc>{SITE}/assets/{f}</image:loc><image:title>{t}</image:title><image:caption>{c}</image:caption></image:image>" for f,t,c in PAGE_IMAGES.get(u,[]))
