@@ -32,6 +32,11 @@ PLATFORMS="Microsoft Teams, Google Meet and Zoom"
 # 'Coming soon' chooser cards). Every hero/step/FAQ/llms.txt sentence about delivery is built from these strings.
 DELIVERY_TODAY="Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming"
 MEET_TODAY="today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing"
+# SEO batch 1 (2026-10-19, skill meetingbrand-seo §1 priority 1): one landing page per head term. Listed here because the sitewide footer
+# links all of them (a page linked only from topical pages stayed "unknown to Google" on the sister product).
+LANDING_LINKS=[("/teams-background-with-logo/","Teams background with logo"),("/zoom-background-with-logo/","Zoom background with logo"),
+               ("/google-meet-background-with-logo/","Google Meet background with logo"),("/virtual-background-generator/","Virtual background generator")]
+INDEXNOW_KEY="98dbdcee2efbd8cb930743fa951caddb"   # served at /<key>.txt; ~/ceo/tools/indexnow.py site "meetingbrand"
 
 # ---------- GEO (2026-09-27): ONE source for every product fact an answer engine may quote. Each fact is written once here and rendered
 # identically on the home page, /docs/, /support/, llms.txt and the FAQPage JSON-LD (json.dumps of the same strings). Read the shipped build
@@ -119,7 +124,7 @@ def layout(title, desc, body, path="/", extra_head=""):
 <main id="main">
 {body}
 </main>
-<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="{APP}">Create MeetingBrand</a><a href="/small-business/">For small businesses</a><a href="/docs/">Documentation</a></div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
+<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="{APP}">Create MeetingBrand</a><a href="/small-business/">For small businesses</a><a href="/docs/">Documentation</a></div><div><h4>Backgrounds</h4>{"".join(f'<a href="{u}">{n}</a>' for u,n in LANDING_LINKS)}</div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
 </body>
 </html>
 '''
@@ -414,6 +419,181 @@ smb=f'''
 {VERIFIED_LINE}
 <p class="muted small">Delivery details per platform, permissions and how to remove MeetingBrand: <a href="/docs/">documentation</a>. Questions: <a href="mailto:{SUPPORT}">{SUPPORT}</a>.</p>
 </div></section>'''
+# ---------- SEO batch 1 (2026-10-19): four landing pages, one per head term (skill meetingbrand-seo §1, priority 1). Every number and every
+# platform sentence is built from the constants above (ROOMS, TREATMENTS, STARTERS, PLATFORM_STATUS, FACTS, MEET_TODAY) — one voice. The visible
+# FAQ and the FAQPage JSON-LD are rendered from the same (q,a) tuples; _one_voice_guard() re-reads both from the HTML and compares them.
+# The CTA opens the real generator at /app/ (no generator page without a generator). Images are the six real product exports in /assets/
+# (demo brands ProSignature and MeetingBrand only); each caption must be a room name from ROOMS.
+LP_DATE=datetime.date(2026,10,19)
+R,T,S=len(ROOMS),len(TREATMENTS),len(STARTERS)
+F=dict(FACTS)
+IMG={"loft":("virtual-background-corner-office-loft.jpg","Concrete corner loft"),"sunset":("virtual-background-sunset-window.jpg","Tel Aviv sunset window"),
+     "marble":("virtual-background-marble-reception.jpg","Marble reception"),"navy":("virtual-background-navy-study.jpg","Navy executive study"),
+     "meadow":("virtual-background-farmhouse-meadow-studio.jpg","Farmhouse meadow studio"),"stone":("virtual-background-stone-farmhouse-study.jpg","Stone farmhouse study")}
+assert all(c in ROOMS for _,c in IMG.values())
+LP_DEF=("MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, "
+        f"mounts the logo as a physical sign in one of {R} realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for "
+        f"{DELIVERY_TODAY}. It is free during early access.")
+STEP_CREATE=("Create your brand",f"Open {DOMAIN}{APP} and sign up with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain and renders {S} starter backgrounds ({', '.join(STARTERS)}). With a personal email, type your website instead, or upload a logo.")
+STEP_PICK=("Pick the room and the sign",f"Choose from {R} office rooms and {T} sign treatments — brass, oak, backlit, LED, glass and more — and turn on the optional name bar with each person's name, title, department and company.")
+LANDING=[
+ dict(path="/teams-background-with-logo/",short="Teams",
+  title="Teams Background with Logo: Branded & Custom | MeetingBrand",
+  desc=f"Make a Microsoft Teams background with your company logo from your website: {R} office rooms, {T} sign treatments, 1920×1080 PNG. Free during early access.",
+  eyebrow="Microsoft Teams backgrounds",h1="Teams background with logo, made from your website",
+  answer=("To use a Teams background with your logo, add a 1920×1080 image that contains the logo in Microsoft Teams under Effects and avatars → Backgrounds → Add new, then select it. "
+          f"MeetingBrand makes that image from your company website — your logo mounted as a real sign in one of {R} office rooms — and, for a whole company, places it in each employee's Teams background gallery through the MeetingBrand Agent."),
+  hero="navy",gallery=["marble","loft"],
+  sections=[
+   ("What makes a good branded Teams background",[
+    "A branded Teams background works when the logo looks like it belongs in the room. A logo pasted over a flat color reads as wallpaper; a logo mounted on a wall — brass letters on walnut, a backlit plate on concrete — reads as an office. MeetingBrand renders the logo as a physical sign in the scene, in your brand colors, so the background looks credible on camera.",
+    "Keep the logo in the upper part of the frame, where your head and shoulders do not cover it, and use a 16:9 image: MeetingBrand exports every background at 1920×1080. Teams shows your own preview mirrored, so the logo can look reversed to you; the people in the meeting see it the right way round."]),
+   ("A custom Teams background for one person, or for the whole company",[
+    "One person can upload their own image in Teams under Backgrounds → Add new, unless their admin has turned custom images off. That is enough for a single user.",
+    "For a company, every employee needs the same approved image. Tenants with Teams Premium can upload organization backgrounds in the Teams admin center and require them. Without Teams Premium, the MeetingBrand Agent — installed once by IT with the Intune or Jamf script generated in the app — places the approved background in each person's Teams background gallery on Windows and Mac; each person picks it once and Teams keeps it."]),
+  ],
+  steps=[STEP_CREATE,STEP_PICK,
+   ("Download or deliver it","Download the 1920×1080 PNG, or add your people by CSV (name, email, title, department) and let IT install the MeetingBrand Agent with the Intune or Jamf script generated in My team."),
+   ("Select it in Teams","In Teams, open Effects and avatars → Backgrounds. With the Agent installed, the branded background is already in the gallery after Teams restarts; otherwise choose Add new and pick the PNG. Select it once and Teams keeps it.")],
+  platforms=["teams"],
+  facts=["Input","Rooms","Sign treatments","Name bar","Output","Microsoft Teams","Price"],
+  faq=[
+   ("How do I add a background with my company logo in Microsoft Teams?","Before or during a meeting, open Effects and avatars → Backgrounds, choose Add new and pick a 1920×1080 image that contains your logo, then select it. MeetingBrand creates that image from your company website; with the MeetingBrand Agent installed, the background is already in the Teams gallery and the person only selects it once."),
+   ("Can IT give the whole company the same branded Teams background?","Yes. Tenants with Teams Premium can upload organization backgrounds in the Teams admin center and require them. Any tenant can use the MeetingBrand Agent: IT installs it once with the Intune or Jamf script generated in MeetingBrand, it places the approved background in each person's Teams gallery, and each person picks it once. The Agent builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt."),
+   ("Do I need Teams Premium for a custom Teams background?","Not for your own background: anyone can upload an image in Teams under Backgrounds → Add new unless their admin has turned custom images off. Teams Premium adds admin-managed organization backgrounds. MeetingBrand's Agent delivers a company background without Teams Premium; the employee picks it once."),
+   ("What size should a Teams background with a logo be?","Use a 16:9 image. MeetingBrand exports every background as a 1920×1080 PNG and keeps the logo in the upper part of the frame, where your head does not cover it."),
+   ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
+  ]),
+ dict(path="/zoom-background-with-logo/",short="Zoom",
+  title="Zoom Background with Logo, Name & Title | MeetingBrand",
+  desc=f"Create a branded Zoom background with your logo, name and title from your company website: {R} office rooms, 1920×1080 PNG. Free during early access.",
+  eyebrow="Zoom backgrounds",h1="Zoom background with logo, name and title",
+  answer=("To use a Zoom background with your logo, upload a 1920×1080 image that contains the logo once under Zoom Settings → Video & effects → Virtual backgrounds; Zoom remembers it. "
+          f"MeetingBrand creates that branded Zoom background from your company website — your logo as a real sign in one of {R} office rooms, with an optional name bar — and exports it as a PNG for every employee."),
+  hero="loft",gallery=["sunset","stone"],
+  sections=[
+   ("Create a Zoom background with your logo — without a designer",[
+    f"MeetingBrand starts from your domain: sign up with your work email and it fetches your public logo and brand colors, then renders {S} starter backgrounds automatically. From there you choose among {R} office rooms and {T} sign treatments, so the logo appears as brass letters, an oak sign, a backlit plate or LED signage on the wall instead of floating over a flat color.",
+    "The optional name bar adds each employee's name, title, department and company to the downloaded background, which makes a corporate Zoom background double as an introduction in sales and recruiting calls."]),
+   ("A corporate Zoom background for the whole team",[
+    "Add your people by CSV (name, email, title, department) and MeetingBrand prepares a personal 1920×1080 PNG for each of them. Today each person downloads the file and sets it once in Zoom. Zoom account admins can additionally turn on \"Require users to always use virtual background\" so the branded image stays on.",
+    "Zoom shows your own video mirrored by default, so your logo can look reversed to you; the other participants see it the right way round."]),
+  ],
+  steps=[STEP_CREATE,STEP_PICK,
+   ("Download the 1920×1080 PNG","Download the background for yourself, or add your team by CSV and download each person's background with their own name bar."),
+   ("Set it once in Zoom","Open Zoom Settings → Video & effects → Virtual backgrounds, add the PNG and select it. Zoom remembers it for the next meetings.")],
+  platforms=["zoom"],
+  facts=["Input","Rooms","Sign treatments","Name bar","Output","Zoom","Price"],
+  faq=[
+   ("How do I create a Zoom background with my company logo?",f"Sign up at {DOMAIN}{APP} with your work email. MeetingBrand fetches your logo and brand colors from your website, mounts the logo as a sign in one of {R} office rooms and exports a 1920×1080 PNG. Add it once under Zoom Settings → Video & effects → Virtual backgrounds."),
+   ("Can I put my name and title on a Zoom background?","Yes. MeetingBrand's optional name bar adds each employee's name, title, department and company to the downloaded background."),
+   ("Does MeetingBrand put the background into Zoom automatically?",F["Zoom"]),
+   ("Why does the logo on my Zoom background look backwards?","Zoom mirrors your own video preview by default. The other participants see the logo the right way round; you can turn mirroring off in Zoom's video settings to check."),
+   ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
+  ]),
+ dict(path="/google-meet-background-with-logo/",short="Google Meet",
+  title="Google Meet Background with Logo | MeetingBrand",
+  desc=f"Make a Google Meet custom background with your company logo from your website, applied by the MeetingBrand Chrome extension. Free during early access.",
+  eyebrow="Google Meet backgrounds",h1="Google Meet background with logo",
+  answer=("To use a Google Meet background with your logo, open Meet's backgrounds panel (Apply visual effects), upload a 1920×1080 image that contains the logo and select it. "
+          "MeetingBrand creates that image from your company website, and the MeetingBrand Chrome extension applies the branded background to the camera in Google Meet automatically — "+MEET_TODAY+"."),
+  hero="meadow",gallery=["marble","navy"],
+  sections=[
+   ("A Google Meet custom background that looks like your office",[
+    f"Google Meet accepts a custom background image, unless a Google Workspace admin has turned custom backgrounds off. MeetingBrand builds that image from your website: your logo and brand colors, mounted as a physical sign in one of {R} realistic office rooms with {T} sign treatments, exported at 1920×1080.",
+    "Because the logo is part of the room — on a stone wall, a marble reception or a farmhouse studio — the background reads as a place, not as a slide behind you."]),
+   ("Applied by the MeetingBrand Chrome extension",[
+    "The MeetingBrand Chrome extension applies the branded background to the camera in Google Meet automatically. Today it is connected from the admin's own browser in My team, because enrollment uses the admin's key. Once its Chrome Web Store listing is published, an admin force-installs it for every managed Chrome from the Google Admin console, so it applies for every employee. Until then, anyone can upload the 1920×1080 PNG in Meet's backgrounds panel."]),
+  ],
+  steps=[STEP_CREATE,STEP_PICK,
+   ("Download or connect the extension","Download the 1920×1080 PNG, or connect the MeetingBrand Chrome extension from My team in your own browser."),
+   ("Use it in Google Meet","With the extension connected, the branded background is applied to the camera when you join. Without it, open Apply visual effects in Meet, upload the PNG and select it.")],
+  platforms=["meet"],
+  facts=["Input","Rooms","Sign treatments","Output","Google Meet","Price"],
+  faq=[
+   ("How do I add my company logo as a Google Meet background?","Create a 1920×1080 image that contains your logo — MeetingBrand makes one from your company website — then open Apply visual effects in Google Meet, upload the image and select it."),
+   ("Can a branded background apply in Google Meet automatically?","Yes, with the MeetingBrand Chrome extension, which applies the branded background to the camera in Google Meet automatically — "+MEET_TODAY+"."),
+   ("Is the MeetingBrand Chrome extension on the Chrome Web Store?","Not yet. Until the listing is published the extension is a developer package in the app, connected from the admin's own browser; after it, an admin force-installs it for managed Chrome from the Google Admin console."),
+   ("Can I upload a custom background in Google Meet without an extension?","Yes, unless your Google Workspace admin has turned custom backgrounds off: download the 1920×1080 PNG from MeetingBrand and upload it in Meet's backgrounds panel."),
+   ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
+  ]),
+ dict(path="/virtual-background-generator/",short="Generator",
+  title="Virtual Background Generator from Your Logo | MeetingBrand",
+  desc=f"Free virtual background generator during early access: type your work email, get your logo as a sign in {R} office rooms. 1920×1080 for Teams, Zoom, Meet.",
+  eyebrow="Virtual background generator",h1="Virtual background generator for your brand",
+  answer=(f"MeetingBrand is a virtual background generator that builds branded backgrounds from your company website: it fetches your logo and brand colors, mounts the logo as a sign in one of {R} realistic office rooms and exports 1920×1080 PNGs for Microsoft Teams, Zoom and Google Meet. "
+          f"The generator runs in your browser at {DOMAIN}{APP} and is free during early access."),
+  hero="marble",gallery=["loft","sunset","navy","meadow","stone"],
+  sections=[
+   ("What the generator makes",[
+    f"Every background is a real room with your logo mounted on the wall, rendered in your brand colors. You choose the room, the sign treatment and whether to add a name bar; the generator does the rest. When you sign up, {S} starter backgrounds are rendered in your brand automatically."]),
+   ("Teams background generator, Zoom background maker — one file",[
+    "The same 1920×1080 PNG works as a Teams background, a Zoom virtual background, a Google Meet background and in any other meeting app that accepts a custom image. Delivery goes further on two platforms: the MeetingBrand Agent places the background in each employee's Teams gallery, and the MeetingBrand Chrome extension applies it in Google Meet ("+MEET_TODAY+"). Zoom delivery is coming; in Zoom each person sets the PNG once."]),
+  ],
+  chips=True,
+  steps=[STEP_CREATE,STEP_PICK,
+   ("Add your people (optional)","My team → Upload users → upload a CSV with name, email, title and department to generate a personal background with a name bar for each employee."),
+   ("Download or deliver","Download each 1920×1080 PNG, or deliver to Microsoft Teams with the MeetingBrand Agent and to Google Meet with the Chrome extension.")],
+  platforms=["teams","meet","zoom"],
+  facts=["Input","Rooms","Sign treatments","Starter set","Name bar","Output","Price"],
+  faq=[
+   ("Is there a free virtual background generator that uses my company logo?",f"Yes. MeetingBrand is free during early access. Sign up with your work email and it fetches your logo and brand colors from your website (or you upload a logo), renders {S} starter backgrounds and lets you generate more in {R} office rooms."),
+   ("Do I need an account to use the generator?","Yes, a free account: sign up with a work email, or with any email plus your website. Your brand kit and the backgrounds you save are stored with your account so you can reuse and update them."),
+   ("Can I make a custom Zoom background for free?","Yes. MeetingBrand exports each background as a 1920×1080 PNG, free during early access; add it once under Zoom Settings → Video & effects → Virtual backgrounds."),
+   ("Does the generator work as a Teams background generator too?","Yes. The same PNG works in Microsoft Teams under Effects and avatars → Backgrounds → Add new, and the MeetingBrand Agent can place it in every employee's Teams gallery."),
+   ("Which rooms and sign styles can I generate?",f"{R} built-in office rooms ({', '.join(ROOMS)}) and {T} sign treatments ({', '.join(TREATMENTS)})."),
+  ]),
+]
+PLATFORM_NAME={"teams":"Microsoft Teams","meet":"Google Meet","zoom":"Zoom"}
+def _fig(key,cls=""):
+    f,c=IMG[key]
+    return f'<figure{cls}><img src="/assets/{f}" alt="{_html.escape(c)} — a branded virtual background with the company logo as a sign, made with MeetingBrand" width="1600" height="900" loading="lazy"><figcaption>{_t(c)} — made with MeetingBrand</figcaption></figure>'
+def lp_body(L):
+    sib=[(u,n) for u,n in LANDING_LINKS if u!=L["path"]]+[(SMB_PATH,"Branded backgrounds for small businesses")]
+    secs="".join(f'<h2>{_t(h)}</h2>'+"".join(f'<p>{_t(p)}</p>' for p in ps) for h,ps in L["sections"])
+    chips=(f'<h3>{R} rooms</h3><ul class="chips">{"".join(f"<li>{_t(r)}</li>" for r in ROOMS)}</ul><h3>{T} sign treatments</h3><ul class="chips">{"".join(f"<li>{_t(x)}</li>" for x in TREATMENTS)}</ul>') if L.get("chips") else ""
+    gal=L["gallery"]; rows=[gal] if len(gal) in (2,3) else [gal[:3],gal[3:]]   # 2 -> pair, 3 -> row of three, 5 -> three + pair
+    gal_html="".join(f'<div class="scenes{" pair" if len(r)==2 else ""}">'+"".join(_fig(k) for k in r)+'</div>' for r in rows)
+    truth="".join(f'<div class="lp-truth"><h3>{PLATFORM_NAME[p]}</h3>{status_p(p)}</div>' for p in L["platforms"])
+    facts_rows="".join(f'<tr><th scope="row">{_t(k)}</th><td>{_t(F[k])}</td></tr>' for k in L["facts"])
+    return f'''
+<section class="band"><div class="wrap prose">
+<p class="eyebrow">{_t(L["eyebrow"])}</p>
+<h1>{_t(L["h1"])}</h1>
+<p class="lead">{_t(L["answer"])}</p>
+<div class="cta"><a class="btn big" href="{APP}">Open the generator — free</a><a class="btn ghost big" href="#steps">See the steps</a></div>
+<figure class="lp-hero"><img src="/assets/{IMG[L["hero"]][0]}" alt="{_html.escape(L["h1"].split(",")[0])} — {_html.escape(IMG[L["hero"]][1])}, a MeetingBrand background with the company logo as a sign" width="1600" height="900" loading="eager"><figcaption>{_t(IMG[L["hero"]][1])} — one of {R} rooms, made with MeetingBrand</figcaption></figure>
+<p>{_t(LP_DEF)}</p>
+{secs}
+{chips}
+{gal_html}
+<h2 id="steps">How to make it — step by step</h2>
+<ol>{"".join(f"<li><strong>{_t(h)}.</strong> {_t(b)}</li>" for h,b in L["steps"])}</ol>
+<h2 id="platform-truth">What MeetingBrand does on {", ".join(PLATFORM_NAME[p] for p in L["platforms"])} today</h2>
+<p>No meeting platform lets a third party switch a person's active background by API, so here is exactly what happens, verified {FACTS_DATE_STR} against product build {PRODUCT_BUILD}.</p>
+{truth}
+<h2 id="facts">Facts</h2>
+<table class="facts"><caption>MeetingBrand facts, verified {FACTS_DATE_STR} against product build {PRODUCT_BUILD}</caption><tbody>{facts_rows}</tbody></table>
+<div class="faq" id="faq">
+<h2>Questions</h2>
+{"".join(f'<div class="faq-item"><h3>{_t(q)}</h3><p>{_t(a)}</p></div>' for q,a in L["faq"])}
+</div>
+<div class="lp-cta"><h2>Make yours now</h2><p>Open the generator, sign up with your work email and your logo is on the wall in a minute. Free during early access.</p><div class="cta"><a class="btn big cyan" href="{APP}">Open the generator</a><a class="btn ghost big onink" href="/docs/">Read the documentation</a></div></div>
+<p><strong>Related:</strong> {" · ".join(f'<a href="{u}">{_t(n)}</a>' for u,n in sib)}</p>
+{VERIFIED_LINE}
+</div></section>'''
+def lp_ld(L):
+    u=f"{SITE}{L['path']}"
+    g=[{"@type":"WebPage","@id":f"{u}#webpage","url":u,"name":L["title"],"description":L["desc"],"isPartOf":{"@id":f"{SITE}/#site"},"about":{"@id":f"{SITE}/#org"},"datePublished":LP_DATE.isoformat(),"dateModified":LP_DATE.isoformat(),"publisher":{"@id":f"{SITE}/#org"},"primaryImageOfPage":f"{SITE}/assets/{IMG[L['hero']][0]}"},
+       {"@type":"SoftwareApplication","name":"MeetingBrand","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":f"{SITE}{APP}","description":DEFINITION,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during early access"},"publisher":{"@id":f"{SITE}/#org"}},
+       {"@type":"HowTo","name":L["h1"],"step":[{"@type":"HowToStep","position":i+1,"name":h,"text":b} for i,(h,b) in enumerate(L["steps"])]},
+       {"@type":"FAQPage","@id":f"{u}#faq","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}} for q,a in L["faq"]]},
+       {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"MeetingBrand","item":f"{SITE}/"},{"@type":"ListItem","position":2,"name":dict(LANDING_LINKS)[L["path"]],"item":u}]}]
+    return '<script type="application/ld+json">'+json.dumps({"@context":"https://schema.org","@graph":g},ensure_ascii=False,separators=(",",":")).replace("</","<\\/")+'</script>'
+for L in LANDING:
+    assert len(L["title"])<=60,(L["path"],len(L["title"]))
+    assert len(L["desc"])<=155,(L["path"],len(L["desc"]))
+    assert L["path"] in dict(LANDING_LINKS)
 notfound=f'''<section class="band"><div class="wrap narrow"><h1>Page not found</h1><p class="lead">The page may have moved. Start again from the <a href="/">home page</a>, the <a href="/docs/">documentation</a> or the <a href="{APP}">brand-set builder</a>.</p></div></section>'''
 # ---------- /b/: the public Share page per background (product v93, 2026-09-27). One HTML shell, indexable, canonical /b/ (the slug is a
 # query parameter, so the page is NOT in the sitemap); vanilla JS reads ?s=<slug>, calls the anonymous RPC mb.public_background(p_slug)
@@ -491,6 +671,7 @@ pages={
  "404.html":("Page not found — MeetingBrand","The page may have moved.",notfound,"/404.html",'<meta name="robots" content="noindex">'),
  "b/index.html":("Shared meeting background — MeetingBrand","A company's official meeting background, shared from its MeetingBrand workspace: the approved virtual background its employees use in video meetings.",share_body,"/b/",SHARE_HEAD),
 }
+for L in LANDING: pages[L["path"].strip("/")+"/index.html"]=(L["title"],L["desc"],lp_body(L),L["path"],lp_ld(L))
 import re
 def relativize(html, path):
     """Root-relative links -> relative, so the site works both at meetingbrand.com/ and under a GitHub project path."""
@@ -529,10 +710,15 @@ p{{margin:0 0 1em}}a{{color:var(--vio)}}a:hover{{color:var(--vio-h)}}
 .cards{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:32px}}.card{{background:var(--cloud);border-radius:24px;padding:30px}}.card p{{margin:0;font-size:16px;color:var(--slate)}}.card h3{{color:var(--vio)}}
 .two{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}}.two p{{color:var(--slate)}}
 .prose{{max-width:820px}}.prose h1{{font-size:clamp(34px,4.5vw,48px)}}.prose h2{{font-size:24px;margin-top:40px}}.prose ul,.prose ol{{padding-left:22px}}.prose li{{margin-bottom:8px}}.prose p,.prose li{{color:#2B3A55}}
-.foot{{background:var(--ink);color:#C5CCDB;padding:56px 0 36px;margin-top:40px}}.foot a{{color:#fff;text-decoration:none;display:block;margin-bottom:8px}}.foot a:hover{{color:var(--cyan)}}.foot .logo{{margin-bottom:14px}}.foot .tag{{color:#C5CCDB;font-weight:600}}.foot h4{{margin:0 0 12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#8A96A5}}.fgrid{{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:32px;margin-bottom:32px}}.foot .muted{{color:#8A96A5}}.foot .muted a{{display:inline;color:#C5CCDB}}
+.foot{{background:var(--ink);color:#C5CCDB;padding:56px 0 36px;margin-top:40px}}.foot a{{color:#fff;text-decoration:none;display:block;margin-bottom:8px}}.foot a:hover{{color:var(--cyan)}}.foot .logo{{margin-bottom:14px}}.foot .tag{{color:#C5CCDB;font-weight:600}}.foot h4{{margin:0 0 12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#8A96A5}}.fgrid{{display:grid;grid-template-columns:1.6fr 1fr 1.25fr 1fr 1.3fr;gap:32px;margin-bottom:32px}}.foot .muted{{color:#8A96A5}}.foot .muted a{{display:inline;color:#C5CCDB}}
 .prose h2:first-child{{margin-top:0}}.facts{{width:100%;border-collapse:collapse;margin:20px 0 12px;font-size:15.5px}}.facts caption{{text-align:left;font-size:13px;color:var(--slate);padding:0 0 10px;caption-side:top}}.facts th,.facts td{{text-align:left;vertical-align:top;padding:11px 16px 11px 0;border-bottom:1px solid var(--mist)}}.facts th{{width:190px;font-weight:700;color:var(--ink)}}.facts td{{color:#2B3A55}}
 .faq h3{{font-size:20px;margin:28px 0 6px}}.faq p{{color:#2B3A55}}
 .status{{font-size:14.5px;color:#2B3A55;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--mist)}}.card .status{{color:#2B3A55;font-size:14.5px}}.status b{{color:var(--ink)}}
+.lp-hero{{margin:28px 0 8px}}.lp-hero img{{width:100%;height:auto;display:block;border-radius:16px;border:1px solid var(--mist)}}.lp-hero figcaption,.prose .scenes figcaption{{font-size:13px;color:var(--slate);margin-top:8px}}
+.prose .scenes{{margin-top:20px}}.prose{{overflow-wrap:break-word}}
+.chips{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 20px;padding:0;list-style:none}}.chips li{{margin:0;background:var(--cloud);border:1px solid var(--mist);border-radius:99px;padding:4px 12px;font-size:14px;color:var(--ink)}}
+.lp-truth{{background:var(--cloud);border-radius:20px;padding:22px 24px;margin:16px 0}}.lp-truth h3{{font-size:19px;margin:0 0 6px;color:var(--vio)}}.lp-truth .status{{margin-top:8px}}
+.lp-cta{{background:var(--ink);color:#fff;border-radius:24px;padding:30px;margin:40px 0 24px}}.lp-cta h2{{color:#fff;margin-top:0}}.lp-cta p{{color:#C5CCDB}}.lp-cta .cta{{margin-bottom:0}}
 @media(max-width:900px){{.facts,.facts caption,.facts tbody,.facts tr,.facts th,.facts td{{display:block;width:auto}}.facts th,.facts td{{padding:8px 0}}.facts th{{border-bottom:0;padding-bottom:0}}}}
 @media(max-width:900px){{.herogrid,.three,.scenes,.scenes.pair,.steps,.cards,.two,.fgrid{{grid-template-columns:1fr}}.nav nav a:not(.btn){{display:none}}.nav nav .btn{{white-space:nowrap;padding:9px 14px;font-size:14px}}.hero{{padding:56px 0 40px}}.band{{padding:56px 0}}.logo img{{width:140px}}}}
 '''
@@ -579,6 +765,10 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Home: {SITE}/
 - Brand-set builder (the product): {SITE}{APP}
 - Small businesses (price for a {SMB_TEAM}-person team, why it fits, setup steps, FAQ): {SITE}{SMB_PATH}
+- Teams background with logo (how to add a logo background in Microsoft Teams, company-wide with or without Teams Premium, FAQ): {SITE}/teams-background-with-logo/
+- Zoom background with logo (branded and corporate Zoom backgrounds with name and title, FAQ): {SITE}/zoom-background-with-logo/
+- Google Meet background with logo (custom Meet background, the MeetingBrand Chrome extension, FAQ): {SITE}/google-meet-background-with-logo/
+- Virtual background generator (the {len(ROOMS)} rooms and {len(TREATMENTS)} sign treatments, one 1920×1080 file for Teams, Zoom and Meet, FAQ): {SITE}/virtual-background-generator/
 - Documentation (what "delivered" means on each platform, permissions requested, how to remove MeetingBrand): {SITE}/docs/
 - Support: {SITE}/support/
 - Privacy policy (Google API Limited Use, where data lives, account deletion): {SITE}/privacy/
@@ -590,7 +780,7 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Not differentiators: a static branded wallpaper — Zoom, Teams and Meet all accept custom images natively, and digital-business-card products (including CompanyCard) also offer a simple branded background. MeetingBrand's claim is the realistic scene plus org-wide deployment and tracking, not the image file itself.
 - Trade-offs, stated plainly: Microsoft Teams and Google Meet have no background API, so delivery there depends on IT tooling (the Agent), the Chrome extension ({MEET_TODAY}) or one click by the employee; Zoom delivery and directory sync are coming; the product is in early access.
 ''')
-urls=[("/",FACTS_DATE.isoformat()),("/docs/",FACTS_DATE.isoformat()),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/",TERMS_DATE.isoformat()),("/support/",FACTS_DATE.isoformat()),(SMB_PATH,SMB_MODIFIED.isoformat())]
+urls=[("/",FACTS_DATE.isoformat()),("/docs/",FACTS_DATE.isoformat()),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/",TERMS_DATE.isoformat()),("/support/",FACTS_DATE.isoformat()),(SMB_PATH,SMB_MODIFIED.isoformat())]+[(L["path"],LP_DATE.isoformat()) for L in LANDING]
 # Image sitemap (Google Images eligibility) — the six branded-background scenes
 # shown on the home page are the site's only images and are exactly what should
 # rank for "branded/company/zoom/teams virtual background" image queries.
@@ -602,6 +792,9 @@ PAGE_IMAGES={"/":[
     ("virtual-background-farmhouse-meadow-studio.jpg","Branded virtual background — company sign on a white wall in a farmhouse studio overlooking meadows","Farmhouse meadow studio — a branded video-call background"),
     ("virtual-background-stone-farmhouse-study.jpg","Branded virtual background — company sign on a white wall in a stone farmhouse study overlooking a wheat field","Stone farmhouse study — a branded video-call background"),
 ]}
+for L in LANDING:   # image sitemap: the page's hero + gallery, titled with the page's keyword
+    PAGE_IMAGES[L["path"]]=[(IMG[k][0],f'{dict(LANDING_LINKS)[L["path"]]} — {IMG[k][1]}',f'{IMG[k][1]} — a {dict(LANDING_LINKS)[L["path"]].lower()} made with MeetingBrand') for k in [L["hero"]]+L["gallery"]]
+open(f"{INDEXNOW_KEY}.txt","w").write(INDEXNOW_KEY)
 def _sm_imgs(u):
     return "".join(f"<image:image><image:loc>{SITE}/assets/{f}</image:loc><image:title>{t}</image:title><image:caption>{c}</image:caption></image:image>" for f,t,c in PAGE_IMAGES.get(u,[]))
 open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>{lm}</lastmod>{_sm_imgs(u)}</url>" for u,lm in urls)+"</urlset>\n")
@@ -840,6 +1033,13 @@ def _one_voice_guard():
         for m in re.finditer(r'<script type="application/ld\+json">(.*?)</script>',t,re.S):
             try: json.loads(m.group(1).replace("<\\/","</"))
             except Exception as e: bad.append(f"{f}: JSON-LD does not parse ({e})")
+    for L in LANDING:
+        f=L["path"].strip("/")+"/index.html"; t=open(f,encoding="utf-8").read()
+        vis=[(_html.unescape(q),_html.unescape(a)) for q,a in re.findall(r'<div class="faq-item"><h3>(.*?)</h3><p>(.*?)</p></div>',t)]
+        ld=[json.loads(m.replace("<\\/","</")) for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>',t,re.S)]
+        fq=[(e["name"],e["acceptedAnswer"]["text"]) for g in ld for n in g["@graph"] if n["@type"]=="FAQPage" for e in n["mainEntity"]]
+        if not vis or vis!=fq: bad.append(f"{f}: visible FAQ != FAQPage JSON-LD")
+        if 'href="../app/"' not in t: bad.append(f"{f}: no CTA to /app/")
     home_html=open("index.html",encoding="utf-8").read(); hero=home_html[home_html.find('<section class="hero">'):home_html.find('</section>',home_html.find('<section class="hero">'))]
     if "automatically" in hero: bad.append("index.html: 'automatically' in the hero")
     if "Free during early access" not in hero: bad.append("index.html: no 'Free during early access' near the hero CTA")

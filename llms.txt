@@ -74,6 +74,10 @@
 - Home: https://meetingbrand.com/
 - Brand-set builder (the product): https://meetingbrand.com/app/
 - Small businesses (price for a 5-person team, why it fits, setup steps, FAQ): https://meetingbrand.com/small-business/
+- Teams background with logo (how to add a logo background in Microsoft Teams, company-wide with or without Teams Premium, FAQ): https://meetingbrand.com/teams-background-with-logo/
+- Zoom background with logo (branded and corporate Zoom backgrounds with name and title, FAQ): https://meetingbrand.com/zoom-background-with-logo/
+- Google Meet background with logo (custom Meet background, the MeetingBrand Chrome extension, FAQ): https://meetingbrand.com/google-meet-background-with-logo/
+- Virtual background generator (the 22 rooms and 14 sign treatments, one 1920×1080 file for Teams, Zoom and Meet, FAQ): https://meetingbrand.com/virtual-background-generator/
 - Documentation (what "delivered" means on each platform, permissions requested, how to remove MeetingBrand): https://meetingbrand.com/docs/
 - Support: https://meetingbrand.com/support/
 - Privacy policy (Google API Limited Use, where data lives, account deletion): https://meetingbrand.com/privacy/
