@@ -79,6 +79,10 @@
 - Zoom background with logo (branded and corporate Zoom backgrounds with name and title, FAQ): https://meetingbrand.com/zoom-background-with-logo/
 - Google Meet background with logo (custom Meet background, the MeetingBrand Chrome extension, FAQ): https://meetingbrand.com/google-meet-background-with-logo/
 - Virtual background generator (the 22 rooms and 14 sign treatments, one 1920×1080 file for Teams, Zoom and Meet, FAQ): https://meetingbrand.com/virtual-background-generator/
+- Teams custom background without Premium (what Teams Premium adds, a company-wide Teams background without it via the MeetingBrand Agent, FAQ): https://meetingbrand.com/teams-custom-background-without-premium/
+- Deploy Teams backgrounds with Intune (the Intune / Jamf script, what the Agent does on each device, rollout and removal, FAQ): https://meetingbrand.com/deploy-teams-backgrounds-intune/
+- Zoom background with name and title (the per-employee name bar from a CSV, setting it in Zoom, FAQ): https://meetingbrand.com/zoom-background-with-name-and-title/
+- Branded virtual background (what makes one look professional, one look for the whole company, delivery per platform, FAQ): https://meetingbrand.com/branded-virtual-background/
 - Documentation (what "delivered" means on each platform, permissions requested, how to remove MeetingBrand): https://meetingbrand.com/docs/
 - Support: https://meetingbrand.com/support/
 - Privacy policy (Google API Limited Use, where data lives, account deletion): https://meetingbrand.com/privacy/
