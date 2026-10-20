@@ -7,14 +7,37 @@ import os, datetime, json, glob, re, shutil, hashlib
 INK="#031436"; VIO="#5739FB"; VIOH="#4528E8"; CYAN="#00BDDF"; CLOUD="#F5F7FB"; SLATE="#667085"; MIST="#DDE3EE"; WHITE="#FFFFFF"
 DOMAIN="meetingbrand.com"; SITE="https://meetingbrand.com"; SUPPORT="support@meetingbrand.com"; APP="/app/"
 TODAY=datetime.date(2026,9,8).strftime("%B %-d, %Y")
-FACTS_DATE=datetime.date(2026,10,10)   # the day the product facts (FACTS/FAQ below) were verified against the shipped build; move it ONLY when a fact changes
+BB="/Users/motty/branded-background"
+# ---------- v97 (daily rooms): the room list, the product build and the facts date are READ from the product build /app/ will serve
+# (the highest gated outputs/presence-product-demo-vNN.html, or MB_APP_PIN) — nothing is hand-edited when a daily room ships.
+def pick_app():
+    cands=[]
+    for p in glob.glob(f"{BB}/outputs/presence-product-demo-v*.html"):
+        m=re.search(r"-v(\d+)\.html$",p)
+        if m: cands.append((int(m.group(1)),p))
+    pin=os.environ.get("MB_APP_PIN")            # MB_APP_PIN=76 python3 gen-site.py -> deploy that version even if newer builds exist in outputs/
+    if pin: cands=[c for c in cands if c[0]<=int(pin)]
+    f=os.environ.get("MB_APP_FILE")             # a SITE DRY RUN of an unshipped build (e.g. add-room --dry): MB_APP_FILE=<dir>/presence-product-demo-v98.html MB_ROOMS_SRC=<dir>/rooms — never commit its output
+    if f: return (int(re.search(r"-v(\d+)\.html$",f).group(1)),f)
+    return max(cands) if cands else (None,None)
+APP_N,APP_SRC=pick_app()
+_APP_HTML=open(APP_SRC if APP_SRC else "app/index.html",encoding="utf-8").read()
+def _product_rooms(h):
+    a=h.index("const SCENES=["); b=h.index("\n];",a)
+    built=[(m.group(1),m.group(2)) for m in re.finditer(r'\n \{id:"([a-z0-9]+)",name:"([^"]*)",src:',h[a:b])]
+    A_="const DAILY_ROOMS=/*mb-daily-rooms*/"; B_="/*/mb-daily-rooms*/;"
+    daily=json.loads(h[h.index(A_)+len(A_):h.index(B_)]) if A_ in h else []
+    return built,daily
+BUILT_ROOMS,DAILY_ROOMS=_product_rooms(_APP_HTML)   # [(id,name)] x 22, then the daily rooms [{id,name,src,logo,walls,row,added,v}]
+N_ROOMS=len(BUILT_ROOMS)+len(DAILY_ROOMS)
+PRODUCT_BUILD=re.search(r'<meta name="mb-version" content="(v\d+)">',_APP_HTML).group(1)   # the /app/ build the facts are read from (SCENES + DAILY_ROOMS = rooms, STYLES = 14 treatments, STARTER = 3 looks)
+_PD=re.search(r"\nversion: v\d+ \((\d{4})-(\d\d)-(\d\d)\)\n",_APP_HTML)
+FACTS_DATE=max(datetime.date(2026,10,10),datetime.date(*map(int,_PD.groups())) if _PD else datetime.date(2026,10,10))   # the facts change with the build (a daily room changes the room count) -> the build's own date
 FACTS_DATE_STR=FACTS_DATE.strftime("%B %-d, %Y")
-PRODUCT_BUILD="v96"                   # the /app/ build the facts were read from (SCENES = 22 rooms since v96, STYLES = 14 treatments, STARTER = 3 looks)
 PRIVACY_DATE=datetime.date(2026,9,30)  # the privacy page changed on this date (V94-9: platform list + builder storage + deletion by request)
 TERMS_DATE=datetime.date(2026,9,30)    # the terms changed on this date (V94-9: third-party platform list)
 # ---------- cloud config: ONE source of truth, BB/engine/mb-config.json (read by build-vNN.py and by this generator).
 # Empty supabaseUrl/supabaseAnonKey = the Supabase project does not exist yet -> every cloud page renders its "not connected yet" state.
-BB="/Users/motty/branded-background"
 CFG_PATH=f"{BB}/engine/mb-config.json"
 CFG_KEYS=("supabaseUrl","supabaseAnonKey","googleClientId","ga4Id","supabaseJs","product","schema")
 CFG={"supabaseUrl":"","supabaseAnonKey":"","googleClientId":"","ga4Id":"","supabaseJs":"2.116.0","product":"meetingbrand","schema":"public"}
@@ -43,17 +66,20 @@ INDEXNOW_KEY="98dbdcee2efbd8cb930743fa951caddb"   # served at /<key>.txt; ~/ceo/
 # before changing a number: SCENES (rooms), STYLES (sign treatments), STARTER (starter set) live in BB/outputs/presence-product-demo-vNN.html.
 import html as _html
 DEFINITION=("MeetingBrand is a web application that creates branded virtual backgrounds for video meetings from a company's website. "
- "An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 22 built-in office rooms, "
+ "An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of "+str(N_ROOMS)+" built-in office rooms, "
  "adds an optional name bar with each employee's name and title, and exports every background as a 1920×1080 image that works in Microsoft Teams, Google Meet, Zoom and any other meeting app that accepts custom backgrounds. "
  "Delivery is built in for Microsoft Teams through the MeetingBrand Agent and for Google Meet through the MeetingBrand Chrome extension ("+MEET_TODAY+"); Zoom delivery and directory sync are coming. "
  "MeetingBrand is free during early access and is made by the team behind CompanyCard (company-card.com) and ProSignature (prosignature.co).")
-assert "any of 22 built-in office rooms" in DEFINITION   # v95/v96: the definition sentence names the room count; keep it equal to len(ROOMS)
-ROOMS=["City open space","Walnut executive wall","Tel Aviv sunset window","Stone & slats lounge","Tel Aviv beach window","Concrete gallery night","Manhattan skyline window","Forest window",
+assert f"any of {N_ROOMS} built-in office rooms" in DEFINITION   # v95/v96: the definition sentence names the room count; v97: computed from the product
+BUILTIN_ROOMS_V96=["City open space","Walnut executive wall","Tel Aviv sunset window","Stone & slats lounge","Tel Aviv beach window","Concrete gallery night","Manhattan skyline window","Forest window",
        "Concrete corner loft","Brick creative loft","Navy executive study","Marble reception","Glass office corridor","Travertine lounge","Concrete open office","Oak skyline office",
        "Charcoal wall oak office","Arched-window loft lounge","Sunset tower office","Alpine lake executive office",
        "Farmhouse meadow studio","Stone farmhouse study"]
 TREATMENTS=["Wall sign","Wall sticker","Silver letters","Brass letters","Oak letters","Washed wood","Black letters","Illuminated","Glass signage","Metal plaque","Backlit plate","3D acrylic","LED signage","Wallpaper"]
-assert len(ROOMS)==22,len(ROOMS)
+assert [n for _,n in BUILT_ROOMS]==BUILTIN_ROOMS_V96,("the 22 built-in rooms never change",[n for _,n in BUILT_ROOMS])
+ROOMS=BUILTIN_ROOMS_V96+[r["name"] for r in DAILY_ROOMS]   # v97: + one daily room per product version, read from the product
+ROOM_IDS=[i for i,_ in BUILT_ROOMS]+[r["id"] for r in DAILY_ROOMS]
+assert len(ROOMS)==N_ROOMS==len(set(ROOM_IDS)),len(ROOMS)
 assert f"any of {len(ROOMS)} built-in office rooms" in DEFINITION
 STARTERS=["Concrete corner loft","Brick creative loft","Navy executive study"]
 PLATFORM_STATUS={
@@ -124,7 +150,7 @@ def layout(title, desc, body, path="/", extra_head=""):
 <main id="main">
 {body}
 </main>
-<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="{APP}">Create MeetingBrand</a><a href="/small-business/">For small businesses</a><a href="/docs/">Documentation</a></div><div><h4>Backgrounds</h4>{"".join(f'<a href="{u}">{n}</a>' for u,n in LANDING_LINKS)}</div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
+<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/rooms/">Background rooms</a><a href="/#platforms">Platforms</a><a href="{APP}">Create MeetingBrand</a><a href="/small-business/">For small businesses</a><a href="/docs/">Documentation</a></div><div><h4>Backgrounds</h4>{"".join(f'<a href="{u}">{n}</a>' for u,n in LANDING_LINKS)}</div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
 </body>
 </html>
 '''
@@ -170,6 +196,7 @@ home=f'''
     <figure><img src="/assets/virtual-background-farmhouse-meadow-studio.jpg" alt="Company sign on a white wall in a farmhouse studio with glass doors open onto green meadows — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Farmhouse meadow studio</figcaption></figure>
     <figure><img src="/assets/virtual-background-stone-farmhouse-study.jpg" alt="Company sign on a white wall in a stone farmhouse study overlooking a wheat field — a MeetingBrand background" width="1600" height="900" loading="lazy"><figcaption>Stone farmhouse study</figcaption></figure>
   </div>
+  <p class="more"><a href="/rooms/">See all {N_ROOMS} rooms →</a></p>
 </div></section>
 
 <section id="how" class="band alt"><div class="wrap">
@@ -660,7 +687,32 @@ share_body=f'''<section class="band"><div class="wrap narrow" id="shareRoot" dat
   .then(function(r){{return r.ok?r.json():null}}).then(function(j){{var r=Array.isArray(j)?j[0]:j;if(!r||!r.slug){{fallback();return}}render(r)}}).catch(fallback);
 }})();
 </script>'''
+# ---------- /rooms/ (v97): every room of the product as a small JPEG rendered FROM the shipped build with the meetingbrand.com brand
+# (BB/tools/room-gallery.mjs -> assets/rooms/<id>.jpg + rooms.json). The page states only what the product does.
+GAL_PATH="assets/rooms/rooms.json"
+if not os.path.exists(GAL_PATH): raise SystemExit(f"{GAL_PATH} missing: run  node {BB}/tools/room-gallery.mjs {APP_SRC} --site {os.getcwd()}")
+GAL=json.load(open(GAL_PATH,encoding="utf-8"))
+if [r["id"] for r in GAL["rooms"]]!=ROOM_IDS: raise SystemExit(f"{GAL_PATH} does not list the product's rooms in order (gallery {[r['id'] for r in GAL['rooms']][-3:]} vs product {ROOM_IDS[-3:]}): run  node {BB}/tools/room-gallery.mjs {APP_SRC} --site {os.getcwd()} --missing-only 1")
+for r in GAL["rooms"]:
+    if not os.path.exists(r["file"]) or hashlib.md5(open(r["file"],"rb").read()).hexdigest()!=r["md5"]: raise SystemExit(f"gallery image missing or changed: {r['file']}")
+_ADDED={r["id"]:datetime.date(*map(int,r["added"].split("-"))) for r in DAILY_ROOMS}
+def _room_fig(r):
+    when=f'<span class="added">Added {_ADDED[r["id"]].strftime("%B %-d, %Y")}</span>' if r["id"] in _ADDED else ""
+    return (f'<figure><img src="/{r["file"]}" alt="{_t(r["name"])} — a virtual background room with a company sign on the wall (shown with the MeetingBrand logo)" '
+            f'width="800" height="450" loading="lazy" decoding="async"><figcaption>{_t(r["name"])}{when}</figcaption></figure>')
+ROOMS_TITLE="Virtual background rooms — MeetingBrand"
+ROOMS_DESC=f"All {N_ROOMS} office rooms in MeetingBrand, each shown with a company sign on the wall. Add your logo and brand colors and download a 1920×1080 background for any meeting app."
+rooms_body=f'''
+<section class="band"><div class="wrap">
+  <p class="eyebrow">Virtual background rooms</p>
+  <h1>{N_ROOMS} rooms for your branded virtual background</h1>
+  <p class="lead narrow">Every room in MeetingBrand, shown here with the MeetingBrand logo on its default wall sign. When you create your background, your own logo and brand colors take its place, and you can move, resize and restyle the sign in each room.</p>
+  <div class="cta"><a class="btn big" href="{APP}">Create MeetingBrand</a></div>
+  <div class="scenes rooms">{"".join(_room_fig(r) for r in GAL["rooms"])}</div>
+  <p class="muted small">Each image is the product's own 1920×1080 export of that room (build {GAL["version"]}, rendered {GAL["rendered"]}), scaled down.</p>
+</div></section>'''
 pages={
+ "rooms/index.html":(ROOMS_TITLE,ROOMS_DESC,rooms_body,"/rooms/",""),
  "index.html":("MeetingBrand | Branded Virtual Backgrounds for Teams","Create realistic branded virtual backgrounds from your company website. Delivered to Microsoft Teams by the MeetingBrand Agent and to Google Meet by the Chrome extension; Zoom coming. Free during early access.",home,"/",LD),
  "thanks/index.html":("Thanks — MeetingBrand","We received your early-access request.",thanks,"/thanks/",""),
  "docs/index.html":("Documentation — MeetingBrand","How MeetingBrand delivers to Microsoft Teams, Google Meet and Zoom today and what is coming, what employees see, and how to remove it.",docs,"/docs/",""),
@@ -722,6 +774,7 @@ p{{margin:0 0 1em}}a{{color:var(--vio)}}a:hover{{color:var(--vio-h)}}
 @media(max-width:900px){{.facts,.facts caption,.facts tbody,.facts tr,.facts th,.facts td{{display:block;width:auto}}.facts th,.facts td{{padding:8px 0}}.facts th{{border-bottom:0;padding-bottom:0}}}}
 @media(max-width:900px){{.herogrid,.three,.scenes,.scenes.pair,.steps,.cards,.two,.fgrid{{grid-template-columns:1fr}}.nav nav a:not(.btn){{display:none}}.nav nav .btn{{white-space:nowrap;padding:9px 14px;font-size:14px}}.hero{{padding:56px 0 40px}}.band{{padding:56px 0}}.logo img{{width:140px}}}}
 '''
+css+=".scenes figcaption .added{display:block;font-size:12px;color:var(--slate);letter-spacing:0;text-transform:none}.more{margin:20px 0 0;font-weight:600}\n"   # v97: /rooms/
 open("styles.css","w").write(css)
 # ---------- robots.txt: normal crawlers keep Allow: /; the AI-crawler block is the CompanyCard one (cc-work/robots.txt:9-46) verbatim.
 AI_BOTS=["GPTBot","OAI-SearchBot","ChatGPT-User","PerplexityBot","Perplexity-User","Google-Extended","ClaudeBot","Claude-User","Claude-SearchBot","Applebot-Extended","meta-externalagent","anthropic-ai","CCBot"]
@@ -763,6 +816,7 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 
 ## Core pages
 - Home: {SITE}/
+- Background rooms (all {N_ROOMS} rooms, each shown with the MeetingBrand sign): {SITE}/rooms/
 - Brand-set builder (the product): {SITE}{APP}
 - Small businesses (price for a {SMB_TEAM}-person team, why it fits, setup steps, FAQ): {SITE}{SMB_PATH}
 - Teams background with logo (how to add a logo background in Microsoft Teams, company-wide with or without Teams Premium, FAQ): {SITE}/teams-background-with-logo/
@@ -780,7 +834,7 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Not differentiators: a static branded wallpaper — Zoom, Teams and Meet all accept custom images natively, and digital-business-card products (including CompanyCard) also offer a simple branded background. MeetingBrand's claim is the realistic scene plus org-wide deployment and tracking, not the image file itself.
 - Trade-offs, stated plainly: Microsoft Teams and Google Meet have no background API, so delivery there depends on IT tooling (the Agent), the Chrome extension ({MEET_TODAY}) or one click by the employee; Zoom delivery and directory sync are coming; the product is in early access.
 ''')
-urls=[("/",FACTS_DATE.isoformat()),("/docs/",FACTS_DATE.isoformat()),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/",TERMS_DATE.isoformat()),("/support/",FACTS_DATE.isoformat()),(SMB_PATH,SMB_MODIFIED.isoformat())]+[(L["path"],LP_DATE.isoformat()) for L in LANDING]
+urls=[("/",FACTS_DATE.isoformat()),("/docs/",FACTS_DATE.isoformat()),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/",TERMS_DATE.isoformat()),("/support/",FACTS_DATE.isoformat()),(SMB_PATH,SMB_MODIFIED.isoformat()),("/rooms/",FACTS_DATE.isoformat())]+[(L["path"],LP_DATE.isoformat()) for L in LANDING]
 # Image sitemap (Google Images eligibility) — the six branded-background scenes
 # shown on the home page are the site's only images and are exactly what should
 # rank for "branded/company/zoom/teams virtual background" image queries.
@@ -795,25 +849,29 @@ PAGE_IMAGES={"/":[
 for L in LANDING:   # image sitemap: the page's hero + gallery, titled with the page's keyword
     PAGE_IMAGES[L["path"]]=[(IMG[k][0],f'{dict(LANDING_LINKS)[L["path"]]} — {IMG[k][1]}',f'{IMG[k][1]} — a {dict(LANDING_LINKS)[L["path"]].lower()} made with MeetingBrand') for k in [L["hero"]]+L["gallery"]]
 open(f"{INDEXNOW_KEY}.txt","w").write(INDEXNOW_KEY)
+PAGE_IMAGES["/rooms/"]=[(r["file"][len("assets/"):],f"{r['name']} — virtual background room with a company sign",f"{r['name']} — a MeetingBrand room, shown with the MeetingBrand logo") for r in GAL["rooms"]]   # v97
 def _sm_imgs(u):
     return "".join(f"<image:image><image:loc>{SITE}/assets/{f}</image:loc><image:title>{t}</image:title><image:caption>{c}</image:caption></image:image>" for f,t,c in PAGE_IMAGES.get(u,[]))
 open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>{lm}</lastmod>{_sm_imgs(u)}</url>" for u,lm in urls)+"</urlset>\n")
 # ---------- /app/: byte-identical copy of the LATEST gated build (highest vNN in BB/outputs). Never hand-edit app/index.html.
 def sync_app():
-    cands=[]
-    for p in glob.glob(f"{BB}/outputs/presence-product-demo-v*.html"):
-        m=re.search(r"-v(\d+)\.html$",p)
-        if m: cands.append((int(m.group(1)),p))
-    if not cands:
+    if not APP_SRC:
         print(f"app: no {BB}/outputs/presence-product-demo-v*.html found — app/index.html left as is"); return
-    pin=os.environ.get("MB_APP_PIN")            # MB_APP_PIN=76 python3 gen-site.py -> deploy that version even if newer builds exist in outputs/
-    if pin: cands=[c for c in cands if c[0]<=int(pin)]
-    n,src=max(cands); dst="app/index.html"
+    n,src=APP_N,APP_SRC; dst="app/index.html"
     data=open(src,"rb").read()
     same=os.path.exists(dst) and open(dst,"rb").read()==data
     if not same:
         os.makedirs("app",exist_ok=True); shutil.copyfile(src,dst)
     print(f"app/index.html <- {os.path.basename(src)} (v{n}, {'unchanged' if same else 'copied'}, md5 {hashlib.md5(data).hexdigest()})")
+    # v97: the daily rooms' plates, next to the product (/app/rooms/<id>.webp), byte-checked against the ?v=<sha256[0:12]> the product carries
+    for r in DAILY_ROOMS:
+        ps=os.path.join(os.environ.get("MB_ROOMS_SRC",f"{BB}/engine/rooms"),r['id']+".webp"); pd=f"app/rooms/{r['id']}.webp"; pb=open(ps,"rb").read()
+        if hashlib.sha256(pb).hexdigest()[:12]!=r["src"].split("?v=")[1]: raise SystemExit(f"plate {ps} does not match the product's {r['src']}")
+        same=os.path.exists(pd) and open(pd,"rb").read()==pb
+        if not same: os.makedirs("app/rooms",exist_ok=True); shutil.copyfile(ps,pd)
+        print(f"app/rooms/{r['id']}.webp <- engine/rooms ({'unchanged' if same else 'copied'}, {len(pb)} bytes)")
+    extra=sorted(set(os.listdir("app/rooms"))-{r["id"]+".webp" for r in DAILY_ROOMS}) if os.path.isdir("app/rooms") else []
+    if extra: raise SystemExit(f"app/rooms/ holds plates the product does not list: {extra}")
 sync_app()
 # ---------- cloud tool pages (noindex, not in the sitemap, disallowed in robots): back office + funnel analytics.
 # Both read url/key from the inline #mb-config block above; empty values render the "not connected yet" state.
@@ -1046,6 +1104,12 @@ def _one_voice_guard():
     b=open("b/index.html",encoding="utf-8").read()
     for pat in ("look: ","Download the 1920","Zoom, Microsoft Teams, Google Meet"):
         if pat in b: bad.append(f"b/index.html: {pat!r}")
+    rp=open("rooms/index.html",encoding="utf-8").read()
+    if rp.count("<figure>")!=N_ROOMS or f"<h1>{N_ROOMS} rooms" not in rp: bad.append(f"rooms/index.html: {rp.count('<figure>')} figures for {N_ROOMS} rooms")
+    for f in outs:
+        t=open(f,encoding="utf-8").read()
+        for m in re.finditer(r"(\d+) (?:built-in office )?rooms\b",t):
+            if int(m.group(1)) not in (N_ROOMS,) and int(m.group(1))>=12: bad.append(f"{f}: '{m.group(0)}' but the product has {N_ROOMS} rooms")
     if bad: raise SystemExit("ONE-VOICE GUARD FAILED:\n  "+"\n  ".join(bad))
     print("one-voice guard: PASS ("+str(len(outs))+" files)")
 _one_voice_guard()

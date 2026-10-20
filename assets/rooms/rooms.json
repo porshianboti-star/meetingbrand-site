@@ -1,0 +1,185 @@
+{
+ "product": "presence-product-demo-v97.html",
+ "version": "v97",
+ "md5": "82b0c703b4f143219ee2779e53ab939c",
+ "rendered": "2026-10-20",
+ "brand": "meetingbrand.com",
+ "rooms": [
+  {
+   "id": "cityoffice",
+   "name": "City open space",
+   "daily": false,
+   "file": "assets/rooms/cityoffice.jpg",
+   "bytes": 43183,
+   "md5": "a3010036c17763a6ff2db2907b339738"
+  },
+  {
+   "id": "walnutwall",
+   "name": "Walnut executive wall",
+   "daily": false,
+   "file": "assets/rooms/walnutwall.jpg",
+   "bytes": 30649,
+   "md5": "c31943ff5293cf072d9d89f462ffb28d"
+  },
+  {
+   "id": "tlvsunset",
+   "name": "Tel Aviv sunset window",
+   "daily": false,
+   "file": "assets/rooms/tlvsunset.jpg",
+   "bytes": 48165,
+   "md5": "1794acbeaa12d7d3d3ee8c95aca09199"
+  },
+  {
+   "id": "stoneslats",
+   "name": "Stone & slats lounge",
+   "daily": false,
+   "file": "assets/rooms/stoneslats.jpg",
+   "bytes": 35820,
+   "md5": "20767e084c067b8d3bfca1a334cc79e7"
+  },
+  {
+   "id": "tlvbeach",
+   "name": "Tel Aviv beach window",
+   "daily": false,
+   "file": "assets/rooms/tlvbeach.jpg",
+   "bytes": 37799,
+   "md5": "77206f061c2cc7e8e429decd0b0827c4"
+  },
+  {
+   "id": "gallerynight",
+   "name": "Concrete gallery night",
+   "daily": false,
+   "file": "assets/rooms/gallerynight.jpg",
+   "bytes": 36050,
+   "md5": "d3ceafc98e45565c52f209ce0bdcd105"
+  },
+  {
+   "id": "nycday",
+   "name": "Manhattan skyline window",
+   "daily": false,
+   "file": "assets/rooms/nycday.jpg",
+   "bytes": 50710,
+   "md5": "89a7ff8d10bebbf852902ab6e9729805"
+  },
+  {
+   "id": "forestwin",
+   "name": "Forest window",
+   "daily": false,
+   "file": "assets/rooms/forestwin.jpg",
+   "bytes": 68468,
+   "md5": "649563964669e3704607fa01a5b235b0"
+  },
+  {
+   "id": "cornerloft",
+   "name": "Concrete corner loft",
+   "daily": false,
+   "file": "assets/rooms/cornerloft.jpg",
+   "bytes": 47405,
+   "md5": "89e489f115985058a4b8c67266db7c66"
+  },
+  {
+   "id": "brickloft",
+   "name": "Brick creative loft",
+   "daily": false,
+   "file": "assets/rooms/brickloft.jpg",
+   "bytes": 73085,
+   "md5": "dcee7bc2e494981d44a141ec09a6f5c2"
+  },
+  {
+   "id": "navyexec",
+   "name": "Navy executive study",
+   "daily": false,
+   "file": "assets/rooms/navyexec.jpg",
+   "bytes": 41153,
+   "md5": "3e096051507d13ae1ce11f707a9364f4"
+  },
+  {
+   "id": "marblelobby",
+   "name": "Marble reception",
+   "daily": false,
+   "file": "assets/rooms/marblelobby.jpg",
+   "bytes": 37782,
+   "md5": "fdaaf25e6a9d5ed5584549a9b98e6cb1"
+  },
+  {
+   "id": "glasscorridor",
+   "name": "Glass office corridor",
+   "daily": false,
+   "file": "assets/rooms/glasscorridor.jpg",
+   "bytes": 37821,
+   "md5": "36573d557ed0c0ee3bda0df974d61dd6"
+  },
+  {
+   "id": "travertinelounge",
+   "name": "Travertine lounge",
+   "daily": false,
+   "file": "assets/rooms/travertinelounge.jpg",
+   "bytes": 32052,
+   "md5": "0ce6e1c7085f6a549146775a1c54fe41"
+  },
+  {
+   "id": "concreteoffice",
+   "name": "Concrete open office",
+   "daily": false,
+   "file": "assets/rooms/concreteoffice.jpg",
+   "bytes": 38879,
+   "md5": "36c14602308e0da5180c0c17e8db5199"
+  },
+  {
+   "id": "oakskyline",
+   "name": "Oak skyline office",
+   "daily": false,
+   "file": "assets/rooms/oakskyline.jpg",
+   "bytes": 39029,
+   "md5": "4a6c595c25ac9fe6fd1be51a1e3015b0"
+  },
+  {
+   "id": "charcoaloak",
+   "name": "Charcoal wall oak office",
+   "daily": false,
+   "file": "assets/rooms/charcoaloak.jpg",
+   "bytes": 37678,
+   "md5": "e111cf624a60bc47f7944d3e19dca817"
+  },
+  {
+   "id": "archloft",
+   "name": "Arched-window loft lounge",
+   "daily": false,
+   "file": "assets/rooms/archloft.jpg",
+   "bytes": 38799,
+   "md5": "4d6ae74d2c416193c56b365f97d13161"
+  },
+  {
+   "id": "towersunset",
+   "name": "Sunset tower office",
+   "daily": false,
+   "file": "assets/rooms/towersunset.jpg",
+   "bytes": 37043,
+   "md5": "450fb6a07dbf6b0780fc3abc1ad875f8"
+  },
+  {
+   "id": "alpinelake",
+   "name": "Alpine lake executive office",
+   "daily": false,
+   "file": "assets/rooms/alpinelake.jpg",
+   "bytes": 34722,
+   "md5": "834338a78a32cf7097415d9087d4a0c9"
+  },
+  {
+   "id": "pastoralbarn",
+   "name": "Farmhouse meadow studio",
+   "daily": false,
+   "file": "assets/rooms/pastoralbarn.jpg",
+   "bytes": 41335,
+   "md5": "d5e4005d2a2f21f6e32f571c6e0c60ff"
+  },
+  {
+   "id": "pastoralstone",
+   "name": "Stone farmhouse study",
+   "daily": false,
+   "file": "assets/rooms/pastoralstone.jpg",
+   "bytes": 41774,
+   "md5": "b255d1f997cdc74af4619dbc22d5befd"
+  }
+ ]
+}
