@@ -62,6 +62,25 @@ LANDING_LINKS=[("/teams-background-with-logo/","Teams background with logo"),("/
                # SEO batch 2 (2026-10-20, priority 2)
                ("/teams-custom-background-without-premium/","Teams custom background without Premium"),("/deploy-teams-backgrounds-intune/","Deploy Teams backgrounds with Intune"),
                ("/zoom-background-with-name-and-title/","Zoom background with name and title"),("/branded-virtual-background/","Branded virtual background")]
+# SEO batch B (2026-11-01, audit 2026-10-30 B2): one descriptor per landing page, rendered on the home page ("Backgrounds by platform"), /docs/ and
+# llms-full.txt from the same strings. PLATFORM_PAGES groups them, Google Meet first (the only platform where the background is applied for the user today).
+B_DATE=datetime.date(2026,11,1)
+LANDING_BLURB={
+ "/google-meet-background-with-logo/":"a custom Meet background with your logo, applied to the camera by the MeetingBrand Chrome extension",
+ "/teams-background-with-logo/":"add a 1920×1080 image with your logo in Teams, for one person or for the whole company",
+ "/teams-custom-background-without-premium/":"what Teams Premium adds, and a company-wide branded background without it",
+ "/deploy-teams-backgrounds-intune/":"the IT procedure: the Intune or Jamf script, the Teams Uploads folder, <GUID>.png + <GUID>_thumb.png",
+ "/zoom-background-with-logo/":"your logo as a real sign in an office room, 1920×1080 PNG, added once in Zoom",
+ "/zoom-background-with-name-and-title/":"each person's name, title, department and company on the background, from a CSV",
+ "/virtual-background-generator/":"the generator: the rooms and sign treatments, one 1920×1080 PNG for Teams, Zoom and Meet",
+ "/branded-virtual-background/":"what makes a virtual background look professional, and one look for the whole company",
+}
+PLATFORM_PAGES=[("Google Meet",["/google-meet-background-with-logo/"]),
+ ("Microsoft Teams",["/teams-background-with-logo/","/teams-custom-background-without-premium/","/deploy-teams-backgrounds-intune/"]),
+ ("Zoom",["/zoom-background-with-logo/","/zoom-background-with-name-and-title/"]),
+ ("Any meeting app",["/virtual-background-generator/","/branded-virtual-background/"])]
+assert set(LANDING_BLURB)==set(dict(LANDING_LINKS))==set(p for _,ps in PLATFORM_PAGES for p in ps)
+SAME_AS=["https://prosignature.co","https://company-card.com","https://github.com/porshianboti-star/meetingbrand-site"]   # B4: sister products + the public source of this site; listing URLs are appended as they appear
 INDEXNOW_KEY="98dbdcee2efbd8cb930743fa951caddb"   # served at /<key>.txt; ~/ceo/tools/indexnow.py site "meetingbrand"
 
 # ---------- GEO (2026-09-27): ONE source for every product fact an answer engine may quote. Each fact is written once here and rendered
@@ -128,8 +147,26 @@ def status_p(p):
 VERIFIED_LINE=f'<p class="muted small">Facts verified {FACTS_DATE_STR} against product build {PRODUCT_BUILD}. Written and maintained by the MeetingBrand team; this block changes only when a fact changes.</p>'
 DEF_JSON=json.dumps(DEFINITION,ensure_ascii=False)
 FAQ_LD=json.dumps({"@type":"FAQPage","@id":f"{SITE}/#faq","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}} for q,a in FAQ]},ensure_ascii=False,separators=(",",":"))
-WEBPAGE_LD=json.dumps({"@type":"WebPage","@id":f"{SITE}/#webpage","url":f"{SITE}/","name":"MeetingBrand | Branded Virtual Backgrounds for Teams","isPartOf":{"@id":f"{SITE}/#site"},"about":{"@id":f"{SITE}/#org"},"datePublished":"2026-09-08","dateModified":FACTS_DATE.isoformat(),"publisher":{"@id":f"{SITE}/#org"}},ensure_ascii=False,separators=(",",":"))
+HOME_TITLE="MeetingBrand: Branded Microsoft Teams & Zoom Backgrounds"   # B1 (2026-11-01)
+HOME_DESC="Realistic branded virtual backgrounds from your company website, delivered to Microsoft Teams and Google Meet; Zoom coming. Free during early access."
+assert len(HOME_TITLE)<=60 and len(HOME_DESC)<=155,(len(HOME_TITLE),len(HOME_DESC))
+WEBPAGE_LD=json.dumps({"@type":"WebPage","@id":f"{SITE}/#webpage","url":f"{SITE}/","name":HOME_TITLE,"isPartOf":{"@id":f"{SITE}/#site"},"about":{"@id":f"{SITE}/#org"},"datePublished":"2026-09-08","dateModified":max(FACTS_DATE,B_DATE).isoformat(),"publisher":{"@id":f"{SITE}/#org"}},ensure_ascii=False,separators=(",",":"))
+def page_slug(path):
+    """B6: the ?src= value every CTA carries — '/' -> home, '/docs/' -> docs, '/zoom-background-with-logo/' -> zoom-background-with-logo, '/404.html' -> 404."""
+    return path.strip("/").split("/")[0].split(".")[0] or "home"
+GA4_HEAD=(f'<script async src="https://www.googletagmanager.com/gtag/js?id={CFG["ga4Id"]}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments)}}gtag("js",new Date());gtag("config","{CFG["ga4Id"]}");</script>' if CFG["ga4Id"] else "")   # B6: gtag only when mb-config.json carries a GA4 id (empty today)
+# B6 (2026-11-01): first-party page_view + cta_click beacons from every marketing page into mb.events — the same anon key, Content-Profile, row shape
+# and session id (localStorage mb_sid; mb_qa set => 'qa-' prefix, excluded by funnel_stats) as MBTrack in the app, so a landing page_view and the
+# app's own events share one session. Fires only on the production host: previews, forks and local files never write rows. GA4 mirror when gtag exists.
+BEACON_JS=f'''<script>(function(){{var C=window.__MB||{{}},U=String(C.supabaseUrl||''),K=String(C.supabaseAnonKey||'');if(!U||!K||location.hostname!=='{DOMAIN}')return;
+function sid(){{try{{var q=localStorage.getItem('mb_qa'),s=localStorage.getItem('mb_sid');if(!s){{s=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('mb_sid',s)}}s=String(s).replace(/^qa-/,'').slice(0,100);return q?'qa-'+s:s}}catch(e){{return 'anon'}}}}
+function send(ev,pr){{try{{fetch(U.replace(/\\/+$/,'')+'/rest/v1/events',{{method:'POST',keepalive:true,headers:{{apikey:K,'Content-Type':'application/json',Prefer:'return=minimal','Content-Profile':String(C.schema||'mb')}},body:JSON.stringify({{event:ev,session_id:sid(),user_id:null,product:String(C.product||'meetingbrand'),path:String(location.pathname||'/').slice(0,512),props:pr}})}}).catch(function(){{}});if(typeof window.gtag==='function')window.gtag('event',ev,pr)}}catch(e){{}}}}
+send('page_view',{{path:String(location.pathname||'/').slice(0,200),ref:String(document.referrer||'').slice(0,200)}});
+document.addEventListener('click',function(e){{var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;if(!a)return;var h=String(a.getAttribute('href')||'');if(!/(^|\\/)app\\/(\\?|#|$)/.test(h))return;var m=/[?&]src=([^&#]+)/.exec(h);send('cta_click',{{src:m?m[1].slice(0,80):'',href:h.slice(0,200),text:String(a.textContent||'').trim().slice(0,80)}})}},true);
+}})();</script>'''
 def layout(title, desc, body, path="/", extra_head=""):
+    slug=page_slug(path)
+    body=body.replace(f'href="{APP}"',f'href="{APP}?src={slug}"').replace(f'href="{APP}#',f'href="{APP}?src={slug}#')   # B6: every CTA names its page
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -145,31 +182,35 @@ def layout(title, desc, body, path="/", extra_head=""):
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="/styles.css">
+{MB_CONFIG_BLOCK}{GA4_HEAD}
 {extra_head}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="wrap nav">{LOGO}<nav aria-label="Main"><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="/docs/">Docs</a><a href="/support/">Support</a><a href="{APP}#login">Log in</a><a class="btn" href="{APP}">Create MeetingBrand</a></nav></div></header>
+<header class="top"><div class="wrap nav">{LOGO}<nav aria-label="Main"><a href="/#how">How it works</a><a href="/#platforms">Platforms</a><a href="/docs/">Docs</a><a href="/support/">Support</a><a href="{APP}?src={slug}#login">Log in</a><a class="btn" href="{APP}?src={slug}">Create MeetingBrand</a></nav></div></header>
 <main id="main">
 {body}
 </main>
-<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/rooms/">Background rooms</a><a href="/#platforms">Platforms</a><a href="{APP}">Create MeetingBrand</a><a href="/small-business/">For small businesses</a><a href="/docs/">Documentation</a></div><div><h4>Backgrounds</h4>{"".join(f'<a href="{u}">{n}</a>' for u,n in LANDING_LINKS)}</div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
+<footer class="foot"><div class="wrap"><div class="fgrid"><div>{LOGO_REV}<p class="tag">Every meeting. On brand.</p></div><div><h4>Product</h4><a href="/#how">How it works</a><a href="/rooms/">Background rooms</a><a href="/#platforms">Platforms</a><a href="{APP}?src={slug}">Create MeetingBrand</a><a href="/small-business/">For small businesses</a><a href="/docs/">Documentation</a></div><div><h4>Backgrounds</h4>{"".join(f'<a href="{u}">{n}</a>' for u,n in LANDING_LINKS)}</div><div><h4>Company</h4><a href="/support/">Support</a><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a></div><div><h4>Contact</h4><a href="mailto:{SUPPORT}">{SUPPORT}</a><p class="muted small">Sister products: <a href="https://company-card.com">company-card.com</a> · <a href="https://prosignature.co">prosignature.co</a></p><p class="muted small">Machine-readable: <a href="/llms.txt">llms.txt</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/pricing.json">pricing.json</a></p></div></div><p class="muted small">© 2026 MeetingBrand. Zoom is a trademark of Zoom Video Communications, Inc.; Microsoft Teams of Microsoft Corporation; Google Meet of Google LLC. MeetingBrand is not affiliated with or endorsed by them.</p></div></footer>
+{BEACON_JS}
 </body>
 </html>
 '''
 LD=f'''<script type="application/ld+json">{{"@context":"https://schema.org","@graph":[
-{{"@type":"Organization","@id":"{SITE}/#org","name":"MeetingBrand","url":"{SITE}/","logo":"{SITE}/assets/logo.png","email":"{SUPPORT}","slogan":"Every meeting. On brand."}},
+{{"@type":"Organization","@id":"{SITE}/#org","name":"MeetingBrand","url":"{SITE}/","logo":"{SITE}/assets/logo.png","email":"{SUPPORT}","slogan":"Every meeting. On brand.","description":{DEF_JSON},"sameAs":{json.dumps(SAME_AS)}}},
 {{"@type":"WebSite","@id":"{SITE}/#site","url":"{SITE}/","name":"MeetingBrand","publisher":{{"@id":"{SITE}/#org"}}}},
 {{"@type":"SoftwareApplication","name":"MeetingBrand","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"{SITE}/","description":{DEF_JSON},"offers":{{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during early access"}},"publisher":{{"@id":"{SITE}/#org"}}}},
 {WEBPAGE_LD},
 {FAQ_LD}
 ]}}</script>'''
 # ---------- home
+def by_platform_html():   # B2: every landing page linked from the home page body, grouped by platform, Google Meet first
+    return '<div class="platlist">'+"".join(f'<div class="plat"><h3>{_t(plat)}</h3><ul>'+"".join(f'<li><a href="{p}">{_t(dict(LANDING_LINKS)[p])}</a> — {_t(LANDING_BLURB[p])}</li>' for p in ps)+'</ul></div>' for plat,ps in PLATFORM_PAGES)+'</div>'
 home=f'''
 <section class="hero"><div class="wrap herogrid">
   <div>
-  <p class="eyebrow">Branded virtual backgrounds at company scale</p>
-  <h1>Every meeting.<br>On brand.</h1>
+  <p class="eyebrow">Every meeting. On brand.</p>
+  <h1>Branded virtual backgrounds for your whole company</h1>
   <p class="lead">MeetingBrand creates realistic virtual backgrounds from your company website and delivers the approved ones to your team: {DELIVERY_TODAY}.</p>
   <div class="cta"><a class="btn big" href="{APP}">Create MeetingBrand</a><a class="btn ghost big" href="#how">See how it works</a></div>
   <p class="trust">Free during early access. No design work. No off-brand calls.</p>
@@ -217,9 +258,9 @@ home=f'''
   <h2>What "delivered" means on each platform</h2>
   <p class="lead narrow">No meeting platform lets a third party switch a person's active background by API — so we tell you exactly what happens where.</p>
   <div class="cards">
-    <div class="card"><h3>Microsoft Teams</h3><p>Today: the MeetingBrand Agent, installed once by IT through Intune or Jamf, places the background in the Teams gallery on Windows and Mac; each person picks it once and Teams keeps it. Coming: directory sync from Microsoft 365. Teams Premium tenants can also upload the image in the Teams admin center and require it.</p>{status_p("teams")}</div>
-    <div class="card"><h3>Google Meet</h3><p>Today: the MeetingBrand Chrome extension applies the background to the camera automatically, in the admin's own browser. Coming: force-install for every managed Chrome from the Google Admin console once the extension is listed on the Chrome Web Store, and directory sync from Google Workspace.</p>{status_p("meet")}</div>
-    <div class="card"><h3>Zoom</h3><p>Today: each person downloads the 1920×1080 file and sets it once in Zoom. Coming: MeetingBrand uploads it straight into each employee's own Zoom background library; they pick it once and it stays.</p>{status_p("zoom")}</div>
+    <div class="card"><h3>Google Meet</h3><p>Today: the MeetingBrand Chrome extension applies the background to the camera automatically, in the admin's own browser. Coming: force-install for every managed Chrome from the Google Admin console once the extension is listed on the Chrome Web Store, and directory sync from Google Workspace.</p><p class="card-links">Step by step: <a href="/google-meet-background-with-logo/">Google Meet background with logo</a></p>{status_p("meet")}</div>
+    <div class="card"><h3>Microsoft Teams</h3><p>Today: the MeetingBrand Agent, installed once by IT through Intune or Jamf, places the background in the Teams gallery on Windows and Mac; each person picks it once and Teams keeps it. Coming: directory sync from Microsoft 365. Teams Premium tenants can also upload the image in the Teams admin center and require it.</p><p class="card-links">Step by step: <a href="/teams-background-with-logo/">Teams background with logo</a> · <a href="/deploy-teams-backgrounds-intune/">deploy it with Intune or Jamf</a> · <a href="/teams-custom-background-without-premium/">without Teams Premium</a></p>{status_p("teams")}</div>
+    <div class="card"><h3>Zoom</h3><p>Today: each person downloads the 1920×1080 file and sets it once in Zoom. Coming: MeetingBrand uploads it straight into each employee's own Zoom background library; they pick it once and it stays.</p><p class="card-links">Step by step: <a href="/zoom-background-with-logo/">Zoom background with logo</a> · <a href="/zoom-background-with-name-and-title/">with each person's name and title</a></p>{status_p("zoom")}</div>
     <div class="card"><h3>Any other meeting app</h3><p>Every background downloads as a 1920×1080 PNG, with the optional name bar, and works in any meeting app that accepts a custom background image.</p></div>
   </div>
 </div></section>
@@ -229,7 +270,13 @@ home=f'''
   <div><h2>Your data stays yours.</h2><p>We use the names, emails, titles and departments you add to personalise backgrounds, and nothing else. Ask us and we delete your workspace. Details in the <a href="/privacy/">privacy policy</a>.</p></div>
 </div></section>
 
-<section id="faq" class="band"><div class="wrap prose faq">
+<section id="by-platform" class="band"><div class="wrap">
+  <h2>Backgrounds by platform</h2>
+  <p class="lead narrow">One page per platform and task: the steps, what MeetingBrand does there today, and the questions people ask.</p>
+  {by_platform_html()}
+</div></section>
+
+<section id="faq" class="band alt"><div class="wrap prose faq">
   <h2>Frequently asked questions</h2>
   {faq_html()}
   {VERIFIED_LINE}
@@ -243,50 +290,82 @@ home=f'''
 </div></section>
 '''
 thanks=f'''<section class="band"><div class="wrap narrow"><h1>Thanks — we got it.</h1><p class="lead">We will reply from {SUPPORT} within two business days. Meanwhile, the <a href="/docs/">documentation</a> shows what setup looks like on each platform.</p><a class="btn" href="/">Back to MeetingBrand</a></div></section>'''
-# ---------- docs
-docs=f'''
-<section class="band"><div class="wrap prose">
-<h1>Documentation</h1>
-<p class="lead">How MeetingBrand delivers to each platform today, what is coming, what your employees see, and how to remove it. Written for the admin and for IT.</p>
-<p>{_t(DEFINITION)}</p>
-{facts_table()}
-{VERIFIED_LINE}
-
-<h2 id="getting-started">Getting started</h2>
-<ol>
-<li><strong>Create MeetingBrand</strong> — open <a href="{APP}">the builder</a>, enter your company domain; review the logo, colors, scenes and sign treatments; set the name bar fields (name, title, department, company). Backgrounds are rendered in your browser; your brand kit and the backgrounds you save are stored with your account (see Data and security below).</li>
+# ---------- docs (B4 2026-11-01): the citable admin guide. H2s are questions; the FAQPage JSON-LD is built from the same (id, question, answer)
+# tuples, the answer being the first paragraph under each heading (plain text, rendered through _t); TechArticle + BreadcrumbList. ids #getting-started
+# #zoom #teams #meet #data kept (support/ deep-links them), + #intune and #remove. "Step-by-step page" links (B2) point at the landing pages.
+DOCS_TITLE="MeetingBrand Documentation: Teams, Meet & Zoom Delivery"
+DOCS_DESC="How IT deploys a branded virtual background to Microsoft Teams (Intune or Jamf), Google Meet (Chrome extension) and Zoom (download today), and removes it."
+assert len(DOCS_TITLE)<=60 and len(DOCS_DESC)<=155,(len(DOCS_TITLE),len(DOCS_DESC))
+TEAMS_UPLOADS_WIN="%LocalAppData%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Backgrounds\\Uploads"   # new Teams (meetingbrand-agent README)
+TEAMS_UPLOADS_MAC="~/Library/Containers/com.microsoft.teams2/Data/Library/Application Support/Microsoft/MSTeams/Backgrounds/Uploads"
+def lp_link(p): return f'<a href="{p}">{_t(dict(LANDING_LINKS)[p])}</a>'
+def steps_links(*ps): return '<p class="muted small">Step-by-step page'+("s" if len(ps)>1 else "")+': '+" · ".join(lp_link(p) for p in ps)+'</p>'
+DOCS=[
+ ("getting-started","How do I get started with MeetingBrand?",
+  f"Open the builder at {DOMAIN}{APP} and sign up with your work email; MeetingBrand fetches your company's public logo and brand colors from that domain and renders {len(STARTERS)} starter backgrounds. Pick the rooms and sign treatments the company should use, add your people by CSV (name, email, title, department), then deliver: Microsoft Teams through the MeetingBrand Agent, Google Meet through the MeetingBrand Chrome extension, Zoom and any other meeting app as a 1920×1080 PNG download.",
+  f'''<ol>
+<li><strong>Create MeetingBrand</strong> — open <a href="{APP}">the builder</a>, enter your company domain; review the logo, colors, scenes and sign treatments; set the name bar fields (name, title, department, company). Backgrounds are rendered in your browser; your brand kit and the backgrounds you save are stored with your account (see Where is the data stored below).</li>
 <li><strong>Add your people</strong> — My team → Upload users → upload a CSV with name, email, title and department. Directory sync from Microsoft 365 (Entra ID), Google Workspace and Zoom is coming; when it opens, MeetingBrand imports your people (name, email, title, department) with the permissions listed below. Write to <a href="mailto:{SUPPORT}">{SUPPORT}</a> to be scheduled for early access.</li>
 <li><strong>Deliver</strong> — Microsoft Teams: IT installs the MeetingBrand Agent with the Intune or Jamf script generated in My team (it carries your organization's enrollment key); each device is matched to a person by e-mail. Google Meet: the MeetingBrand Chrome extension, {MEET_TODAY}. Zoom and any other app: download the 1920×1080 PNG and set it once. My team shows each person's status: delivered, waiting for a restart, needs the employee's one click, or blocked (with the reason).</li>
 </ol>
-
-<h2 id="zoom">Zoom</h2>
-{status_p("zoom")}
-<p><strong>Today</strong>: each person downloads the 1920×1080 PNG from MeetingBrand and adds it once under Zoom Settings → Video &amp; effects → Virtual backgrounds; Zoom remembers it.</p>
-<p><strong>When the Zoom integration opens — permissions it will request</strong> (admin-managed app): list users; upload and delete virtual background files for users; read and update account settings related to virtual backgrounds. A Zoom account owner or admin authorizes once for the whole account; employees see no prompt.</p>
-<p><strong>What will happen then</strong>: each active employee's branded background is uploaded into their own Zoom virtual-background library (Zoom allows up to 10 files per user; we manage ours). After the upload the employee signs out and back in to Zoom, opens Settings → Video &amp; effects → Virtual backgrounds and picks the branded image once — Zoom remembers it. Admins can additionally turn on "Require users to always use virtual background" and disable personal uploads so the branded image is the only non-stock choice.</p>
-<p><strong>Removing MeetingBrand</strong> (once the integration is added): Zoom App Marketplace → Manage → Added Apps → MeetingBrand → Remove. MeetingBrand deletes the background files it uploaded and the directory data it synced for that account within 30 days (immediately on request to {SUPPORT}).</p>
-
-<h2 id="teams">Microsoft Teams</h2>
-{status_p("teams")}
+{steps_links("/virtual-background-generator/","/branded-virtual-background/")}'''),
+ ("teams","How does the MeetingBrand Agent deliver a Teams background without Teams Premium?",
+  f"Microsoft Teams has no API for meeting backgrounds, so the MeetingBrand Agent — a small helper for Windows and macOS that IT installs once with the Intune or Jamf script generated in My team — writes the approved 1920×1080 background into the Teams uploads folder on each device as <GUID>.png with a <GUID>_thumb.png next to it. After Teams restarts the image is under Effects and avatars → Backgrounds; the employee selects it once and Teams keeps it, and a later rebrand swaps the bytes under the same GUID. No Teams Premium licence is involved, and nothing switches anyone's active background.",
+  f'''{status_p("teams")}
 <p><strong>What happens today</strong>: Teams has no API for meeting backgrounds, so delivery goes to the employee's device through the <strong>MeetingBrand Agent</strong>, a small helper for Windows and macOS. IT installs it once with the Intune (Windows) or Jamf (macOS) script generated in My team, which carries your organization's enrollment key (it can also be installed by hand with that key). The Agent matches each device to a person by the signed-in e-mail, so people added by CSV are covered. The builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt. After Teams restarts, the branded image appears under Effects and avatars → Backgrounds; the employee selects it once and Teams keeps it, and later changes arrive without another step. Tenants with <strong>Teams Premium</strong> can also upload the downloaded image in the Teams admin center and set it as required.</p>
+<p><strong>Where the files go</strong>: Windows <code>{_t(TEAMS_UPLOADS_WIN)}</code>, macOS <code>{_t(TEAMS_UPLOADS_MAC)}</code>. New Teams lists a background only when both <code>&lt;GUID&gt;.png</code> (the 1920×1080 export) and <code>&lt;GUID&gt;_thumb.png</code> exist; the Agent verifies the export's sha256 before it renames the file into place, rewrites nothing when the bytes already match, and never touches any other file in that folder.</p>
 <p><strong>Coming — directory sync from Microsoft 365</strong>. Permissions it will request (Microsoft Entra ID, multitenant): <em>User.Read.All</em> (application) to read your directory — names, emails, job titles, departments — plus sign-in for the admin. A tenant administrator grants consent once; employees see no prompt.</p>
-<p><strong>Removing MeetingBrand</strong>: remove the Agent from Add/Remove programs (Windows) or the Applications folder (macOS), and revoke the device in My team. Once directory sync is connected: Entra admin center → Enterprise applications → MeetingBrand → Delete (revokes our access).</p>
-
-<h2 id="meet">Google Meet</h2>
-{status_p("meet")}
+{steps_links("/teams-background-with-logo/","/teams-custom-background-without-premium/")}'''),
+ ("intune","How do I deploy it with Intune (Windows) or Jamf (macOS)?",
+  "In My team, generate the Intune (Windows) or Jamf (macOS) script; it carries your organization's enrollment key. Intune: Devices → Scripts → Windows 10 and later, run using the logged-on credentials, 64-bit PowerShell. Jamf: a policy that runs the shell script as the console user. The script downloads the Agent, verifies its sha256, registers a per-user scheduled task (Windows) or LaunchAgent (macOS) that runs it at logon and every 4 hours, and runs it once; the Agent then matches the device to a person by the signed-in e-mail and writes the approved background into the Teams uploads folder. Pilot with a small group first: the builds are unsigned developer builds for now.",
+  f'''<p><strong>Before you roll it out</strong>: the user's Teams meeting policy must allow custom backgrounds (video filters set to all filters), and a user under a Teams Premium required-background policy belongs on the Premium track instead. macOS 27 needs an MDM privacy (PPPC) Full Disk Access profile for the Agent, or the write into the Teams container is reported as blocked in My team.</p>
+<p><strong>Removing or re-running</strong>: re-runs are idempotent (same bytes, nothing rewritten). To remove, see <a href="#remove">How do I remove MeetingBrand from a device</a>.</p>
+{steps_links("/deploy-teams-backgrounds-intune/","/teams-custom-background-without-premium/")}'''),
+ ("meet","How does the Chrome extension apply the background in Google Meet?",
+  "The MeetingBrand Chrome extension applies the branded background to the camera in Google Meet automatically. Today it is connected from the admin's own browser in My team, because enrollment uses the admin's key; once its Chrome Web Store listing is published, an admin force-installs it for every managed Chrome from the Google Admin console, so it applies for every employee. Anyone can also download the 1920×1080 PNG and upload it in Meet's backgrounds panel.",
+  f'''{status_p("meet")}
 <p><strong>What happens today</strong>: Meet has no API for backgrounds and does not remember a choice. The MeetingBrand Chrome extension applies the branded background to the camera in Google Meet automatically. Today it is connected from the admin's own browser in My team, because enrollment uses the admin's key; the extension is a developer package in the app until its Chrome Web Store listing is published. Anyone can also download the 1920×1080 PNG and upload it in Meet's backgrounds panel.</p>
 <p><strong>Coming</strong>: once the extension is listed on the Chrome Web Store, an admin force-installs it for every managed Chrome from the Google Admin console, so it applies for every employee. Directory sync from Google Workspace will request <em>View users on your domain</em> (Admin SDK Directory, read-only) to import names, emails, titles and departments; a Google Workspace administrator with the Users › Read privilege authorizes once.</p>
-<p><strong>Removing MeetingBrand</strong>: remove the extension from Chrome (or, once force-installed, from the Chrome force-install list in the Google Admin console). Once directory sync is connected: Google Admin → Security → API controls → Manage third-party app access → MeetingBrand → Remove.</p>
-
-
-<h2 id="data">Data and security</h2>
-<ul>
+{steps_links("/google-meet-background-with-logo/")}'''),
+ ("zoom","What happens in Zoom today?",
+  "Today each person downloads the 1920×1080 PNG from MeetingBrand and adds it once under Zoom Settings → Video & effects → Virtual backgrounds; Zoom remembers it. The Zoom integration — uploading the background into each employee's own Zoom background library — is built and awaits approval of its Zoom App Marketplace app.",
+  f'''{status_p("zoom")}
+<p><strong>When the Zoom integration opens — permissions it will request</strong> (admin-managed app): list users; upload and delete virtual background files for users; read and update account settings related to virtual backgrounds. A Zoom account owner or admin authorizes once for the whole account; employees see no prompt.</p>
+<p><strong>What will happen then</strong>: each active employee's branded background is uploaded into their own Zoom virtual-background library (Zoom allows up to 10 files per user; we manage ours). After the upload the employee signs out and back in to Zoom, opens Settings → Video &amp; effects → Virtual backgrounds and picks the branded image once — Zoom remembers it. Admins can additionally turn on "Require users to always use virtual background" and disable personal uploads so the branded image is the only non-stock choice.</p>
+{steps_links("/zoom-background-with-logo/","/zoom-background-with-name-and-title/")}'''),
+ ("remove","How do I remove MeetingBrand from a device?",
+  f"Microsoft Teams: remove the Agent from Add/Remove programs (Windows) or the Applications folder (macOS) and revoke the device in My team; the Agent deletes only the <GUID>.png and <GUID>_thumb.png pairs it wrote itself. Google Meet: remove the extension from Chrome, or from the force-install list in the Google Admin console once it is managed. Zoom: nothing is installed today; delete the PNG under Zoom Settings → Video & effects → Virtual backgrounds. For your whole workspace, write to {SUPPORT} and we delete it.",
+  f'''<ul>
+<li><strong>Microsoft Teams</strong>: remove the Agent from Add/Remove programs (Windows) or the Applications folder (macOS), and revoke the device in My team. Once directory sync is connected: Entra admin center → Enterprise applications → MeetingBrand → Delete (revokes our access).</li>
+<li><strong>Google Meet</strong>: remove the extension from Chrome (or, once force-installed, from the Chrome force-install list in the Google Admin console). Once directory sync is connected: Google Admin → Security → API controls → Manage third-party app access → MeetingBrand → Remove.</li>
+<li><strong>Zoom</strong> (once the integration is added): Zoom App Marketplace → Manage → Added Apps → MeetingBrand → Remove. MeetingBrand deletes the background files it uploaded and the directory data it synced for that account within 30 days (immediately on request to <a href="mailto:{SUPPORT}">{SUPPORT}</a>).</li>
+</ul>'''),
+ ("data","Where is the data stored?",
+  "With Supabase in Frankfurt (EU), protected by row-level access controls; this website is hosted on GitHub Pages. MeetingBrand stores the admin account details, the people fields you add (name, email, title, department), your brand assets, the rendered backgrounds and delivery records, and never reads meeting audio, video, chat or calendars. You can request full deletion at any time.",
+  f'''<ul>
 <li>We store: admin account details, the people fields you add (name, email, title, department), your brand assets, the rendered background images and delivery records; once directory sync is connected, also the OAuth tokens needed to keep it alive (encrypted at rest).</li>
 <li>We never read meeting content, recordings, chats or calendars.</li>
 <li>You can request full deletion at any time at <a href="mailto:{SUPPORT}">{SUPPORT}</a>; once directory sync is connected, disconnecting a platform deletes its synced data.</li>
 <li>Full details: <a href="/privacy/">Privacy policy</a> · <a href="/terms/">Terms of service</a>.</li>
-</ul>
+</ul>'''),
+]
+docs=f'''
+<section class="band"><div class="wrap prose">
+<h1>MeetingBrand documentation</h1>
+<p class="lead">How MeetingBrand delivers to each platform today, what is coming, what your employees see, and how to remove it. Written for the admin and for IT.</p>
+<p>{_t(DEFINITION)}</p>
+{facts_table()}
+{VERIFIED_LINE}
+<nav class="toc" aria-label="On this page"><ul>{"".join(f'<li><a href="#{i}">{_t(q)}</a></li>' for i,q,_,_ in DOCS)}</ul></nav>
+{"".join(f'<h2 id="{i}">{_t(q)}</h2><p>{_t(a)}</p>{x}' for i,q,a,x in DOCS)}
 </div></section>'''
+DOCS_LD='<script type="application/ld+json">'+json.dumps({"@context":"https://schema.org","@graph":[
+ {"@type":"Organization","@id":f"{SITE}/#org","name":"MeetingBrand","url":f"{SITE}/","logo":f"{SITE}/assets/logo.png","sameAs":SAME_AS},
+ {"@type":"TechArticle","@id":f"{SITE}/docs/#article","headline":DOCS_TITLE,"description":DOCS_DESC,"url":f"{SITE}/docs/","mainEntityOfPage":f"{SITE}/docs/","inLanguage":"en","datePublished":"2026-09-08","dateModified":max(FACTS_DATE,B_DATE).isoformat(),"author":{"@id":f"{SITE}/#org"},"publisher":{"@id":f"{SITE}/#org"},
+  "about":{"@type":"SoftwareApplication","name":"MeetingBrand","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":f"{SITE}{APP}","description":DEFINITION,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during early access"}}},
+ {"@type":"FAQPage","@id":f"{SITE}/docs/#faq","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}} for _,q,a,_ in DOCS]},
+ {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"MeetingBrand","item":f"{SITE}/"},{"@type":"ListItem","position":2,"name":"Documentation","item":f"{SITE}/docs/"}]},
+]},ensure_ascii=False,separators=(",",":")).replace("</","<\\/")+'</script>'
 # ---------- privacy
 privacy=f'''
 <section class="band"><div class="wrap prose">
@@ -469,9 +548,9 @@ STEP_PICK=("Pick the room and the sign",f"Choose from {R} office rooms and {T} s
 LP_DATE2=datetime.date(2026,10,20)
 LANDING=[
  dict(path="/teams-background-with-logo/",short="Teams",
-  title="Teams Background with Logo: Branded & Custom | MeetingBrand",
+  title="Teams Background with Logo: Free Generator | MeetingBrand",
   desc=f"Make a Microsoft Teams background with your company logo from your website: {R} office rooms, {T} sign treatments, 1920×1080 PNG. Free during early access.",
-  eyebrow="Microsoft Teams backgrounds",h1="Teams background with logo, made from your website",
+  eyebrow="Microsoft Teams backgrounds",h1="Microsoft Teams background with your company logo",
   answer=("To use a Teams background with your logo, add a 1920×1080 image that contains the logo in Microsoft Teams under Effects and avatars → Backgrounds → Add new, then select it. "
           f"MeetingBrand makes that image from your company website — your logo mounted as a real sign in one of {R} office rooms — and, for a whole company, places it in each employee's Teams background gallery through the MeetingBrand Agent."),
   hero="navy",gallery=["marble","loft"],
@@ -479,6 +558,8 @@ LANDING=[
    ("What makes a good branded Teams background",[
     "A branded Teams background works when the logo looks like it belongs in the room. A logo pasted over a flat color reads as wallpaper; a logo mounted on a wall — brass letters on walnut, a backlit plate on concrete — reads as an office. MeetingBrand renders the logo as a physical sign in the scene, in your brand colors, so the background looks credible on camera.",
     "Keep the logo in the upper part of the frame, where your head and shoulders do not cover it, and use a 16:9 image: MeetingBrand exports every background at 1920×1080. Teams shows your own preview mirrored, so the logo can look reversed to you; the people in the meeting see it the right way round."]),
+   ("Create a Teams background with your company logo — from your website, in minutes",[
+    f"Sign up at {DOMAIN}{APP} with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain, mounts the logo as a sign in one of {R} office rooms with {T} sign treatments, and exports a 1920×1080 PNG that Microsoft Teams accepts under Effects and avatars → Backgrounds → Add new. It is free during early access."]),
    ("A custom Teams background for one person, or for the whole company",[
     "One person can upload their own image in Teams under Backgrounds → Add new, unless their admin has turned custom images off. That is enough for a single user.",
     "For a company, every employee needs the same approved image. Tenants with Teams Premium can upload organization backgrounds in the Teams admin center and require them. Without Teams Premium, the MeetingBrand Agent — installed once by IT with the Intune or Jamf script generated in the app — places the approved background in each person's Teams background gallery on Windows and Mac; each person picks it once and Teams keeps it."]),
@@ -496,18 +577,19 @@ LANDING=[
    ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
   ]),
  dict(path="/zoom-background-with-logo/",short="Zoom",
-  title="Zoom Background with Logo, Name & Title | MeetingBrand",
-  desc=f"Create a branded Zoom background with your logo, name and title from your company website: {R} office rooms, 1920×1080 PNG. Free during early access.",
-  eyebrow="Zoom backgrounds",h1="Zoom background with logo, name and title",
+  title="Zoom Background with Logo: Free Generator | MeetingBrand",
+  desc=f"Create a Zoom background with your company logo, free: your logo as a real sign in {R} office rooms, 1920×1080 PNG. Add it once in Zoom.",
+  eyebrow="Zoom backgrounds",h1="Zoom background with your company logo",
+  see_also=("Need each person's name and title on it?","/zoom-background-with-name-and-title/"),
   answer=("To use a Zoom background with your logo, upload a 1920×1080 image that contains the logo once under Zoom Settings → Video & effects → Virtual backgrounds; Zoom remembers it. "
-          f"MeetingBrand creates that branded Zoom background from your company website — your logo as a real sign in one of {R} office rooms, with an optional name bar — and exports it as a PNG for every employee."),
+          f"MeetingBrand creates that branded Zoom background from your company website — your logo as a real sign in one of {R} office rooms — and exports it as a 1920×1080 PNG for every employee."),
   hero="loft",gallery=["sunset","stone"],
   sections=[
-   ("Create a Zoom background with your logo — without a designer",[
+   ("Create a Zoom background with your company logo — without a designer",[
     f"MeetingBrand starts from your domain: sign up with your work email and it fetches your public logo and brand colors, then renders {S} starter backgrounds automatically. From there you choose among {R} office rooms and {T} sign treatments, so the logo appears as brass letters, an oak sign, a backlit plate or LED signage on the wall instead of floating over a flat color.",
-    "The optional name bar adds each employee's name, title, department and company to the downloaded background, which makes a corporate Zoom background double as an introduction in sales and recruiting calls."]),
-   ("A corporate Zoom background for the whole team",[
-    "Add your people by CSV (name, email, title, department) and MeetingBrand prepares a personal 1920×1080 PNG for each of them. Today each person downloads the file and sets it once in Zoom. Zoom account admins can additionally turn on \"Require users to always use virtual background\" so the branded image stays on.",
+    "Because the logo is part of the room — on the concrete wall of a corner loft, beside a sunset window, on a marble reception wall — the result is an office Zoom background with your company logo, not a slide with a logo pasted in the corner."]),
+   ("A branded Zoom background for the whole team",[
+    "Add your people by CSV (name, email, title, department) and MeetingBrand prepares a 1920×1080 PNG for each of them in the same branded room, so the company looks the same in every call. Today each person downloads the file and sets it once in Zoom. Zoom account admins can additionally turn on \"Require users to always use virtual background\" so the branded image stays on.",
     "Zoom shows your own video mirrored by default, so your logo can look reversed to you; the other participants see it the right way round."]),
   ],
   steps=[STEP_CREATE,STEP_PICK,
@@ -517,13 +599,13 @@ LANDING=[
   facts=["Input","Rooms","Sign treatments","Name bar","Output","Zoom","Price"],
   faq=[
    ("How do I create a Zoom background with my company logo?",f"Sign up at {DOMAIN}{APP} with your work email. MeetingBrand fetches your logo and brand colors from your website, mounts the logo as a sign in one of {R} office rooms and exports a 1920×1080 PNG. Add it once under Zoom Settings → Video & effects → Virtual backgrounds."),
-   ("Can I put my name and title on a Zoom background?","Yes. MeetingBrand's optional name bar adds each employee's name, title, department and company to the downloaded background."),
+   ("Can I make an office Zoom background with my company logo?",f"Yes. MeetingBrand's {R} rooms are offices — a corner loft, a marble reception, an executive study — and your logo is mounted on the wall as a sign in your brand colors, so the background reads as your office rather than a slide. Download the 1920×1080 PNG and add it once in Zoom."),
    ("Does MeetingBrand put the background into Zoom automatically?",F["Zoom"]),
    ("Why does the logo on my Zoom background look backwards?","Zoom mirrors your own video preview by default. The other participants see the logo the right way round; you can turn mirroring off in Zoom's video settings to check."),
    ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
   ]),
  dict(path="/google-meet-background-with-logo/",short="Google Meet",
-  title="Google Meet Background with Logo | MeetingBrand",
+  title="Google Meet Background with Logo: Free | MeetingBrand",
   desc=f"Make a Google Meet custom background with your company logo from your website, applied by the MeetingBrand Chrome extension. Free during early access.",
   eyebrow="Google Meet backgrounds",h1="Google Meet background with logo",
   answer=("To use a Google Meet background with your logo, open Meet's backgrounds panel (Apply visual effects), upload a 1920×1080 image that contains the logo and select it. "
@@ -543,15 +625,17 @@ LANDING=[
   facts=["Input","Rooms","Sign treatments","Output","Google Meet","Price"],
   faq=[
    ("How do I add my company logo as a Google Meet background?","Create a 1920×1080 image that contains your logo — MeetingBrand makes one from your company website — then open Apply visual effects in Google Meet, upload the image and select it."),
+   ("Can you put a custom background on Google Meet?","Yes. Google Meet lets you upload your own background image under Apply visual effects, unless your Google Workspace admin has turned custom backgrounds off. Use a 1920×1080 image; MeetingBrand creates one with your company logo mounted as a sign on the wall."),
+   ("How do I create a virtual background for Google Meet?",f"Sign up at {DOMAIN}{APP} with your work email: MeetingBrand fetches your logo and brand colors from your website, mounts the logo as a sign in one of {R} office rooms and exports a 1920×1080 PNG. Open Apply visual effects in Meet, upload it and select it — or connect the MeetingBrand Chrome extension and the background is applied to the camera automatically."),
    ("Can a branded background apply in Google Meet automatically?","Yes, with the MeetingBrand Chrome extension, which applies the branded background to the camera in Google Meet automatically — "+MEET_TODAY+"."),
    ("Is the MeetingBrand Chrome extension on the Chrome Web Store?","Not yet. Until the listing is published the extension is a developer package in the app, connected from the admin's own browser; after it, an admin force-installs it for managed Chrome from the Google Admin console."),
    ("Can I upload a custom background in Google Meet without an extension?","Yes, unless your Google Workspace admin has turned custom backgrounds off: download the 1920×1080 PNG from MeetingBrand and upload it in Meet's backgrounds panel."),
    ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
   ]),
  dict(path="/virtual-background-generator/",short="Generator",
-  title="Virtual Background Generator from Your Logo | MeetingBrand",
+  title="Free Virtual Background Generator with Logo | MeetingBrand",
   desc=f"Free virtual background generator during early access: type your work email, get your logo as a sign in {R} office rooms. 1920×1080 for Teams, Zoom, Meet.",
-  eyebrow="Virtual background generator",h1="Virtual background generator for your brand",
+  eyebrow="Virtual background generator",h1=f"Free virtual background generator: your logo as a sign in {R} rooms",
   answer=(f"MeetingBrand is a virtual background generator that builds branded backgrounds from your company website: it fetches your logo and brand colors, mounts the logo as a sign in one of {R} realistic office rooms and exports 1920×1080 PNGs for Microsoft Teams, Zoom and Google Meet. "
           f"The generator runs in your browser at {DOMAIN}{APP} and is free during early access."),
   hero="marble",gallery=["loft","sunset","navy","meadow","stone"],
@@ -575,15 +659,16 @@ LANDING=[
    ("Which rooms and sign styles can I generate?",f"{R} built-in office rooms ({', '.join(ROOMS)}) and {T} sign treatments ({', '.join(TREATMENTS)})."),
   ]),
  # ---- SEO batch 2 (2026-10-20, skill meetingbrand-seo §1 priority 2) — same anatomy, same one-voice constants
- dict(path="/teams-custom-background-without-premium/",short="Teams",date=LP_DATE2,
+ dict(path="/teams-custom-background-without-premium/",short="Teams",date=LP_DATE2,kind="howto",
   title="Teams Custom Background Without Premium | MeetingBrand",
   desc="Use a custom Teams background without Teams Premium, and give the whole company one branded background with the MeetingBrand Agent. Free in early access.",
-  eyebrow="Microsoft Teams backgrounds",h1="Teams custom background without Premium",
+  eyebrow="Microsoft Teams backgrounds · IT how-to",h1="Teams custom background without Premium",
+  steps_h2="The procedure: one branded Teams background for everyone, without Teams Premium",truth_h2="With Teams Premium or with the MeetingBrand Agent: what changes",
   answer=("You do not need Teams Premium for a custom background in Microsoft Teams: any user can open Effects and avatars → Backgrounds → Add new and upload an image, unless their admin has turned custom images off. "
           "Teams Premium adds organization backgrounds that an admin uploads and requires centrally; without it, the MeetingBrand Agent places your company's branded background in each employee's Teams background gallery and they pick it once."),
   hero="marble",gallery=["navy","sunset"],
   sections=[
-   ("What Teams Premium adds — and what it does not",[
+   ("Teams Premium custom background: what Premium adds — and what it does not",[
     "Teams Premium lets an admin upload organization backgrounds in the Teams admin center and require them in meetings. Uploading your own custom image is part of standard Microsoft Teams and does not need Premium.",
     "So for most companies the question is not whether a custom Teams background is possible. It is how every employee gets the same approved, branded image — without buying Teams Premium and without emailing a file around and hoping people upload it."]),
    ("A company-wide Teams background without Teams Premium",[
@@ -591,9 +676,12 @@ LANDING=[
     "The MeetingBrand Agent, a small helper for Windows and macOS, delivers it. IT installs it once with the Intune (Windows) or Jamf (macOS) script generated in My team; the Agent matches each device to a person by e-mail, so people added by CSV are covered. After Teams restarts, the branded image is in Effects and avatars → Backgrounds; the employee selects it once, Teams keeps it, and later changes arrive without another step.",
     "What it does not do: it does not switch anyone's active background, because no meeting platform lets a third party do that by API. The Agent builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt."]),
   ],
-  steps=[STEP_CREATE,STEP_PICK,
-   ("Install the MeetingBrand Agent","Add your people by CSV in My team, generate the Intune or Jamf script and deploy it once. No Teams Premium licence is involved."),
-   ("Each person selects it once","In Teams, open Effects and avatars → Backgrounds: after Teams restarts the branded background is in the gallery. Select it once and Teams keeps it.")],
+  steps=[
+   ("Create the background",f"Open {DOMAIN}{APP} and sign up with your work email. MeetingBrand fetches your logo and brand colors from that domain and renders {S} starter backgrounds; pick the room and the sign treatment the company should use. No Teams Premium licence is involved at any step."),
+   ("Add your people","My team → Upload users → upload a CSV with name, email, title and department. The Agent later matches each device to a person by the signed-in e-mail."),
+   ("Install the MeetingBrand Agent once","In My team, create an enrollment key (<ENROLLMENT_KEY>, per tenant) and copy the Intune (Windows) or Jamf (macOS) script; deploy it to your devices. It installs the Agent per user and schedules it every 4 hours."),
+   ("Check a pilot device",f"After Teams restarts, the Agent has written <GUID>.png and <GUID>_thumb.png into {TEAMS_UPLOADS_WIN} (macOS: {TEAMS_UPLOADS_MAC}), and My team shows the person as delivered."),
+   ("Each person selects it once","In Teams, open Effects and avatars → Backgrounds (Video effects in a meeting): the branded background is in the gallery. Select it once and Teams keeps it; nothing switches it for them.")],
   platforms=["teams"],
   facts=["Input","Rooms","Output","Microsoft Teams","Price"],
   faq=[
@@ -601,12 +689,15 @@ LANDING=[
    ("What does Teams Premium add for backgrounds?","Organization backgrounds: an admin uploads approved images in the Teams admin center and can require them in meetings."),
    ("How does every employee get the same branded Teams background without Premium?","With the MeetingBrand Agent. IT installs it once with the Intune or Jamf script generated in MeetingBrand; it places the approved background in each person's Teams gallery, and each person picks it once. The Agent builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt."),
    ("Does MeetingBrand switch the active Teams background for employees?","No. No meeting platform lets a third party switch a person's active background by API. The Agent places the image in the Teams gallery; the employee selects it once and Teams keeps it."),
+   ("How do I deploy a custom Teams background to all users without Premium?",f"Put the image on each device. New Teams lists a background only when <GUID>.png and a matching <GUID>_thumb.png sit in {TEAMS_UPLOADS_WIN}; the MeetingBrand Agent writes that pair on every Windows and Mac after IT deploys it once with the Intune or Jamf script generated in My team, and each person selects the background once. No Teams Premium licence is involved."),
+   ("Why is there no option to add a custom background in Teams?","Usually because your organization's Teams meeting policy does not allow custom backgrounds (the video filters setting must allow all filters), or because you are under a Teams Premium required-background policy. Ask IT; once custom images are allowed, Add new appears under Effects and avatars → Backgrounds, and the MeetingBrand Agent can place the company background in that gallery for you."),
    ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
   ]),
- dict(path="/deploy-teams-backgrounds-intune/",short="Intune",date=LP_DATE2,
+ dict(path="/deploy-teams-backgrounds-intune/",short="Intune",date=LP_DATE2,kind="howto",
   title="Deploy Teams Backgrounds with Intune or Jamf | MeetingBrand",
   desc="Deploy a branded Teams background to every Windows and Mac with one Intune or Jamf script generated by MeetingBrand. Each employee picks it once. Free.",
-  eyebrow="Teams background deployment",h1="Deploy Teams backgrounds with Intune",
+  eyebrow="Teams background deployment · IT how-to",h1="Deploy Teams backgrounds with Intune or Jamf — no Teams Premium",
+  steps_h2="The procedure: deploy a branded Teams background with Intune or Jamf",truth_h2="With or without Teams Premium: what changes",
   answer=("Microsoft Teams has no API for meeting backgrounds, so deploying a branded Teams background to every employee means putting the image on each device. "
           "MeetingBrand does that with the MeetingBrand Agent: IT deploys it once with the Intune (Windows) or Jamf (macOS) script generated in the app, and the Agent places the approved background in each person's Teams background gallery, where they select it once."),
   hero="loft",gallery=["navy","marble"],
@@ -622,10 +713,13 @@ LANDING=[
     "The Agent does not switch anyone's active background: no meeting platform lets a third party do that by API. Each employee selects the branded background once and Teams keeps it.",
     "To remove it, uninstall the Agent from Add/Remove programs (Windows) or the Applications folder (macOS), and revoke the device in My team."]),
   ],
-  steps=[STEP_CREATE,STEP_PICK,
-   ("Add your people","My team → Upload users → upload a CSV with name, email, title and department."),
-   ("Generate and deploy the script","In My team, generate the Intune (Windows) or Jamf (macOS) script and deploy it to your devices once. It installs the MeetingBrand Agent with your organization's enrollment key."),
-   ("Employees select it once","After Teams restarts, each person opens Effects and avatars → Backgrounds and selects the branded background; Teams keeps it.")],
+  steps=[
+   ("Approve the background in MeetingBrand",f"Open {DOMAIN}{APP}, sign up with your work email and approve the room and sign treatment the company should use; MeetingBrand renders the 1920×1080 export the Agent will deliver."),
+   ("Add your people","My team → Upload users → upload a CSV with name, email, title and department. The Agent matches each device to a person by the signed-in e-mail."),
+   ("Generate the script with your enrollment key","My team → Agents → New enrollment key, then copy the Intune (Windows) or Jamf (macOS) script. The key is per tenant and appears in the script as <ENROLLMENT_KEY>; keep it out of tickets and chat."),
+   ("Deploy it once","Intune: Devices → Scripts → Windows 10 and later, run using the logged-on credentials, 64-bit PowerShell. Jamf: a policy that runs the shell script as the console user. The script downloads the Agent, verifies its sha256, registers a per-user scheduled task (Windows) or LaunchAgent (macOS) for logon and every 4 hours, and runs it once."),
+   ("Verify on a pilot device",f"After Teams restarts, {TEAMS_UPLOADS_WIN} (macOS: {TEAMS_UPLOADS_MAC}) holds <GUID>.png and <GUID>_thumb.png, and My team shows the person as delivered. Windows SmartScreen and macOS Gatekeeper prompt on the unsigned developer builds, so pilot with a small group first."),
+   ("Employees select it once","After Teams restarts, each person opens Effects and avatars → Backgrounds (Video effects in a meeting) and selects the branded background; Teams keeps it. A later rebrand swaps the bytes under the same GUID, so there is nothing to pick again.")],
   platforms=["teams"],
   facts=["Microsoft Teams","People","Output","Data","Price"],
   faq=[
@@ -634,6 +728,8 @@ LANDING=[
    ("What happens when we change the background?","Approve the new background in MeetingBrand; the Agent brings the change to each device without another deployment."),
    ("Will Windows or macOS warn about the Agent?","Yes, for now: the Agent builds are unsigned developer builds, so Windows SmartScreen and macOS Gatekeeper will prompt."),
    ("How do we remove it?","Uninstall the Agent from Add/Remove programs (Windows) or the Applications folder (macOS), and revoke the device in My team."),
+   ("How do I deploy a custom Teams background to all users?",f"Deliver the image file to each device: new Teams lists a background only when <GUID>.png and a matching <GUID>_thumb.png sit in {TEAMS_UPLOADS_WIN}. The MeetingBrand Agent writes that pair on every Windows and Mac after IT deploys it once with the Intune or Jamf script generated in My team; each person then selects the background once. Tenants with Teams Premium can instead upload organization backgrounds in the Teams admin center and require them."),
+   ("Why is there no option to add a custom background in Teams?","Usually because the Teams meeting policy does not allow custom backgrounds (the video filters setting must allow all filters), or because the user is under a Teams Premium required-background policy. With custom images allowed, Add new appears under Effects and avatars → Backgrounds, and the Agent-delivered background appears in that gallery after Teams restarts."),
   ]),
  dict(path="/zoom-background-with-name-and-title/",short="Name bar",date=LP_DATE2,
   title="Zoom Background with Name and Title | MeetingBrand",
@@ -666,7 +762,7 @@ LANDING=[
    ("Is MeetingBrand free?","Yes. MeetingBrand is free during early access."),
   ]),
  dict(path="/branded-virtual-background/",short="Branded",date=LP_DATE2,
-  title="Branded Virtual Background for Your Team | MeetingBrand",
+  title="Branded Virtual Background: Free Generator | MeetingBrand",
   desc=f"Branded virtual backgrounds from your website: your logo as a real sign in {R} office rooms, 1920×1080, for Teams, Zoom and Google Meet. Free early access.",
   eyebrow="Branded virtual backgrounds",h1="Branded virtual background for every meeting",
   answer=("A branded virtual background is a meeting background that carries your company's logo and brand colors, so everyone on the team appears in the same professional, on-brand setting in Microsoft Teams, Zoom or Google Meet. "
@@ -696,6 +792,47 @@ LANDING=[
   ]),
 ]
 PLATFORM_NAME={"teams":"Microsoft Teams","meet":"Google Meet","zoom":"Zoom"}
+# B3 (2026-11-01): the IT how-to blocks shared by the two Teams admin pages — written once, rendered on both (mechanics from meetingbrand-agent/README.md:
+# <GUID>.png + <GUID>_thumb.png in the new-Teams Uploads folder, sha256 check, idempotent re-runs, the employee picks it once).
+TEAMS_SCRIPT_SKELETON=f'''# What the MeetingBrand Agent does on each Windows device, as a PowerShell skeleton. The Intune or Jamf script generated in
+# My team installs the Agent with your enrollment key; the Agent then runs this logic at logon and every 4 hours. Redacted: <...> are per tenant.
+$OrgKey  = "<ENROLLMENT_KEY>"   # per tenant: MeetingBrand → My team → Agents → New enrollment key
+$Uploads = "$env:LOCALAPPDATA\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Backgrounds\\Uploads"   # the folder new Teams reads
+New-Item -ItemType Directory -Force -Path $Uploads | Out-Null
+# one approved background = one stable GUID and TWO files; without the _thumb, new Teams does not list it
+$Guid  = "<GUID>"
+$Png   = Join-Path $Uploads "$Guid.png"            # the 1920×1080 export
+$Thumb = Join-Path $Uploads "$($Guid)_thumb.png"   # 280×158 thumbnail
+$Want  = "<SHA256>"                                # announced by MeetingBrand for this export
+if ((Test-Path $Png) -and ((Get-FileHash $Png -Algorithm SHA256).Hash.ToLower() -eq $Want)) {{ exit 0 }}   # idempotent: same bytes, nothing to do
+Invoke-WebRequest -Uri "<SIGNED_EXPORT_URL>" -OutFile "$Png.tmp" -UseBasicParsing
+if ((Get-FileHash "$Png.tmp" -Algorithm SHA256).Hash.ToLower() -ne $Want) {{ Remove-Item "$Png.tmp"; throw "sha256 mismatch" }}
+Move-Item -Force "$Png.tmp" $Png                   # atomic swap: a rebrand replaces the bytes under the same GUID
+Invoke-WebRequest -Uri "<SIGNED_THUMB_URL>" -OutFile $Thumb -UseBasicParsing
+# Restart Teams. The employee picks the background once under Video effects — no script can switch the active background.'''
+EMPLOYEE_SEES=("Nothing happens until Teams restarts. Then the branded background is one more tile under Effects and avatars → Backgrounds (Video effects in a meeting), "
+ "with the thumbnail the Agent wrote next to it. The person picks it once and Teams keeps it for later meetings; nothing switches their active background for them, "
+ "because no meeting platform lets a third party do that by API. A later rebrand replaces the image behind the same tile, so there is nothing to pick again. "
+ "The Agent builds are unsigned developer builds for now, so a person who double-clicks the binary in a browser download would see Windows SmartScreen or macOS Gatekeeper; the scheduled task runs it without that prompt.")
+TEAMS_TRUTH=[   # (aspect, Teams Premium — organization backgrounds, Without Premium — the MeetingBrand Agent); restates FACTS / PLATFORM_STATUS["teams"]
+ ("Who provides the image","An admin uploads organization backgrounds in the Teams admin center.","The MeetingBrand Agent writes the approved background into each person's Teams Uploads folder as <GUID>.png with a <GUID>_thumb.png."),
+ ("Licence","Teams Premium add-on.","None beyond Microsoft Teams itself; MeetingBrand is free during early access."),
+ ("Can IT require it?","Yes: an organization background can be set as required.","No. The employee selects it once in Video effects and Teams keeps it."),
+ ("Switches the employee's active background?","No. No meeting platform lets a third party switch a person's active background by API.","No, same rule: the Agent places the image, the person picks it once."),
+ ("Prerequisite on the user","A Teams Premium licence; users under a required-background policy stay on this track.","A Teams meeting policy that allows custom backgrounds (video filters set to all filters); not under a Premium required-background policy."),
+ ("Rollout","Teams admin center meeting customization policy.","One Intune (Windows) or Jamf (macOS) script generated in My team; devices matched to people by the signed-in e-mail; unsigned developer builds for now (SmartScreen / Gatekeeper prompt)."),
+ ("A rebrand later","The admin uploads the new image in the admin center.","Approve the new background in MeetingBrand; the Agent swaps the bytes under the same GUID without another deployment."),
+]
+def teams_truth_table():
+    head='<thead><tr><th scope="col">Aspect</th><th scope="col">Teams Premium — organization backgrounds</th><th scope="col">Without Premium — MeetingBrand Agent</th></tr></thead>'
+    rows="".join(f'<tr><th scope="row">{_t(a)}</th><td data-h="Teams Premium">{_t(p)}</td><td data-h="Without Premium — MeetingBrand Agent">{_t(n)}</td></tr>' for a,p,n in TEAMS_TRUTH)
+    return f'<table class="facts truth"><caption>Teams Premium vs. without Premium, verified {FACTS_DATE_STR} against product build {PRODUCT_BUILD}</caption>{head}<tbody>{rows}</tbody></table>'
+def howto_blocks(L):
+    return (f'<h2 id="script">What lands on each device: the script skeleton</h2>'
+     f'<p>New Teams lists a background only when <code>&lt;GUID&gt;.png</code> and a matching <code>&lt;GUID&gt;_thumb.png</code> sit in <code>{_t(TEAMS_UPLOADS_WIN)}</code> (macOS: <code>{_t(TEAMS_UPLOADS_MAC)}</code>). This is what the MeetingBrand Agent does there, redacted to a skeleton; the Intune or Jamf script generated in My team installs the Agent with your enrollment key, and the Agent runs this logic at logon and every 4 hours. Re-runs are idempotent: when the bytes already match, nothing is rewritten.</p>'
+     f'<pre><code>{_t(TEAMS_SCRIPT_SKELETON)}</code></pre>'
+     f'<h2 id="employee">What the employee sees</h2><p>{_t(EMPLOYEE_SEES)}</p>'
+     f'<h2 id="premium">{_t(L.get("truth_h2","With or without Teams Premium: what changes"))}</h2>{teams_truth_table()}')
 def _fig(key,cls=""):
     f,c=IMG[key]
     return f'<figure{cls}><img src="/assets/{f}" alt="{_html.escape(c)} — a branded virtual background with the company logo as a sign, made with MeetingBrand" width="1600" height="900" loading="lazy"><figcaption>{_t(c)} — made with MeetingBrand</figcaption></figure>'
@@ -707,19 +844,23 @@ def lp_body(L):
     gal_html="".join(f'<div class="scenes{" pair" if len(r)==2 else ""}">'+"".join(_fig(k) for k in r)+'</div>' for r in rows)
     truth="".join(f'<div class="lp-truth"><h3>{PLATFORM_NAME[p]}</h3>{status_p(p)}</div>' for p in L["platforms"])
     facts_rows="".join(f'<tr><th scope="row">{_t(k)}</th><td>{_t(F[k])}</td></tr>' for k in L["facts"])
+    hero_fig=f'<figure class="lp-hero"><img src="/assets/{IMG[L["hero"]][0]}" alt="{_html.escape(L["h1"].split(",")[0])} — {_html.escape(IMG[L["hero"]][1])}, a MeetingBrand background with the company logo as a sign" width="1600" height="900" loading="eager"><figcaption>{_t(IMG[L["hero"]][1])} — one of {R} rooms, made with MeetingBrand</figcaption></figure>'
+    steps_ol=f'<h2 id="steps">{_t(L.get("steps_h2","How to make it — step by step"))}</h2><ol>{"".join(f"<li><strong>{_t(h)}.</strong> {_t(b)}</li>" for h,b in L["steps"])}</ol>'
+    see_also=(f'<p class="seealso"><strong>{_t(L["see_also"][0])}</strong> See <a href="{L["see_also"][1]}">{_t(dict(LANDING_LINKS)[L["see_also"][1]])}</a>.</p>' if L.get("see_also") else "")   # B1: the one-line hand-off between the two Zoom pages
+    if L.get("kind")=="howto":   # B3: IT how-to anatomy — the procedure first, then the script skeleton, the employee view, the Premium truth table, and only then what MeetingBrand is + the CTA
+        opening=(steps_ol+howto_blocks(L)
+         +f'<h2 id="what">What MeetingBrand does</h2><p>{_t(LP_DEF)}</p>'
+         +f'<div class="cta"><a class="btn big" href="{APP}">Open the generator — free</a><a class="btn ghost big" href="/docs/#intune">Read the documentation</a></div>'
+         +hero_fig+see_also+secs+chips+gal_html)
+    else:
+        opening=(f'<div class="cta"><a class="btn big" href="{APP}">Open the generator — free</a><a class="btn ghost big" href="#steps">See the steps</a></div>'
+         +hero_fig+f'<p>{_t(LP_DEF)}</p>'+see_also+secs+chips+gal_html+steps_ol)
     return f'''
 <section class="band"><div class="wrap prose">
 <p class="eyebrow">{_t(L["eyebrow"])}</p>
 <h1>{_t(L["h1"])}</h1>
 <p class="lead">{_t(L["answer"])}</p>
-<div class="cta"><a class="btn big" href="{APP}">Open the generator — free</a><a class="btn ghost big" href="#steps">See the steps</a></div>
-<figure class="lp-hero"><img src="/assets/{IMG[L["hero"]][0]}" alt="{_html.escape(L["h1"].split(",")[0])} — {_html.escape(IMG[L["hero"]][1])}, a MeetingBrand background with the company logo as a sign" width="1600" height="900" loading="eager"><figcaption>{_t(IMG[L["hero"]][1])} — one of {R} rooms, made with MeetingBrand</figcaption></figure>
-<p>{_t(LP_DEF)}</p>
-{secs}
-{chips}
-{gal_html}
-<h2 id="steps">How to make it — step by step</h2>
-<ol>{"".join(f"<li><strong>{_t(h)}.</strong> {_t(b)}</li>" for h,b in L["steps"])}</ol>
+{opening}
 <h2 id="platform-truth">What MeetingBrand does on {", ".join(PLATFORM_NAME[p] for p in L["platforms"])} today</h2>
 <p>No meeting platform lets a third party switch a person's active background by API, so here is exactly what happens, verified {FACTS_DATE_STR} against product build {PRODUCT_BUILD}.</p>
 {truth}
@@ -735,7 +876,7 @@ def lp_body(L):
 </div></section>'''
 def lp_ld(L):
     u=f"{SITE}{L['path']}"
-    g=[{"@type":"WebPage","@id":f"{u}#webpage","url":u,"name":L["title"],"description":L["desc"],"isPartOf":{"@id":f"{SITE}/#site"},"about":{"@id":f"{SITE}/#org"},"datePublished":L.get("date",LP_DATE).isoformat(),"dateModified":L.get("date",LP_DATE).isoformat(),"publisher":{"@id":f"{SITE}/#org"},"primaryImageOfPage":f"{SITE}/assets/{IMG[L['hero']][0]}"},
+    g=[{"@type":"WebPage","@id":f"{u}#webpage","url":u,"name":L["title"],"description":L["desc"],"isPartOf":{"@id":f"{SITE}/#site"},"about":{"@id":f"{SITE}/#org"},"datePublished":L.get("date",LP_DATE).isoformat(),"dateModified":max(L.get("date",LP_DATE),B_DATE).isoformat(),"publisher":{"@id":f"{SITE}/#org"},"primaryImageOfPage":f"{SITE}/assets/{IMG[L['hero']][0]}"},
        {"@type":"SoftwareApplication","name":"MeetingBrand","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":f"{SITE}{APP}","description":DEFINITION,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during early access"},"publisher":{"@id":f"{SITE}/#org"}},
        {"@type":"HowTo","name":L["h1"],"step":[{"@type":"HowToStep","position":i+1,"name":h,"text":b} for i,(h,b) in enumerate(L["steps"])]},
        {"@type":"FAQPage","@id":f"{u}#faq","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}} for q,a in L["faq"]]},
@@ -745,6 +886,8 @@ for L in LANDING:
     assert len(L["title"])<=60,(L["path"],len(L["title"]))
     assert len(L["desc"])<=155,(L["path"],len(L["desc"]))
     assert L["path"] in dict(LANDING_LINKS)
+    if L.get("see_also"): assert L["see_also"][1] in dict(LANDING_LINKS) and L["see_also"][1]!=L["path"]
+assert len({L["title"] for L in LANDING})==len(LANDING) and len({L["h1"] for L in LANDING})==len(LANDING),"two landing pages share a title or H1"   # B1: no cannibal pair
 notfound=f'''<section class="band"><div class="wrap narrow"><h1>Page not found</h1><p class="lead">The page may have moved. Start again from the <a href="/">home page</a>, the <a href="/docs/">documentation</a> or the <a href="{APP}">brand-set builder</a>.</p></div></section>'''
 # ---------- /b/: the public Share page per background (product v93, 2026-09-27). One HTML shell, indexable, canonical /b/ (the slug is a
 # query parameter, so the page is NOT in the sitemap); vanilla JS reads ?s=<slug>, calls the anonymous RPC mb.public_background(p_slug)
@@ -763,7 +906,7 @@ BADGE_SVG=f'''<svg xmlns="http://www.w3.org/2000/svg" width="220" height="52" vi
 </svg>
 '''
 open("assets/badge-official-background.svg","w",encoding="utf-8").write(BADGE_SVG)
-SHARE_HEAD=MB_CONFIG_BLOCK+'<meta name="robots" content="index,follow">'+f'''<style>
+SHARE_HEAD='<meta name="robots" content="index,follow">'+f'''<style>
 .shfig{{margin:28px 0 8px;border-radius:16px;overflow:hidden;border:1px solid var(--mist);background:var(--cloud);box-shadow:0 10px 30px rgba(3,20,54,.08)}}.shfig img{{width:100%;height:auto;display:block;aspect-ratio:16/9;object-fit:cover}}
 .shcap{{font-size:14px;color:var(--slate);margin:0 0 20px}}.shcap b{{color:var(--ink);font-weight:600}}
 .shask{{font-size:15px;color:var(--slate);margin:4px 0 24px}}
@@ -792,9 +935,9 @@ share_body=f'''<section class="band"><div class="wrap narrow" id="shareRoot" dat
  var C=window.__MB||{{}},U=String(C.supabaseUrl||''),K=String(C.supabaseAnonKey||''),SCH=String(C.schema||'mb'),SITE='{SITE}',BADGE=SITE+'/assets/badge-official-background.svg';
  var root=document.getElementById('shareRoot');function $(id){{return document.getElementById(id)}}function txt(id,s){{var e=$(id);if(e)e.textContent=s}}
  function esc(s){{return String(s==null?'':s).replace(/[&<>"']/g,function(c){{return {{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]}})}}
- function fallback(){{root.setAttribute('data-state','missing');document.title='This background isn’t shared — MeetingBrand';txt('shH1','This background isn’t shared');txt('shLead','The link may be old, or the organization turned sharing off. MeetingBrand creates branded meeting backgrounds from a company website in minutes.');$('shFig').hidden=true;$('shCap').hidden=true;$('shDl').hidden=true;$('shShare').hidden=true}}
+ function fallback(){{root.setAttribute('data-state','missing');var rb=document.querySelector('meta[name="robots"]');if(rb)rb.setAttribute('content','noindex');else{{rb=document.createElement('meta');rb.name='robots';rb.content='noindex';document.head.appendChild(rb)}}document.title='This background isn’t shared — MeetingBrand';txt('shH1','This background isn’t shared');txt('shLead','The link may be old, or the organization turned sharing off. MeetingBrand creates branded meeting backgrounds from a company website in minutes.');$('shFig').hidden=true;$('shCap').hidden=true;$('shDl').hidden=true;$('shShare').hidden=true}}
  function render(r){{var org=String(r.org_name||'').trim()||'This organization',slug=String(r.slug),url=SITE+'/b/?s='+encodeURIComponent(slug);
-  root.setAttribute('data-state','ok');document.title=org+' — official meeting background · MeetingBrand';
+  root.setAttribute('data-state','ok');document.title=org+' — official meeting background · MeetingBrand';var cn=document.querySelector('link[rel="canonical"]');if(!cn){{cn=document.createElement('link');cn.rel='canonical';document.head.appendChild(cn)}}cn.href=url;
   txt('shH1',org+' — official meeting background');txt('shLead','The approved virtual background '+org+' uses in video meetings — made with MeetingBrand from the company’s own logo and colors.');
   Array.prototype.forEach.call(document.querySelectorAll('.shOrg'),function(e){{e.textContent=org}});
   if(r.preview_path){{var im=$('shImg');im.onerror=function(){{$('shFig').hidden=true}};im.alt=org+' — official meeting background (preview)';im.src=U+'/storage/v1/object/public/mb-previews/'+String(r.preview_path).split('/').map(encodeURIComponent).join('/')+'?v='+(Date.parse(r.updated_at||'')||0);$('shFig').hidden=false}}
@@ -832,14 +975,15 @@ rooms_body=f'''
   <h1>{N_ROOMS} rooms for your branded virtual background</h1>
   <p class="lead narrow">Every room in MeetingBrand, shown here with the MeetingBrand logo on its default wall sign. When you create your background, your own logo and brand colors take its place, and you can move, resize and restyle the sign in each room.</p>
   <div class="cta"><a class="btn big" href="{APP}">Create MeetingBrand</a></div>
+  <p class="muted small">Make one with your own logo in the <a href="/virtual-background-generator/">virtual background generator</a>, or read what makes a <a href="/branded-virtual-background/">branded virtual background</a> look professional.</p>
   <div class="scenes rooms">{"".join(_room_fig(r) for r in GAL["rooms"])}</div>
   <p class="muted small">Each image is the product's own 1920×1080 export of that room (build {GAL["version"]}, rendered {GAL["rendered"]}), scaled down.</p>
 </div></section>'''
 pages={
  "rooms/index.html":(ROOMS_TITLE,ROOMS_DESC,rooms_body,"/rooms/",""),
- "index.html":("MeetingBrand | Branded Virtual Backgrounds for Teams","Create realistic branded virtual backgrounds from your company website. Delivered to Microsoft Teams by the MeetingBrand Agent and to Google Meet by the Chrome extension; Zoom coming. Free during early access.",home,"/",LD),
- "thanks/index.html":("Thanks — MeetingBrand","We received your early-access request.",thanks,"/thanks/",""),
- "docs/index.html":("Documentation — MeetingBrand","How MeetingBrand delivers to Microsoft Teams, Google Meet and Zoom today and what is coming, what employees see, and how to remove it.",docs,"/docs/",""),
+ "index.html":(HOME_TITLE,HOME_DESC,home,"/",LD),
+ "thanks/index.html":("Thanks — MeetingBrand","We received your early-access request.",thanks,"/thanks/",'<meta name="robots" content="noindex">'),   # B5: a two-sentence page, an orphan, never indexable
+ "docs/index.html":(DOCS_TITLE,DOCS_DESC,docs,"/docs/",DOCS_LD),
  "privacy/index.html":("Privacy policy — MeetingBrand","How MeetingBrand collects, uses, stores and deletes data from connected meeting platforms.",privacy,"/privacy/",""),
  "terms/index.html":("Terms of service — MeetingBrand","The agreement for using MeetingBrand.",terms,"/terms/",""),
  "small-business/index.html":(SMB_TITLE,SMB_DESC,smb,SMB_PATH,SMB_LD),
@@ -899,6 +1043,15 @@ p{{margin:0 0 1em}}a{{color:var(--vio)}}a:hover{{color:var(--vio-h)}}
 @media(max-width:900px){{.herogrid,.three,.scenes,.scenes.pair,.steps,.cards,.two,.fgrid{{grid-template-columns:1fr}}.nav nav a:not(.btn){{display:none}}.nav nav .btn{{white-space:nowrap;padding:9px 14px;font-size:14px}}.hero{{padding:56px 0 40px}}.band{{padding:56px 0}}.logo img{{width:140px}}}}
 '''
 css+=".scenes figcaption .added{display:block;font-size:12px;color:var(--slate);letter-spacing:0;text-transform:none}.more{margin:20px 0 0;font-weight:600}\n"   # v97: /rooms/
+# B2/B3/B4 (2026-11-01): platform list on the home page, step links in the cards, the how-to <pre> and truth table, the docs table of contents, the see-also line
+css+=(".card-links{margin:12px 0 0!important}.platlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 40px;margin-top:28px}.platlist h3{font-size:18px;margin:0 0 8px;color:var(--vio)}"
+ ".platlist ul{margin:0;padding-left:20px}.platlist li{margin-bottom:8px;color:#2B3A55;font-size:16px}"
+ ".prose code{background:var(--cloud);border:1px solid var(--mist);border-radius:6px;padding:1px 6px;font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}"
+ ".prose pre{background:var(--ink);color:#E6EAF2;border-radius:16px;padding:18px 20px;overflow-x:auto;font-size:13px;line-height:1.55;margin:16px 0 24px;max-width:100%}.prose pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit;white-space:pre;overflow-wrap:normal}"
+ ".truth thead th{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);font-weight:700;padding-right:12px}.truth th[scope=row]{width:150px}.truth td{padding-right:16px}"
+ ".toc{background:var(--cloud);border-radius:16px;padding:16px 22px;margin:24px 0}.toc ul{margin:0;padding-left:20px}.toc li{margin:4px 0;font-size:15.5px}"
+ ".seealso{background:var(--cloud);border-left:4px solid var(--cyan);padding:12px 16px;border-radius:0 12px 12px 0}\n"
+ "@media(max-width:900px){.platlist{grid-template-columns:1fr}.truth thead{display:none}.truth th[scope=row]{width:auto;padding-top:14px}.truth td{padding:6px 0}.truth td::before{content:attr(data-h);display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);font-weight:700}}\n")
 open("styles.css","w").write(css)
 # ---------- robots.txt: normal crawlers keep Allow: /; the AI-crawler block is the CompanyCard one (cc-work/robots.txt:9-46) verbatim.
 AI_BOTS=["GPTBot","OAI-SearchBot","ChatGPT-User","PerplexityBot","Perplexity-User","Google-Extended","ClaudeBot","Claude-User","Claude-SearchBot","Applebot-Extended","meta-externalagent","anthropic-ai","CCBot"]
@@ -933,7 +1086,9 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 {chr(10).join(f'- Q: {q}{chr(10)}  A: {a}' for q,a in SMB_FAQ)}
 
 ## Third-party profiles (for verification)
+- Source of this website, public repository: https://github.com/porshianboti-star/meetingbrand-site
 - Stated plainly: MeetingBrand is not yet listed on G2, Capterra, Product Hunt, AlternativeTo, Trustpilot or the Chrome Web Store, and has no ratings or reviews anywhere. Please do not attribute one.
+- Machine-readable companions: {SITE}/llms-full.txt (every landing page's definition, steps and FAQ, and the documentation Q&A) and {SITE}/pricing.json (the price as data, verified {FACTS_DATE_STR}).
 
 ## Pricing (published, as of September 2026)
 - Free during early access.
@@ -962,7 +1117,24 @@ open("llms.txt","w",encoding="utf-8").write(f'''# MeetingBrand
 - Not differentiators: a static branded wallpaper — Zoom, Teams and Meet all accept custom images natively, and digital-business-card products (including CompanyCard) also offer a simple branded background. MeetingBrand's claim is the realistic scene plus org-wide deployment and tracking, not the image file itself.
 - Trade-offs, stated plainly: Microsoft Teams and Google Meet have no background API, so delivery there depends on IT tooling (the Agent), the Chrome extension ({MEET_TODAY}) or one click by the employee; Zoom delivery and directory sync are coming; the product is in early access.
 ''')
-urls=[("/",FACTS_DATE.isoformat()),("/docs/",FACTS_DATE.isoformat()),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/",TERMS_DATE.isoformat()),("/support/",FACTS_DATE.isoformat()),(SMB_PATH,SMB_MODIFIED.isoformat()),("/rooms/",FACTS_DATE.isoformat())]+[(L["path"],L.get("date",LP_DATE).isoformat()) for L in LANDING]
+# ---------- B4 (2026-11-01): llms-full.txt = llms.txt + every landing page (URL, title, H1, answer, definition, HowTo steps, FAQ) + the /docs/ questions,
+# the same strings the HTML renders; pricing.json = the price as data (PRICE_PER_PERSON_USD is the FACTS "Price" row in numeric form).
+def _lp_txt(L):
+    out=[f"## {L['h1']}",f"URL: {SITE}{L['path']}",f"Title: {L['title']}","",L["answer"],"",LP_DEF,"","Steps:"]+[f"{i+1}. {h}. {b}" for i,(h,b) in enumerate(L["steps"])]
+    return "\n".join(out+["","FAQ:"]+[f"- Q: {q}\n  A: {a}" for q,a in L["faq"]])
+open("llms-full.txt","w",encoding="utf-8").write(open("llms.txt",encoding="utf-8").read().rstrip("\n")
+    +f"\n\n# Full text of the landing pages (identical to the HTML; facts verified {FACTS_DATE_STR} against product build {PRODUCT_BUILD})\n\n"
+    +"\n\n".join(_lp_txt(L) for L in LANDING)
+    +f"\n\n## {DOCS_TITLE}\nURL: {SITE}/docs/\n\n"+"\n".join(f"- Q: {q}\n  A: {a}" for _,q,a,_ in DOCS)
+    +f"\n\n## Teams Premium vs. without Premium (identical to the table on the two Teams admin pages)\n"+"\n".join(f"- {a}: Teams Premium — {p} Without Premium (MeetingBrand Agent) — {n}" for a,p,n in TEAMS_TRUTH)+"\n")
+PRICING={"product":"MeetingBrand","url":f"{SITE}/","app":f"{SITE}{APP}","currency":"USD","verified":FACTS_DATE.isoformat(),"product_build":PRODUCT_BUILD,
+ "plans":[{"id":"early-access","name":"Early access","price_per_month":PRICE_PER_PERSON_USD,"per":"person","seat_minimum":0,"sentence":F["Price"],
+  "includes":[f"{N_ROOMS} built-in office rooms and {len(TREATMENTS)} sign treatments","1920×1080 PNG export per background","Optional name bar per employee (CSV)","Microsoft Teams delivery through the MeetingBrand Agent","Google Meet delivery through the MeetingBrand Chrome extension"]}],
+ "pages":{"home":f"{SITE}/","docs":f"{SITE}/docs/","small_business":f"{SITE}{SMB_PATH}","rooms":f"{SITE}/rooms/","llms":f"{SITE}/llms.txt","llms_full":f"{SITE}/llms-full.txt",**{p.strip("/").replace("-","_"):f"{SITE}{p}" for p,_ in LANDING_LINKS}}}
+assert PRICING["plans"][0]["sentence"]=="Free during early access." and PRICE_PER_PERSON_USD==0
+open("pricing.json","w",encoding="utf-8").write(json.dumps(PRICING,ensure_ascii=False,indent=1)+"\n")
+SITE_MODIFIED=max(FACTS_DATE,B_DATE)
+urls=[("/",SITE_MODIFIED.isoformat()),("/docs/",SITE_MODIFIED.isoformat()),("/privacy/",PRIVACY_DATE.isoformat()),("/terms/",TERMS_DATE.isoformat()),("/support/",FACTS_DATE.isoformat()),(SMB_PATH,SMB_MODIFIED.isoformat()),("/rooms/",FACTS_DATE.isoformat())]+[(L["path"],max(L.get("date",LP_DATE),B_DATE).isoformat()) for L in LANDING]
 # Image sitemap (Google Images eligibility) — the six branded-background scenes
 # shown on the home page are the site's only images and are exactly what should
 # rank for "branded/company/zoom/teams virtual background" image queries.
@@ -1225,7 +1397,7 @@ def _one_voice_guard():
         ld=[json.loads(m.replace("<\\/","</")) for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>',t,re.S)]
         fq=[(e["name"],e["acceptedAnswer"]["text"]) for g in ld for n in g["@graph"] if n["@type"]=="FAQPage" for e in n["mainEntity"]]
         if not vis or vis!=fq: bad.append(f"{f}: visible FAQ != FAQPage JSON-LD")
-        if 'href="../app/"' not in t: bad.append(f"{f}: no CTA to /app/")
+        if 'href="../app/?src=' not in t: bad.append(f"{f}: no CTA to /app/")   # B6: every CTA carries ?src=<page-slug>
     home_html=open("index.html",encoding="utf-8").read(); hero=home_html[home_html.find('<section class="hero">'):home_html.find('</section>',home_html.find('<section class="hero">'))]
     if "automatically" in hero: bad.append("index.html: 'automatically' in the hero")
     if "Free during early access" not in hero: bad.append("index.html: no 'Free during early access' near the hero CTA")
@@ -1241,4 +1413,42 @@ def _one_voice_guard():
     if bad: raise SystemExit("ONE-VOICE GUARD FAILED:\n  "+"\n  ".join(bad))
     print("one-voice guard: PASS ("+str(len(outs))+" files)")
 _one_voice_guard()
+def _batch_b_guard():
+    """B1-B6 (2026-11-01): the new promises are checked the same way — in the generated output, never in the source."""
+    bad=[]
+    for L in LANDING:
+        f=L["path"].strip("/")+"/index.html"; t=open(f,encoding="utf-8").read()
+        if L.get("kind")=="howto":
+            if t.count("<pre>")!=1: bad.append(f"{f}: {t.count('<pre>')} <pre> blocks")
+            for need in ("MSTeams_8wekyb3d8bbwe","&lt;GUID&gt;_thumb.png","&lt;ENROLLMENT_KEY&gt;",'class="facts truth"'): 
+                if need not in t: bad.append(f"{f}: missing {need}")
+        if "no sign-up" in t.lower() or "no account" in t.lower(): bad.append(f"{f}: promises no sign-up before the lite mode ships")
+        if f'href="../app/?src={L["path"].strip("/")}"' not in t: bad.append(f"{f}: CTA src is not the page slug")
+    z=open("zoom-background-with-logo/index.html",encoding="utf-8").read()
+    if "name and title" in z.split("<h1>")[1].split("</h1>")[0] or "Name &amp; Title" in z.split("<title>")[1].split("</title>")[0]: bad.append("zoom-background-with-logo: still carries name and title in H1/title")
+    if 'href="../zoom-background-with-name-and-title/"' not in z: bad.append("zoom-background-with-logo: no hand-off link to the name-and-title page")
+    h=open("index.html",encoding="utf-8").read(); body=h.split("<main")[1].split("<footer")[0]
+    for u,_ in LANDING_LINKS:
+        if f'href="{u.lstrip("/")}"' not in body: bad.append(f"index.html: body does not link {u}")
+    d=open("docs/index.html",encoding="utf-8").read()
+    for i,q,a,_ in DOCS:
+        if f'id="{i}"' not in d or _t(q) not in d or f"<p>{_t(a)}</p>" not in d: bad.append(f"docs: section {i} text differs from its FAQPage answer")
+    for u,_ in LANDING_LINKS:
+        if f'href="{u.replace("/","",1).replace("/","")}/"' not in d and f'href="..{u}"' not in d: bad.append(f"docs: no link to {u}")
+    if '<meta name="robots" content="noindex">' not in open("thanks/index.html",encoding="utf-8").read(): bad.append("thanks: no noindex")
+    b=open("b/index.html",encoding="utf-8").read()
+    for need in ("rb.content='noindex'","cn.rel='canonical'",'<meta name="robots" content="index,follow">'): 
+        if need not in b: bad.append(f"b/index.html: missing {need}")
+    for f in list(pages):
+        t=open(f,encoding="utf-8").read()
+        if 'id="mb-config"' not in t or "rest/v1/events" not in t: bad.append(f"{f}: no config block / beacon")
+        nc=t.count('<link rel="canonical"')
+        if nc!=1: bad.append(f"{f}: {nc} canonicals")
+    json.load(open("pricing.json",encoding="utf-8"))
+    lf=open("llms-full.txt",encoding="utf-8").read()
+    for L in LANDING:
+        if L["h1"] not in lf or L["faq"][0][0] not in lf: bad.append(f"llms-full.txt: {L['path']} missing")
+    if bad: raise SystemExit("BATCH-B GUARD FAILED:\n  "+"\n  ".join(bad))
+    print("batch-B guard: PASS")
+_batch_b_guard()
 print("site generated:", sorted(p for p in pages))

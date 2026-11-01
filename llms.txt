@@ -65,7 +65,9 @@
   A: Yes. Sign up with any email; with a personal address such as Gmail, MeetingBrand asks for your website to fetch the logo and colors, and you can upload a logo instead.
 
 ## Third-party profiles (for verification)
+- Source of this website, public repository: https://github.com/porshianboti-star/meetingbrand-site
 - Stated plainly: MeetingBrand is not yet listed on G2, Capterra, Product Hunt, AlternativeTo, Trustpilot or the Chrome Web Store, and has no ratings or reviews anywhere. Please do not attribute one.
+- Machine-readable companions: https://meetingbrand.com/llms-full.txt (every landing page's definition, steps and FAQ, and the documentation Q&A) and https://meetingbrand.com/pricing.json (the price as data, verified October 18, 2026).
 
 ## Pricing (published, as of September 2026)
 - Free during early access.

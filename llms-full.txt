@@ -1,0 +1,349 @@
+# MeetingBrand
+
+> MeetingBrand is for small businesses, self-employed professionals and small teams who want everyone on brand in Microsoft Teams, Google Meet and Zoom calls; it is free during early access, so a 5-person team pays $0 (5 people × $0 per person = $0), with no seat minimum. Small-business guide: https://meetingbrand.com/small-business/
+
+> MeetingBrand is a web application that creates branded virtual backgrounds for video meetings from a company's website. An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 22 built-in office rooms, adds an optional name bar with each employee's name and title, and exports every background as a 1920×1080 image that works in Microsoft Teams, Google Meet, Zoom and any other meeting app that accepts custom backgrounds. Delivery is built in for Microsoft Teams through the MeetingBrand Agent and for Google Meet through the MeetingBrand Chrome extension (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing); Zoom delivery and directory sync are coming. MeetingBrand is free during early access and is made by the team behind CompanyCard (company-card.com) and ProSignature (prosignature.co).
+
+## Who it is for
+- Companies that want every employee on brand in customer-facing calls: Sales, Support, Recruiting, Leadership and distributed teams
+- Marketing teams that set the look once and IT admins who install one agent (Intune or Jamf) for the whole organization
+- Small and mid-sized businesses on Microsoft Teams, Google Meet and Zoom
+- Self-employed professionals and small teams: a 5-person team pays $0 during early access (5 people × $0 per person = $0); setup steps and FAQ at https://meetingbrand.com/small-business/
+
+## What MeetingBrand is
+- Category: branded virtual background / virtual background management software for video meetings (Microsoft Teams, Google Meet and Zoom).
+- Key facts: backgrounds are generated from the company website (logo + colors) rather than designed by hand; the logo is placed in the scene as a physical sign (brass, backlit letters, LED, oak, concrete) rather than floating over a wallpaper; a name bar shows each person's name and title on the downloaded background; delivery is managed from one panel (Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming); the brand-set builder runs in the browser.
+- Delivery is platform-specific and stated plainly (status verified October 18, 2026): Microsoft Teams — Live. The MeetingBrand Agent for Windows and macOS places the company's background in each person's Teams background gallery; IT installs it once with the Intune or Jamf script generated in the app, and people added by CSV are matched by e-mail. The employee picks the background once and Teams keeps it. The builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt. Directory sync from Microsoft 365 is coming. Google Meet — Live from the admin's browser. The MeetingBrand Chrome extension applies the branded background to the camera in Google Meet; today it is connected from the admin's own browser, because enrollment uses the admin's key. For every employee it follows the Chrome Web Store listing, which is not published yet: then an admin force-installs it for managed Chrome from the Google Admin console. Until then the extension is a developer package in the app. Zoom — Coming. The Zoom integration — uploading the background into each employee's own Zoom background library — is built and awaits approval of its Zoom App Marketplace app. Today each person downloads the 1920×1080 PNG and sets it once in Zoom. No meeting platform lets a third party switch a person's active background by API; MeetingBrand does not claim otherwise.
+- Status (October 18, 2026): early access. The product is live at https://meetingbrand.com/app/ (build v97); people are added by CSV today and directory sync is coming.
+
+## Facts (verified October 18, 2026 against product build v97; identical to the table on https://meetingbrand.com/#what and https://meetingbrand.com/docs/)
+- Category: Branded virtual background software for video meetings (Microsoft Teams, Google Meet, Zoom).
+- Input: Your company website. Sign up with a work email and MeetingBrand fetches the public logo and brand colors from that domain; you can also upload a logo.
+- Rooms: 22 built-in office rooms: City open space, Walnut executive wall, Tel Aviv sunset window, Stone & slats lounge, Tel Aviv beach window, Concrete gallery night, Manhattan skyline window, Forest window, Concrete corner loft, Brick creative loft, Navy executive study, Marble reception, Glass office corridor, Travertine lounge, Concrete open office, Oak skyline office, Charcoal wall oak office, Arched-window loft lounge, Sunset tower office, Alpine lake executive office, Farmhouse meadow studio, Stone farmhouse study.
+- Sign treatments: 14: Wall sign, Wall sticker, Silver letters, Brass letters, Oak letters, Washed wood, Black letters, Illuminated, Glass signage, Metal plaque, Backlit plate, 3D acrylic, LED signage, Wallpaper.
+- Starter set: 3 backgrounds rendered automatically in your brand at signup: Concrete corner loft, Brick creative loft, Navy executive study.
+- Name bar: Optional, per employee: name, title, department and company, on the downloaded background. The backgrounds the Agent and the extension deliver are the company look without a personal name bar.
+- Output: 1920×1080 PNG download per background, for any meeting app that accepts custom backgrounds.
+- Microsoft Teams: Live. The MeetingBrand Agent for Windows and macOS places the company's background in each person's Teams background gallery; IT installs it once with the Intune or Jamf script generated in the app, and people added by CSV are matched by e-mail. The employee picks the background once and Teams keeps it. The builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt. Directory sync from Microsoft 365 is coming.
+- Google Meet: Live from the admin's browser. The MeetingBrand Chrome extension applies the branded background to the camera in Google Meet; today it is connected from the admin's own browser, because enrollment uses the admin's key. For every employee it follows the Chrome Web Store listing, which is not published yet: then an admin force-installs it for managed Chrome from the Google Admin console. Until then the extension is a developer package in the app.
+- Zoom: Coming. The Zoom integration — uploading the background into each employee's own Zoom background library — is built and awaits approval of its Zoom App Marketplace app. Today each person downloads the 1920×1080 PNG and sets it once in Zoom.
+- People: Add people by CSV (name, email, title, department) from My team → Upload users. Directory sync from Microsoft 365 (Entra ID), Google Workspace and Zoom is coming.
+- Share pages: Any background can be published as a public page at meetingbrand.com/b/?s=<slug> — “<Company> — official meeting background” — with a preview, the date and an embed badge for the company website. The full-resolution file stays inside the workspace.
+- Price: Free during early access.
+- Data: Application data is stored with Supabase in Frankfurt (EU) with row-level access controls; this website is hosted on GitHub Pages. MeetingBrand never reads meeting audio, video, chat or calendars.
+- Company: Made by the team behind CompanyCard (company-card.com, digital business cards) and ProSignature (prosignature.co, email signatures). Support: support@meetingbrand.com.
+- Verified: October 18, 2026, against product build v97 at meetingbrand.com/app/.
+
+## FAQ (identical to the visible FAQ and the FAQPage JSON-LD on https://meetingbrand.com/#faq)
+- Q: What is MeetingBrand?
+  A: MeetingBrand is a web application that creates branded virtual backgrounds for video meetings from a company's website. An admin signs up with a work email; MeetingBrand fetches the company's public logo and brand colors from that domain, mounts the logo as a physical sign in any of 22 built-in office rooms, adds an optional name bar with each employee's name and title, and exports every background as a 1920×1080 image that works in Microsoft Teams, Google Meet, Zoom and any other meeting app that accepts custom backgrounds. Delivery is built in for Microsoft Teams through the MeetingBrand Agent and for Google Meet through the MeetingBrand Chrome extension (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing); Zoom delivery and directory sync are coming. MeetingBrand is free during early access and is made by the team behind CompanyCard (company-card.com) and ProSignature (prosignature.co).
+- Q: Is MeetingBrand free?
+  A: Yes. MeetingBrand is free during early access.
+- Q: Which meeting platforms does MeetingBrand deliver to?
+  A: Today: Microsoft Teams, through the MeetingBrand Agent (installed by Intune or Jamf), and Google Meet, through the MeetingBrand Chrome extension (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing). Zoom is coming: the integration is built and awaits approval of its Zoom App Marketplace app. Directory sync is coming; people are added by CSV today. Every background can also be downloaded as a 1920×1080 PNG and used in any meeting app that accepts custom backgrounds.
+- Q: How does MeetingBrand create a background from a website?
+  A: You sign up with a work email. MeetingBrand fetches your company's public logo and brand colors from that domain, renders 3 starter backgrounds in your brand automatically, and lets you pick from 22 built-in rooms and 14 sign treatments — brass, oak, backlit, LED, glass and more — with your logo mounted as a physical sign in the scene. Every background exports as a 1920×1080 image.
+- Q: Can an employee's background be applied automatically, without the employee doing anything?
+  A: Only on Google Meet, where the MeetingBrand Chrome extension applies the branded background to the camera automatically (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing). On Microsoft Teams the MeetingBrand Agent places the image in the person's background gallery and they pick it once; Teams keeps it. No meeting platform lets a third party switch a person's active background by API, so MeetingBrand does not claim to.
+- Q: What is a MeetingBrand share page?
+  A: A public page at meetingbrand.com/b/?s=<slug> that shows a company's approved meeting background — “<Company> — official meeting background” — with a preview, the date and an embed badge for the company website. An admin turns it on per background from the Live preview in the app; the full-resolution file stays inside the workspace.
+- Q: Where is MeetingBrand data stored?
+  A: With Supabase in Frankfurt (EU), protected by row-level access controls; this website is hosted on GitHub Pages. MeetingBrand reads names, emails, titles and departments to personalize backgrounds and never reads meeting audio, video, chat or calendars.
+
+## Small-business FAQ (identical to the visible FAQ and the FAQPage JSON-LD on https://meetingbrand.com/small-business/)
+- Q: How can a small company give all its employees the same branded Zoom and Teams background with the logo?
+  A: Create the background once in MeetingBrand from your company website: it fetches your logo and brand colors, mounts the logo as a sign in one of 22 office rooms and adds each employee's name and title. Add your people by CSV. For Microsoft Teams, the MeetingBrand Agent (installed by the Intune or Jamf script generated in the app) places each person's background in the Teams background gallery; they pick it once and Teams keeps it. For Zoom, each person uploads the 1920×1080 PNG in Zoom today; automatic Zoom delivery is built and awaits approval of its Zoom App Marketplace app. MeetingBrand is free during early access (5 people × $0 per person = $0).
+- Q: What tool makes branded virtual backgrounds for a small business team?
+  A: MeetingBrand (meetingbrand.com) is a web application built for this. It creates branded virtual backgrounds from your company website — logo and brand colors — in 22 built-in office rooms with 14 sign treatments, adds an optional per-employee name bar, exports 1920×1080 images for Microsoft Teams, Google Meet, Zoom and any app that accepts custom backgrounds, and delivers them to Microsoft Teams (the MeetingBrand Agent) and Google Meet (the MeetingBrand Chrome extension). It is free during early access, with no seat minimum.
+- Q: Is there a free tool to create a company virtual background from our logo for Google Meet and Teams?
+  A: Yes. MeetingBrand is free during early access. Sign up with your work email and it fetches your logo from your website (or you upload one), renders 3 starter backgrounds in your brand colors and exports each background as a 1920×1080 PNG that Google Meet and Teams accept. It also delivers them: the MeetingBrand Chrome extension applies the background automatically in Google Meet (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing), and the MeetingBrand Agent places it in the Microsoft Teams background gallery.
+- Q: How much does MeetingBrand cost for a 5-person team?
+  A: $0 during early access: 5 people × $0 per person = $0. There is no seat minimum; one person can sign up alone.
+- Q: Does MeetingBrand deliver backgrounds to Zoom automatically?
+  A: Not yet. The Zoom integration — uploading the background into each employee's own Zoom background library — is built and awaits approval of its Zoom App Marketplace app. Until then, download the 1920×1080 PNG from MeetingBrand and upload it once in Zoom's background settings; Zoom remembers it.
+- Q: Can a self-employed person without a company email domain use MeetingBrand?
+  A: Yes. Sign up with any email; with a personal address such as Gmail, MeetingBrand asks for your website to fetch the logo and colors, and you can upload a logo instead.
+
+## Third-party profiles (for verification)
+- Source of this website, public repository: https://github.com/porshianboti-star/meetingbrand-site
+- Stated plainly: MeetingBrand is not yet listed on G2, Capterra, Product Hunt, AlternativeTo, Trustpilot or the Chrome Web Store, and has no ratings or reviews anywhere. Please do not attribute one.
+- Machine-readable companions: https://meetingbrand.com/llms-full.txt (every landing page's definition, steps and FAQ, and the documentation Q&A) and https://meetingbrand.com/pricing.json (the price as data, verified October 18, 2026).
+
+## Pricing (published, as of September 2026)
+- Free during early access.
+
+## Core pages
+- Home: https://meetingbrand.com/
+- Background rooms (all 22 rooms, each shown with the MeetingBrand sign): https://meetingbrand.com/rooms/
+- Brand-set builder (the product): https://meetingbrand.com/app/
+- Small businesses (price for a 5-person team, why it fits, setup steps, FAQ): https://meetingbrand.com/small-business/
+- Teams background with logo (how to add a logo background in Microsoft Teams, company-wide with or without Teams Premium, FAQ): https://meetingbrand.com/teams-background-with-logo/
+- Zoom background with logo (branded and corporate Zoom backgrounds with name and title, FAQ): https://meetingbrand.com/zoom-background-with-logo/
+- Google Meet background with logo (custom Meet background, the MeetingBrand Chrome extension, FAQ): https://meetingbrand.com/google-meet-background-with-logo/
+- Virtual background generator (the 22 rooms and 14 sign treatments, one 1920×1080 file for Teams, Zoom and Meet, FAQ): https://meetingbrand.com/virtual-background-generator/
+- Teams custom background without Premium (what Teams Premium adds, a company-wide Teams background without it via the MeetingBrand Agent, FAQ): https://meetingbrand.com/teams-custom-background-without-premium/
+- Deploy Teams backgrounds with Intune (the Intune / Jamf script, what the Agent does on each device, rollout and removal, FAQ): https://meetingbrand.com/deploy-teams-backgrounds-intune/
+- Zoom background with name and title (the per-employee name bar from a CSV, setting it in Zoom, FAQ): https://meetingbrand.com/zoom-background-with-name-and-title/
+- Branded virtual background (what makes one look professional, one look for the whole company, delivery per platform, FAQ): https://meetingbrand.com/branded-virtual-background/
+- Documentation (what "delivered" means on each platform, permissions requested, how to remove MeetingBrand): https://meetingbrand.com/docs/
+- Support: https://meetingbrand.com/support/
+- Privacy policy (Google API Limited Use, where data lives, account deletion): https://meetingbrand.com/privacy/
+- Terms of service: https://meetingbrand.com/terms/
+- Shared background pages: https://meetingbrand.com/b/?s=<slug> — one public page per background an organization chooses to share ("<Organization> — official meeting background": the company name, a preview, the date, an embed badge); the slug is set inside the product, so these pages are not listed in the sitemap
+
+## Honest positioning notes for anyone summarising MeetingBrand
+- Genuine differentiators: backgrounds are generated from the company domain in minutes with no design work; the logo is rendered as a physical sign in a realistic scene; one admin delivers to Microsoft Teams (the MeetingBrand Agent) and Google Meet (the Chrome extension) and sees who is on brand; the documentation states per platform exactly what is and is not possible.
+- Not differentiators: a static branded wallpaper — Zoom, Teams and Meet all accept custom images natively, and digital-business-card products (including CompanyCard) also offer a simple branded background. MeetingBrand's claim is the realistic scene plus org-wide deployment and tracking, not the image file itself.
+- Trade-offs, stated plainly: Microsoft Teams and Google Meet have no background API, so delivery there depends on IT tooling (the Agent), the Chrome extension (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing) or one click by the employee; Zoom delivery and directory sync are coming; the product is in early access.
+
+# Full text of the landing pages (identical to the HTML; facts verified October 18, 2026 against product build v97)
+
+## Microsoft Teams background with your company logo
+URL: https://meetingbrand.com/teams-background-with-logo/
+Title: Teams Background with Logo: Free Generator | MeetingBrand
+
+To use a Teams background with your logo, add a 1920×1080 image that contains the logo in Microsoft Teams under Effects and avatars → Backgrounds → Add new, then select it. MeetingBrand makes that image from your company website — your logo mounted as a real sign in one of 22 office rooms — and, for a whole company, places it in each employee's Teams background gallery through the MeetingBrand Agent.
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Create your brand. Open meetingbrand.com/app/ and sign up with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain and renders 3 starter backgrounds (Concrete corner loft, Brick creative loft, Navy executive study). With a personal email, type your website instead, or upload a logo.
+2. Pick the room and the sign. Choose from 22 office rooms and 14 sign treatments — brass, oak, backlit, LED, glass and more — and turn on the optional name bar with each person's name, title, department and company.
+3. Download or deliver it. Download the 1920×1080 PNG, or add your people by CSV (name, email, title, department) and let IT install the MeetingBrand Agent with the Intune or Jamf script generated in My team.
+4. Select it in Teams. In Teams, open Effects and avatars → Backgrounds. With the Agent installed, the branded background is already in the gallery after Teams restarts; otherwise choose Add new and pick the PNG. Select it once and Teams keeps it.
+
+FAQ:
+- Q: How do I add a background with my company logo in Microsoft Teams?
+  A: Before or during a meeting, open Effects and avatars → Backgrounds, choose Add new and pick a 1920×1080 image that contains your logo, then select it. MeetingBrand creates that image from your company website; with the MeetingBrand Agent installed, the background is already in the Teams gallery and the person only selects it once.
+- Q: Can IT give the whole company the same branded Teams background?
+  A: Yes. Tenants with Teams Premium can upload organization backgrounds in the Teams admin center and require them. Any tenant can use the MeetingBrand Agent: IT installs it once with the Intune or Jamf script generated in MeetingBrand, it places the approved background in each person's Teams gallery, and each person picks it once. The Agent builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt.
+- Q: Do I need Teams Premium for a custom Teams background?
+  A: Not for your own background: anyone can upload an image in Teams under Backgrounds → Add new unless their admin has turned custom images off. Teams Premium adds admin-managed organization backgrounds. MeetingBrand's Agent delivers a company background without Teams Premium; the employee picks it once.
+- Q: What size should a Teams background with a logo be?
+  A: Use a 16:9 image. MeetingBrand exports every background as a 1920×1080 PNG and keeps the logo in the upper part of the frame, where your head does not cover it.
+- Q: Is MeetingBrand free?
+  A: Yes. MeetingBrand is free during early access.
+
+## Zoom background with your company logo
+URL: https://meetingbrand.com/zoom-background-with-logo/
+Title: Zoom Background with Logo: Free Generator | MeetingBrand
+
+To use a Zoom background with your logo, upload a 1920×1080 image that contains the logo once under Zoom Settings → Video & effects → Virtual backgrounds; Zoom remembers it. MeetingBrand creates that branded Zoom background from your company website — your logo as a real sign in one of 22 office rooms — and exports it as a 1920×1080 PNG for every employee.
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Create your brand. Open meetingbrand.com/app/ and sign up with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain and renders 3 starter backgrounds (Concrete corner loft, Brick creative loft, Navy executive study). With a personal email, type your website instead, or upload a logo.
+2. Pick the room and the sign. Choose from 22 office rooms and 14 sign treatments — brass, oak, backlit, LED, glass and more — and turn on the optional name bar with each person's name, title, department and company.
+3. Download the 1920×1080 PNG. Download the background for yourself, or add your team by CSV and download each person's background with their own name bar.
+4. Set it once in Zoom. Open Zoom Settings → Video & effects → Virtual backgrounds, add the PNG and select it. Zoom remembers it for the next meetings.
+
+FAQ:
+- Q: How do I create a Zoom background with my company logo?
+  A: Sign up at meetingbrand.com/app/ with your work email. MeetingBrand fetches your logo and brand colors from your website, mounts the logo as a sign in one of 22 office rooms and exports a 1920×1080 PNG. Add it once under Zoom Settings → Video & effects → Virtual backgrounds.
+- Q: Can I make an office Zoom background with my company logo?
+  A: Yes. MeetingBrand's 22 rooms are offices — a corner loft, a marble reception, an executive study — and your logo is mounted on the wall as a sign in your brand colors, so the background reads as your office rather than a slide. Download the 1920×1080 PNG and add it once in Zoom.
+- Q: Does MeetingBrand put the background into Zoom automatically?
+  A: Coming. The Zoom integration — uploading the background into each employee's own Zoom background library — is built and awaits approval of its Zoom App Marketplace app. Today each person downloads the 1920×1080 PNG and sets it once in Zoom.
+- Q: Why does the logo on my Zoom background look backwards?
+  A: Zoom mirrors your own video preview by default. The other participants see the logo the right way round; you can turn mirroring off in Zoom's video settings to check.
+- Q: Is MeetingBrand free?
+  A: Yes. MeetingBrand is free during early access.
+
+## Google Meet background with logo
+URL: https://meetingbrand.com/google-meet-background-with-logo/
+Title: Google Meet Background with Logo: Free | MeetingBrand
+
+To use a Google Meet background with your logo, open Meet's backgrounds panel (Apply visual effects), upload a 1920×1080 image that contains the logo and select it. MeetingBrand creates that image from your company website, and the MeetingBrand Chrome extension applies the branded background to the camera in Google Meet automatically — today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing.
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Create your brand. Open meetingbrand.com/app/ and sign up with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain and renders 3 starter backgrounds (Concrete corner loft, Brick creative loft, Navy executive study). With a personal email, type your website instead, or upload a logo.
+2. Pick the room and the sign. Choose from 22 office rooms and 14 sign treatments — brass, oak, backlit, LED, glass and more — and turn on the optional name bar with each person's name, title, department and company.
+3. Download or connect the extension. Download the 1920×1080 PNG, or connect the MeetingBrand Chrome extension from My team in your own browser.
+4. Use it in Google Meet. With the extension connected, the branded background is applied to the camera when you join. Without it, open Apply visual effects in Meet, upload the PNG and select it.
+
+FAQ:
+- Q: How do I add my company logo as a Google Meet background?
+  A: Create a 1920×1080 image that contains your logo — MeetingBrand makes one from your company website — then open Apply visual effects in Google Meet, upload the image and select it.
+- Q: Can you put a custom background on Google Meet?
+  A: Yes. Google Meet lets you upload your own background image under Apply visual effects, unless your Google Workspace admin has turned custom backgrounds off. Use a 1920×1080 image; MeetingBrand creates one with your company logo mounted as a sign on the wall.
+- Q: How do I create a virtual background for Google Meet?
+  A: Sign up at meetingbrand.com/app/ with your work email: MeetingBrand fetches your logo and brand colors from your website, mounts the logo as a sign in one of 22 office rooms and exports a 1920×1080 PNG. Open Apply visual effects in Meet, upload it and select it — or connect the MeetingBrand Chrome extension and the background is applied to the camera automatically.
+- Q: Can a branded background apply in Google Meet automatically?
+  A: Yes, with the MeetingBrand Chrome extension, which applies the branded background to the camera in Google Meet automatically — today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing.
+- Q: Is the MeetingBrand Chrome extension on the Chrome Web Store?
+  A: Not yet. Until the listing is published the extension is a developer package in the app, connected from the admin's own browser; after it, an admin force-installs it for managed Chrome from the Google Admin console.
+- Q: Can I upload a custom background in Google Meet without an extension?
+  A: Yes, unless your Google Workspace admin has turned custom backgrounds off: download the 1920×1080 PNG from MeetingBrand and upload it in Meet's backgrounds panel.
+- Q: Is MeetingBrand free?
+  A: Yes. MeetingBrand is free during early access.
+
+## Free virtual background generator: your logo as a sign in 22 rooms
+URL: https://meetingbrand.com/virtual-background-generator/
+Title: Free Virtual Background Generator with Logo | MeetingBrand
+
+MeetingBrand is a virtual background generator that builds branded backgrounds from your company website: it fetches your logo and brand colors, mounts the logo as a sign in one of 22 realistic office rooms and exports 1920×1080 PNGs for Microsoft Teams, Zoom and Google Meet. The generator runs in your browser at meetingbrand.com/app/ and is free during early access.
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Create your brand. Open meetingbrand.com/app/ and sign up with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain and renders 3 starter backgrounds (Concrete corner loft, Brick creative loft, Navy executive study). With a personal email, type your website instead, or upload a logo.
+2. Pick the room and the sign. Choose from 22 office rooms and 14 sign treatments — brass, oak, backlit, LED, glass and more — and turn on the optional name bar with each person's name, title, department and company.
+3. Add your people (optional). My team → Upload users → upload a CSV with name, email, title and department to generate a personal background with a name bar for each employee.
+4. Download or deliver. Download each 1920×1080 PNG, or deliver to Microsoft Teams with the MeetingBrand Agent and to Google Meet with the Chrome extension.
+
+FAQ:
+- Q: Is there a free virtual background generator that uses my company logo?
+  A: Yes. MeetingBrand is free during early access. Sign up with your work email and it fetches your logo and brand colors from your website (or you upload a logo), renders 3 starter backgrounds and lets you generate more in 22 office rooms.
+- Q: Do I need an account to use the generator?
+  A: Yes, a free account: sign up with a work email, or with any email plus your website. Your brand kit and the backgrounds you save are stored with your account so you can reuse and update them.
+- Q: Can I make a custom Zoom background for free?
+  A: Yes. MeetingBrand exports each background as a 1920×1080 PNG, free during early access; add it once under Zoom Settings → Video & effects → Virtual backgrounds.
+- Q: Does the generator work as a Teams background generator too?
+  A: Yes. The same PNG works in Microsoft Teams under Effects and avatars → Backgrounds → Add new, and the MeetingBrand Agent can place it in every employee's Teams gallery.
+- Q: Which rooms and sign styles can I generate?
+  A: 22 built-in office rooms (City open space, Walnut executive wall, Tel Aviv sunset window, Stone & slats lounge, Tel Aviv beach window, Concrete gallery night, Manhattan skyline window, Forest window, Concrete corner loft, Brick creative loft, Navy executive study, Marble reception, Glass office corridor, Travertine lounge, Concrete open office, Oak skyline office, Charcoal wall oak office, Arched-window loft lounge, Sunset tower office, Alpine lake executive office, Farmhouse meadow studio, Stone farmhouse study) and 14 sign treatments (Wall sign, Wall sticker, Silver letters, Brass letters, Oak letters, Washed wood, Black letters, Illuminated, Glass signage, Metal plaque, Backlit plate, 3D acrylic, LED signage, Wallpaper).
+
+## Teams custom background without Premium
+URL: https://meetingbrand.com/teams-custom-background-without-premium/
+Title: Teams Custom Background Without Premium | MeetingBrand
+
+You do not need Teams Premium for a custom background in Microsoft Teams: any user can open Effects and avatars → Backgrounds → Add new and upload an image, unless their admin has turned custom images off. Teams Premium adds organization backgrounds that an admin uploads and requires centrally; without it, the MeetingBrand Agent places your company's branded background in each employee's Teams background gallery and they pick it once.
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Create the background. Open meetingbrand.com/app/ and sign up with your work email. MeetingBrand fetches your logo and brand colors from that domain and renders 3 starter backgrounds; pick the room and the sign treatment the company should use. No Teams Premium licence is involved at any step.
+2. Add your people. My team → Upload users → upload a CSV with name, email, title and department. The Agent later matches each device to a person by the signed-in e-mail.
+3. Install the MeetingBrand Agent once. In My team, create an enrollment key (<ENROLLMENT_KEY>, per tenant) and copy the Intune (Windows) or Jamf (macOS) script; deploy it to your devices. It installs the Agent per user and schedules it every 4 hours.
+4. Check a pilot device. After Teams restarts, the Agent has written <GUID>.png and <GUID>_thumb.png into %LocalAppData%\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads (macOS: ~/Library/Containers/com.microsoft.teams2/Data/Library/Application Support/Microsoft/MSTeams/Backgrounds/Uploads), and My team shows the person as delivered.
+5. Each person selects it once. In Teams, open Effects and avatars → Backgrounds (Video effects in a meeting): the branded background is in the gallery. Select it once and Teams keeps it; nothing switches it for them.
+
+FAQ:
+- Q: Can I use a custom background in Teams without Teams Premium?
+  A: Yes. Any Teams user can open Effects and avatars → Backgrounds → Add new and upload an image, unless their admin has turned custom images off. Teams Premium is needed only for admin-managed organization backgrounds.
+- Q: What does Teams Premium add for backgrounds?
+  A: Organization backgrounds: an admin uploads approved images in the Teams admin center and can require them in meetings.
+- Q: How does every employee get the same branded Teams background without Premium?
+  A: With the MeetingBrand Agent. IT installs it once with the Intune or Jamf script generated in MeetingBrand; it places the approved background in each person's Teams gallery, and each person picks it once. The Agent builds are unsigned developer builds for now, so Windows SmartScreen and macOS Gatekeeper will prompt.
+- Q: Does MeetingBrand switch the active Teams background for employees?
+  A: No. No meeting platform lets a third party switch a person's active background by API. The Agent places the image in the Teams gallery; the employee selects it once and Teams keeps it.
+- Q: How do I deploy a custom Teams background to all users without Premium?
+  A: Put the image on each device. New Teams lists a background only when <GUID>.png and a matching <GUID>_thumb.png sit in %LocalAppData%\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads; the MeetingBrand Agent writes that pair on every Windows and Mac after IT deploys it once with the Intune or Jamf script generated in My team, and each person selects the background once. No Teams Premium licence is involved.
+- Q: Why is there no option to add a custom background in Teams?
+  A: Usually because your organization's Teams meeting policy does not allow custom backgrounds (the video filters setting must allow all filters), or because you are under a Teams Premium required-background policy. Ask IT; once custom images are allowed, Add new appears under Effects and avatars → Backgrounds, and the MeetingBrand Agent can place the company background in that gallery for you.
+- Q: Is MeetingBrand free?
+  A: Yes. MeetingBrand is free during early access.
+
+## Deploy Teams backgrounds with Intune or Jamf — no Teams Premium
+URL: https://meetingbrand.com/deploy-teams-backgrounds-intune/
+Title: Deploy Teams Backgrounds with Intune or Jamf | MeetingBrand
+
+Microsoft Teams has no API for meeting backgrounds, so deploying a branded Teams background to every employee means putting the image on each device. MeetingBrand does that with the MeetingBrand Agent: IT deploys it once with the Intune (Windows) or Jamf (macOS) script generated in the app, and the Agent places the approved background in each person's Teams background gallery, where they select it once.
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Approve the background in MeetingBrand. Open meetingbrand.com/app/, sign up with your work email and approve the room and sign treatment the company should use; MeetingBrand renders the 1920×1080 export the Agent will deliver.
+2. Add your people. My team → Upload users → upload a CSV with name, email, title and department. The Agent matches each device to a person by the signed-in e-mail.
+3. Generate the script with your enrollment key. My team → Agents → New enrollment key, then copy the Intune (Windows) or Jamf (macOS) script. The key is per tenant and appears in the script as <ENROLLMENT_KEY>; keep it out of tickets and chat.
+4. Deploy it once. Intune: Devices → Scripts → Windows 10 and later, run using the logged-on credentials, 64-bit PowerShell. Jamf: a policy that runs the shell script as the console user. The script downloads the Agent, verifies its sha256, registers a per-user scheduled task (Windows) or LaunchAgent (macOS) for logon and every 4 hours, and runs it once.
+5. Verify on a pilot device. After Teams restarts, %LocalAppData%\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads (macOS: ~/Library/Containers/com.microsoft.teams2/Data/Library/Application Support/Microsoft/MSTeams/Backgrounds/Uploads) holds <GUID>.png and <GUID>_thumb.png, and My team shows the person as delivered. Windows SmartScreen and macOS Gatekeeper prompt on the unsigned developer builds, so pilot with a small group first.
+6. Employees select it once. After Teams restarts, each person opens Effects and avatars → Backgrounds (Video effects in a meeting) and selects the branded background; Teams keeps it. A later rebrand swaps the bytes under the same GUID, so there is nothing to pick again.
+
+FAQ:
+- Q: Can I deploy Teams backgrounds with Intune?
+  A: Yes. MeetingBrand generates an Intune script for Windows and a Jamf script for macOS in My team. It installs the MeetingBrand Agent, which places the company's approved background in each person's Teams background gallery; each person selects it once and Teams keeps it.
+- Q: Do I need Teams Premium to deploy a company Teams background?
+  A: No. Teams Premium lets an admin upload organization backgrounds in the Teams admin center; without it, the MeetingBrand Agent delivers the background to each device.
+- Q: What happens when we change the background?
+  A: Approve the new background in MeetingBrand; the Agent brings the change to each device without another deployment.
+- Q: Will Windows or macOS warn about the Agent?
+  A: Yes, for now: the Agent builds are unsigned developer builds, so Windows SmartScreen and macOS Gatekeeper will prompt.
+- Q: How do we remove it?
+  A: Uninstall the Agent from Add/Remove programs (Windows) or the Applications folder (macOS), and revoke the device in My team.
+- Q: How do I deploy a custom Teams background to all users?
+  A: Deliver the image file to each device: new Teams lists a background only when <GUID>.png and a matching <GUID>_thumb.png sit in %LocalAppData%\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads. The MeetingBrand Agent writes that pair on every Windows and Mac after IT deploys it once with the Intune or Jamf script generated in My team; each person then selects the background once. Tenants with Teams Premium can instead upload organization backgrounds in the Teams admin center and require them.
+- Q: Why is there no option to add a custom background in Teams?
+  A: Usually because the Teams meeting policy does not allow custom backgrounds (the video filters setting must allow all filters), or because the user is under a Teams Premium required-background policy. With custom images allowed, Add new appears under Effects and avatars → Backgrounds, and the Agent-delivered background appears in that gallery after Teams restarts.
+
+## Zoom background with name and title
+URL: https://meetingbrand.com/zoom-background-with-name-and-title/
+Title: Zoom Background with Name and Title | MeetingBrand
+
+A Zoom virtual background is a single image, so to show your name and title on it they have to be part of that image. MeetingBrand adds an optional name bar — name, title, department and company — to a branded 1920×1080 background with your logo; you add the PNG once under Zoom Settings → Video & effects → Virtual backgrounds.
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Create your brand. Open meetingbrand.com/app/ and sign up with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain and renders 3 starter backgrounds (Concrete corner loft, Brick creative loft, Navy executive study). With a personal email, type your website instead, or upload a logo.
+2. Pick the room and the sign. Choose from 22 office rooms and 14 sign treatments — brass, oak, backlit, LED, glass and more — and turn on the optional name bar with each person's name, title, department and company.
+3. Add names and titles. My team → Upload users → upload a CSV with name, email, title and department; each person gets their own background with a name bar.
+4. Set it once in Zoom. Open Zoom Settings → Video & effects → Virtual backgrounds, add the PNG and select it. Zoom remembers it for the next meetings.
+
+FAQ:
+- Q: How do I put my name and title on a Zoom background?
+  A: Use a background image that contains them. In MeetingBrand, turn on the name bar (name, title, department, company), download the 1920×1080 PNG and add it once under Zoom Settings → Video & effects → Virtual backgrounds.
+- Q: Can I make name-and-title backgrounds for the whole team at once?
+  A: Yes. Upload a CSV with name, email, title and department in My team → Upload users, and MeetingBrand prepares a personal background with a name bar for each person.
+- Q: Why does the text on my Zoom background look backwards?
+  A: Zoom mirrors your own video preview by default. The other participants see the name and title the right way round; you can turn mirroring off in Zoom's video settings to check.
+- Q: Does the name bar work in Microsoft Teams and Google Meet too?
+  A: Yes, on the downloaded PNG, which works in any meeting app that accepts a custom background. The backgrounds the MeetingBrand Agent (Teams) and the Chrome extension (Google Meet) deliver are the company look without a personal name bar.
+- Q: Is MeetingBrand free?
+  A: Yes. MeetingBrand is free during early access.
+
+## Branded virtual background for every meeting
+URL: https://meetingbrand.com/branded-virtual-background/
+Title: Branded Virtual Background: Free Generator | MeetingBrand
+
+A branded virtual background is a meeting background that carries your company's logo and brand colors, so everyone on the team appears in the same professional, on-brand setting in Microsoft Teams, Zoom or Google Meet. MeetingBrand creates them from your company website — your logo mounted as a physical sign in one of 22 office rooms — and delivers them to Teams through the MeetingBrand Agent and to Google Meet through the Chrome extension (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing).
+
+MeetingBrand creates branded Microsoft Teams, Google Meet and Zoom backgrounds from a company's website: it fetches the logo and brand colors, mounts the logo as a physical sign in one of 22 realistic office rooms and exports each background as a 1920×1080 PNG. Delivery is built in for Microsoft Teams via the MeetingBrand Agent, Google Meet via the MeetingBrand Chrome extension; Zoom and directory sync are coming. It is free during early access.
+
+Steps:
+1. Create your brand. Open meetingbrand.com/app/ and sign up with your work email. MeetingBrand fetches your company's public logo and brand colors from that domain and renders 3 starter backgrounds (Concrete corner loft, Brick creative loft, Navy executive study). With a personal email, type your website instead, or upload a logo.
+2. Pick the room and the sign. Choose from 22 office rooms and 14 sign treatments — brass, oak, backlit, LED, glass and more — and turn on the optional name bar with each person's name, title, department and company.
+3. Approve the company look. Save the backgrounds the company should use, and add your people by CSV for personal name bars.
+4. Deliver or download. Deliver to Microsoft Teams with the MeetingBrand Agent and to Google Meet with the Chrome extension, or download each 1920×1080 PNG for Zoom and any other meeting app.
+
+FAQ:
+- Q: What is a branded virtual background?
+  A: A meeting background that carries your company's logo and brand colors, so everyone on the team appears in the same on-brand setting in Microsoft Teams, Zoom or Google Meet.
+- Q: How do I make a professional virtual background with my logo?
+  A: Sign up at meetingbrand.com/app/ with your work email. MeetingBrand fetches your logo and brand colors from your website and mounts the logo as a sign in one of 22 office rooms, with 14 sign treatments; every background exports as a 1920×1080 PNG.
+- Q: What size should a virtual background be?
+  A: 16:9. MeetingBrand exports every background at 1920×1080, one file for Microsoft Teams, Zoom, Google Meet and any other meeting app that accepts a custom background.
+- Q: Can the whole team use the same branded background?
+  A: Yes. On Microsoft Teams the MeetingBrand Agent places it in each person's Teams gallery and they pick it once; on Google Meet the MeetingBrand Chrome extension applies it (today from the admin's own browser, and for every employee after the extension's Chrome Web Store listing); on Zoom each person sets the PNG once today, while the Zoom integration awaits approval of its Zoom App Marketplace app.
+- Q: Is MeetingBrand free?
+  A: Yes. MeetingBrand is free during early access.
+
+## MeetingBrand Documentation: Teams, Meet & Zoom Delivery
+URL: https://meetingbrand.com/docs/
+
+- Q: How do I get started with MeetingBrand?
+  A: Open the builder at meetingbrand.com/app/ and sign up with your work email; MeetingBrand fetches your company's public logo and brand colors from that domain and renders 3 starter backgrounds. Pick the rooms and sign treatments the company should use, add your people by CSV (name, email, title, department), then deliver: Microsoft Teams through the MeetingBrand Agent, Google Meet through the MeetingBrand Chrome extension, Zoom and any other meeting app as a 1920×1080 PNG download.
+- Q: How does the MeetingBrand Agent deliver a Teams background without Teams Premium?
+  A: Microsoft Teams has no API for meeting backgrounds, so the MeetingBrand Agent — a small helper for Windows and macOS that IT installs once with the Intune or Jamf script generated in My team — writes the approved 1920×1080 background into the Teams uploads folder on each device as <GUID>.png with a <GUID>_thumb.png next to it. After Teams restarts the image is under Effects and avatars → Backgrounds; the employee selects it once and Teams keeps it, and a later rebrand swaps the bytes under the same GUID. No Teams Premium licence is involved, and nothing switches anyone's active background.
+- Q: How do I deploy it with Intune (Windows) or Jamf (macOS)?
+  A: In My team, generate the Intune (Windows) or Jamf (macOS) script; it carries your organization's enrollment key. Intune: Devices → Scripts → Windows 10 and later, run using the logged-on credentials, 64-bit PowerShell. Jamf: a policy that runs the shell script as the console user. The script downloads the Agent, verifies its sha256, registers a per-user scheduled task (Windows) or LaunchAgent (macOS) that runs it at logon and every 4 hours, and runs it once; the Agent then matches the device to a person by the signed-in e-mail and writes the approved background into the Teams uploads folder. Pilot with a small group first: the builds are unsigned developer builds for now.
+- Q: How does the Chrome extension apply the background in Google Meet?
+  A: The MeetingBrand Chrome extension applies the branded background to the camera in Google Meet automatically. Today it is connected from the admin's own browser in My team, because enrollment uses the admin's key; once its Chrome Web Store listing is published, an admin force-installs it for every managed Chrome from the Google Admin console, so it applies for every employee. Anyone can also download the 1920×1080 PNG and upload it in Meet's backgrounds panel.
+- Q: What happens in Zoom today?
+  A: Today each person downloads the 1920×1080 PNG from MeetingBrand and adds it once under Zoom Settings → Video & effects → Virtual backgrounds; Zoom remembers it. The Zoom integration — uploading the background into each employee's own Zoom background library — is built and awaits approval of its Zoom App Marketplace app.
+- Q: How do I remove MeetingBrand from a device?
+  A: Microsoft Teams: remove the Agent from Add/Remove programs (Windows) or the Applications folder (macOS) and revoke the device in My team; the Agent deletes only the <GUID>.png and <GUID>_thumb.png pairs it wrote itself. Google Meet: remove the extension from Chrome, or from the force-install list in the Google Admin console once it is managed. Zoom: nothing is installed today; delete the PNG under Zoom Settings → Video & effects → Virtual backgrounds. For your whole workspace, write to support@meetingbrand.com and we delete it.
+- Q: Where is the data stored?
+  A: With Supabase in Frankfurt (EU), protected by row-level access controls; this website is hosted on GitHub Pages. MeetingBrand stores the admin account details, the people fields you add (name, email, title, department), your brand assets, the rendered backgrounds and delivery records, and never reads meeting audio, video, chat or calendars. You can request full deletion at any time.
+
+## Teams Premium vs. without Premium (identical to the table on the two Teams admin pages)
+- Who provides the image: Teams Premium — An admin uploads organization backgrounds in the Teams admin center. Without Premium (MeetingBrand Agent) — The MeetingBrand Agent writes the approved background into each person's Teams Uploads folder as <GUID>.png with a <GUID>_thumb.png.
+- Licence: Teams Premium — Teams Premium add-on. Without Premium (MeetingBrand Agent) — None beyond Microsoft Teams itself; MeetingBrand is free during early access.
+- Can IT require it?: Teams Premium — Yes: an organization background can be set as required. Without Premium (MeetingBrand Agent) — No. The employee selects it once in Video effects and Teams keeps it.
+- Switches the employee's active background?: Teams Premium — No. No meeting platform lets a third party switch a person's active background by API. Without Premium (MeetingBrand Agent) — No, same rule: the Agent places the image, the person picks it once.
+- Prerequisite on the user: Teams Premium — A Teams Premium licence; users under a required-background policy stay on this track. Without Premium (MeetingBrand Agent) — A Teams meeting policy that allows custom backgrounds (video filters set to all filters); not under a Premium required-background policy.
+- Rollout: Teams Premium — Teams admin center meeting customization policy. Without Premium (MeetingBrand Agent) — One Intune (Windows) or Jamf (macOS) script generated in My team; devices matched to people by the signed-in e-mail; unsigned developer builds for now (SmartScreen / Gatekeeper prompt).
+- A rebrand later: Teams Premium — The admin uploads the new image in the admin center. Without Premium (MeetingBrand Agent) — Approve the new background in MeetingBrand; the Agent swaps the bytes under the same GUID without another deployment.

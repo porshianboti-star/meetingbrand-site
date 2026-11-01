@@ -1,0 +1,41 @@
+{
+ "product": "MeetingBrand",
+ "url": "https://meetingbrand.com/",
+ "app": "https://meetingbrand.com/app/",
+ "currency": "USD",
+ "verified": "2026-10-18",
+ "product_build": "v97",
+ "plans": [
+  {
+   "id": "early-access",
+   "name": "Early access",
+   "price_per_month": 0,
+   "per": "person",
+   "seat_minimum": 0,
+   "sentence": "Free during early access.",
+   "includes": [
+    "22 built-in office rooms and 14 sign treatments",
+    "1920×1080 PNG export per background",
+    "Optional name bar per employee (CSV)",
+    "Microsoft Teams delivery through the MeetingBrand Agent",
+    "Google Meet delivery through the MeetingBrand Chrome extension"
+   ]
+  }
+ ],
+ "pages": {
+  "home": "https://meetingbrand.com/",
+  "docs": "https://meetingbrand.com/docs/",
+  "small_business": "https://meetingbrand.com/small-business/",
+  "rooms": "https://meetingbrand.com/rooms/",
+  "llms": "https://meetingbrand.com/llms.txt",
+  "llms_full": "https://meetingbrand.com/llms-full.txt",
+  "teams_background_with_logo": "https://meetingbrand.com/teams-background-with-logo/",
+  "zoom_background_with_logo": "https://meetingbrand.com/zoom-background-with-logo/",
+  "google_meet_background_with_logo": "https://meetingbrand.com/google-meet-background-with-logo/",
+  "virtual_background_generator": "https://meetingbrand.com/virtual-background-generator/",
+  "teams_custom_background_without_premium": "https://meetingbrand.com/teams-custom-background-without-premium/",
+  "deploy_teams_backgrounds_intune": "https://meetingbrand.com/deploy-teams-backgrounds-intune/",
+  "zoom_background_with_name_and_title": "https://meetingbrand.com/zoom-background-with-name-and-title/",
+  "branded_virtual_background": "https://meetingbrand.com/branded-virtual-background/"
+ }
+}
