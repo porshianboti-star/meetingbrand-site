@@ -3,8 +3,8 @@
  "url": "https://meetingbrand.com/",
  "app": "https://meetingbrand.com/app/",
  "currency": "USD",
- "verified": "2026-10-18",
- "product_build": "v97",
+ "verified": "2026-11-01",
+ "product_build": "v98",
  "plans": [
   {
    "id": "early-access",

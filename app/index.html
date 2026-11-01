@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="mb-version" content="v97">
-<title>MeetingBrand — Branded meeting backgrounds</title>
+<link rel="canonical" href="https://meetingbrand.com/app/">
+<meta name="description" content="Create a branded virtual background for Teams, Google Meet and Zoom from your company website: logo, colors, 1920×1080 PNG. Free during early access.">
+<meta name="mb-version" content="v98">
+<title>MeetingBrand app — create your branded background</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAADsAAAA7AF5KHG9AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA7xJREFUWIXFl0tMnFUUx3/n+755YMcWGAKUsTyHgK222pratD4wLExsl0YSkq7aVYN1YWNQ6qouGqNsutHExGVjNTEtdGUXjcQEW1KtRgKC9CF0OuBH6TA4D775rgs7tMxcYECw/+U5557//577OleUUmQhFfsqrIw67goHBcLAJtYHcwpGDMVFx5QzKtofXeDMCrDK97ah5AsgsE6kS2EWUUedySvnFgQ8ID8LyAaTZ6EQ2pzJH78Wyl+sMF01ysbPPBezGdMKm5Y/9AFC65rTeDyoHTugrg6ZtsFxCh3pM12VslzhUMF1LypC1ddDQwOqthaqq1Fbq8Ay//XbNuaHJ8GeLiidK+qQJVCv9VoWqrkZmppQdfWo2hooKwNZRm4wiNq/H+npLUiAQNhCt/bBIJmuLgiFCkq0CD7/aqIDls7qHj6cRy6DgzA6Co/cG1oMD69GAFoBKty4mPzCBSq/HeKpQCsrn9RtUP4GAH87E/w5e4m5+burE5DL4bl4iQNVZzHFtwJ5Pp4uPcLPk93ciPVo/UYhSTwpWRM5gCledle8R9C/U+vXV2AFuOIwXnpzkXxv2kfl/W3aeMGgseRN7Mgv6yPgu9Y+ZloW7xOUYtfn12ke36UdU+xr1toLWoJcPDFj5p+GVJpAYunbfD5zX2tfUwVeHngFBlY35s7cD1r7miqwWsRSY4zMfPV4BMRSN7g80YHjJh6PgM2+Ol6q+gSv+eTGCHj+9SE6PxunpX1wyZhS/3b2lHdqfWvahFl4fXDi5HZM0+C5nfDr9zb2+BZtbCjwKpu99cTSY4vs/6kC82kYGr4DQOTuNHF7uR5WKCvKvw31FUgmCxKgFJzuCFLVNEz0jxCpxPIFNcWTZ9NWwOjrK0hASe0Ixz+O8P7pEO922zTs+23Z+Hup0TybVrKcP4/hZHBfa4HiEtC0AKW1v9P9ZRi/zwtA8ZYAz3xaTec7V7k1sDsvfjZ9GztxXSsgTm5XpBTS24PZ++AJNYN5A9s7jAXyBeEiHDtRQ2e7QrkP33THTXA1egqFm5smZigYy7XmIpmZxk4+fMkMI8MLe/StZE11BaVVdnYm/JX4icvjx5hO5h9TBWNiBfd+pISulUSImAT9z2KIB9NSbK2LLxk7NbGJxJxLPH2TZObe0jmRU9mPyQigv6o2DrGMNR82VLQ/iqijaLfahkEhckRFrk0ZAM7klXMIbcDs/0AeQ+QtZ7L/G3jkdwwglQfKLSfztivqoEAj6/dfjCsYMZBex0qfUZFrU1nHP1lhPr2nXjwYAAAAAElFTkSuQmCC">
 <!-- ================= PRESENCE DEMO STATE =================
-version: v97 (2026-10-18)
+version: v98 (2026-11-01)
 source of truth: this block. Any session resuming work MUST read it before editing.
 constraint: INTERNAL PREVIEW ONLY - never published to a production domain without the owner's go.
-gate: jsdom regression (regress.js, 764 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
+gate: jsdom regression (regress.js, 785 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
 
 MODULES (verified v39):
 - Views: Overview, Brand, Backgrounds, Campaigns, People, Analytics
@@ -48,6 +50,7 @@ MODULES (verified v39):
 - v95: the owner's four logo-wall rooms (2026-10-06) appended to SCENES after oakskyline in his order: charcoaloak 'Charcoal wall oak office', archloft 'Arched-window loft lounge', towersunset 'Sunset tower office', alpinelake 'Alpine lake executive office'. Plates = engine/scenes/<id>.webp, 1365x768 exact 16:9, never upscaled (from engine/scenes-src/owner-room-5..8, 1376x768 trimmed 5 px a side), no fg occluder. Each photo is a logo mockup with a large blank dark matte wall: walls[0] = that wall, ry fitted to its measured vanishing point, a small rz (<= 2 deg) toward the horizon, dark:true (white wall text). DEFAULT_SETUP gains 4 rows = our tuned defaults (the 17 existing rows untouched) until the owner saves his own with Copy setup; STARTER unchanged. 20 built-in scenes.
 - v96: the owner's own setup is every new user's default (2026-10-10): DEFAULT_SETUP rows of the 7 looks he tuned and saved (glasscorridor, travertinelounge, concreteoffice, oakskyline, towersunset, alpinelake, archloft) = the adj of his saved mb.backgrounds rows (org wiz.com), values unchanged; sign text/font, starter and export_hash are not setup. The other 14 rows are untouched. Two pastoral rooms appended after alpinelake (plates engine/scenes/<id>.webp, 1365x768 from the owner's engine/scenes-src photos, never upscaled, no fg occluder, light walls = brand-colour letters): pastoralbarn 'Farmhouse meadow studio' (ONE wall = the large blank warm-white wall on the left) and pastoralstone 'Stone farmhouse study' (ONE wall = the large blank warm-white wall on the right); ry fitted to each wall's measured vanishing point; their rows = our defaults. 22 built-in scenes; STARTER unchanged.
 - v97: the daily-rooms pipeline (2026-10-18), no new room: DAILY_ROOMS (engine/daily-rooms.json, empty in v97) joins SCENES after the 22 built-in rooms and DEFAULT_SETUP before seeding; a daily room's plate is the same-origin file rooms/<id>.webp (loaded once, on demand; tiles lazily when they scroll into view); the export waits for the plate (plateImg) and never ships a frame without it. Each later version (v98, v99, ...) adds ONE daily room through tools/add-room.py. The 22 built-in SCENES entries, the 23 DEFAULT_SETUP rows and STARTER are unchanged.
+- v98: BATCH C of the 2026-10-30 SEO audit (2026-11-01), no new room: (C3) the brand scrape's own route — the Supabase Edge Function mb-brand (hostname-only, SSRF-vetted, 7.5 s, 2 MB, text/html, scripts stripped) is asked first and api.allorigins.win only hedged in after 1.5 s or on failure; brand_fetched carries route 'edge' | 'allorigins' | 'favicon', html_bytes, logos_found; a 'From site' mark hosted on another registrable domain is demoted (70 points); the gate asks 'Does this look like your logo?' (#mbLogoAsk) with the engine's candidates. (C1) app_open {ref, src, landing} at boot, gate_shown / gate_submit / gate_error, first touch in sessionStorage mb-first-touch and as signUp metadata first_touch. (C2) /app/ title 'MeetingBrand app — create your branded background', canonical https://meetingbrand.com/app/, meta description. The version base is 98 (tools/daily_rooms.py BASE_N): the next daily room is v99.
 - Placement: per-scene wall segments (x1,x2,y1,y2,ry,rz) -> nearest-segment snap, perspective foreshortening, per-scene adj {x,y,s,ry,rz,dep} persisted to 'adj' store
 - Signage: 13 treatments (sign, sticker, silver, brass, wood, black, illum, glass, plaque, backlit, acrylic, led, wallpaper)
 - Lighting engine (v40): per-scene photometric detector (96x54, gamma-linear) = sign-anchored local gradient (median profiles, fg-masked, band trimmed of near-black rows) + downlight fingerprint (bottom-brighter & dark-above & warm => from-top) + global source centroid (top-2% brightness, 1/d^1.8 to sign) + elevation prior; outputs sc._lt {ang,amt,hard,lum,warm}. lightOf(sc) merges per-scene overrides adj.la/adj.li and derives shadow vector S (gravity-biased), shadow alpha (ambient-scaled), penumbra blur (hardness), emissive gain (room darkness). Rendering: extrusion body direction via --ex/--ey from E (3D angle adj.da; defaults to S so untouched scenes are pixel-identical); bevel highlight via --sx/--sy from S; 3-tier contact/mid/far drop-shadow penumbra (DOM castCSS + export castPass); letters-only face-shading gradient along the light axis (export offscreen source-in); led/illum cast elliptical wall glow scaled by eGain. UI: Lighting sliders (Light -180..180, 3D -180..180, Power 20..160) + Auto light in the wall-fit panel, persisted per scene. Debug: window.__PRESENCE_DEBUG {lt,light,sample}.
@@ -62,6 +65,7 @@ MODULES (verified v39):
 DORMANT (kept intentionally, no UI): bake stack since v74 (geminiBake, localBake, BAKEWOOD, __bmSet, bake mode/species state), WASHES beyond 'none' (brand wash removed per owner, pipeline retained), TEMPLATES/template mode (renderTpls/renderSw/syncStudio stubs; artCV still used by the export fallback), recolorAll (awaits scenes carrying recolor metadata)
 
 CHANGELOG:
+v98 2026-11-01 the brand fetch reads your website through MeetingBrand's own server route first (the public proxy is only a fallback), asks 'Does this look like your logo?', and the funnel is measured from the landing page to the sign-up
 v97 2026-10-18 daily rooms: new rooms can be added one at a time as separate image files, loaded only when needed (no new room yet)
 v96 2026-10-10 the owner's own sign placement and size on the 7 rooms he tuned is now every new user's starting point; two new pastoral rooms with white walls — Farmhouse meadow studio and Stone farmhouse study
 v95 2026-10-06 four new rooms from the owner, each with a large blank wall for the sign: Charcoal wall oak office, Arched-window loft lounge, Sunset tower office, Alpine lake executive office — plates 16:9, default sign placement tuned per room
@@ -1279,7 +1283,7 @@ const state={emp:1,viewer:null,ribBg:null,gemKey:null,gemModel:"gemini-3-pro-ima
 const __mbH={};function __mbFire(k,a){(__mbH[k]||[]).forEach(f=>{try{f(a)}catch(e){}})}
 /* v80: every product event goes through window.MBTrack (mb-cloud); a missing MBTrack (file:// before the cloud block) is a silent no-op */
 function __mbTrack(n,p){try{if(typeof window.MBTrack==="function")window.MBTrack(n,p||{})}catch(e){}}
-window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m,o)=>toast(m,o),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),prepareBackgrounds:(o)=>prepareBackgrounds(o),wantedLooks:()=>wantedLooks(),agentEnsure:()=>agentEnsure(),agentScripts:()=>agentScripts(),rotateKey:()=>rotateKey(),chipFor:(e)=>chipFor(e),deployCopy:(ppl)=>deployCopy(ppl),renderAgentCard:()=>renderAgentCard(),agentOffline:(a)=>agentOffline(a),refreshTeam:()=>refreshTeam(),teamFreshMs:()=>teamFreshMs(),agentsActive:()=>agentsActive(),extProbe:(ms)=>extProbe(ms),extConnect:()=>extConnect(),extEnsure:(o)=>extEnsure(o),extPolicy:()=>extPolicy(),extRunbook:()=>extRunbook(),renderExtBlock:()=>renderExtBlock(),capOpts:(b,l,c)=>capOpts(b,l,c),lockupCheck:(b,r)=>lockupCheck(b,r),lockupClear:()=>lockupClear(),agentIsExt:(a)=>agentIsExt(a),extIds:()=>EXT_IDS.slice(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),csvRead:(t)=>csvRead(t),csvSummary:(r,d)=>csvSummary(r,d),addPerson:(p)=>addPerson(p),openAdd:()=>openAdd(),csvTemplate:()=>csvTemplate(),zipTeam:()=>zipTeam(),zipBlob:(e,w)=>zipBlob(e,w),crc32:(u)=>crc32(u),inviteText:()=>inviteText(),zipState:()=>Object.assign({},__zip,{part:ZIP_PART}),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},renderShare:()=>renderShare(),shareSet:(on)=>shareSet(on),on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a),logoShip:(b)=>logoShipState(b),brandSettled:()=>__brandLate||Promise.resolve(false),setBrandName:(n,c)=>setBrandName(n,c),lockupUndo:()=>lockupUndo(),brandTools:()=>({pickBrandName,domainLabel,nameKey,brandColors,logoColors,iconPlaceholder,parseSiteLogos,isWebmail,mlCacheGet,brandOpts,wordmarkAuto,cap:BRAND_CAP_MS,scrape:BRAND_SCRAPE_MS,ttl:BRAND_ML_TTL,neutral:BRAND_NEUTRAL}),get renderer(){return signRenderer()}};   /* v91: the sign renderer version (exportHash) */
+window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m,o)=>toast(m,o),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),prepareBackgrounds:(o)=>prepareBackgrounds(o),wantedLooks:()=>wantedLooks(),agentEnsure:()=>agentEnsure(),agentScripts:()=>agentScripts(),rotateKey:()=>rotateKey(),chipFor:(e)=>chipFor(e),deployCopy:(ppl)=>deployCopy(ppl),renderAgentCard:()=>renderAgentCard(),agentOffline:(a)=>agentOffline(a),refreshTeam:()=>refreshTeam(),teamFreshMs:()=>teamFreshMs(),agentsActive:()=>agentsActive(),extProbe:(ms)=>extProbe(ms),extConnect:()=>extConnect(),extEnsure:(o)=>extEnsure(o),extPolicy:()=>extPolicy(),extRunbook:()=>extRunbook(),renderExtBlock:()=>renderExtBlock(),capOpts:(b,l,c)=>capOpts(b,l,c),lockupCheck:(b,r)=>lockupCheck(b,r),lockupClear:()=>lockupClear(),agentIsExt:(a)=>agentIsExt(a),extIds:()=>EXT_IDS.slice(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),csvRead:(t)=>csvRead(t),csvSummary:(r,d)=>csvSummary(r,d),addPerson:(p)=>addPerson(p),openAdd:()=>openAdd(),csvTemplate:()=>csvTemplate(),zipTeam:()=>zipTeam(),zipBlob:(e,w)=>zipBlob(e,w),crc32:(u)=>crc32(u),inviteText:()=>inviteText(),zipState:()=>Object.assign({},__zip,{part:ZIP_PART}),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},renderShare:()=>renderShare(),shareSet:(on)=>shareSet(on),on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a),logoShip:(b)=>logoShipState(b),brandSettled:()=>__brandLate||Promise.resolve(false),setBrandName:(n,c)=>setBrandName(n,c),lockupUndo:()=>lockupUndo(),pickLogo:(i)=>pickLogoOpt(i),scrapeProps:(b)=>scrapeProps(b||state.brand),brandTools:()=>({pickBrandName,domainLabel,nameKey,brandColors,logoColors,iconPlaceholder,parseSiteLogos,isWebmail,mlCacheGet,brandOpts,wordmarkAuto,cap:BRAND_CAP_MS,scrape:BRAND_SCRAPE_MS,ttl:BRAND_ML_TTL,neutral:BRAND_NEUTRAL}),get renderer(){return signRenderer()}};   /* v91: the sign renderer version (exportHash) */
 const EMP_PLACEHOLDER={id:-1,name:"Your name",title:"Your title",dept:"",plat:"Zoom",platform:"zoom",st:"pend",placeholder:true,active:false,push:null};
 const emp=()=>EMPLOYEES.find(e=>String(e.id)===String(state.emp))||EMPLOYEES.find(e=>e.you)||EMPLOYEES[0]||EMP_PLACEHOLDER;   /* v86: ids may be uuids; an empty roster renders a placeholder person */
 const tpl=()=>TEMPLATES.find(t=>t.id===state.tpl)||TEMPLATES[0];
@@ -1430,10 +1434,10 @@ function sgFam(){return state.signFont?'"'+String(state.signFont.fam).replace(/"
 function occList(sc){return (sc.occ||[]).concat((sc.adj&&sc.adj.occ)||[])}
 function occHTML(sc,withFg){if(sc.kind!=="plate")return "";
  const fgSrc=sc._fg||sc.fg;
- const fg=withFg&&fgSrc?`<img class="fgocc" src="${fgSrc}" alt="">`:"";
+ const fg=withFg&&fgSrc?`<img class="fgocc" src="${esc(fgSrc)}" alt="">`:"";
  const L=occList(sc);if(!L.length)return fg;
  const u=sceneSrc(sc).replace(/"/g,"&quot;");
- return fg+L.map(o=>`<span class="occ" style="left:${o.x}%;top:${o.y}%;width:${o.w}%;height:${o.h}%"><img src="${u}" style="left:${-o.x}cqw;top:${(-o.y*0.5625).toFixed(2)}cqw" alt=""></span>`).join("")}
+ return fg+L.map(o=>`<span class="occ" style="left:${o.x}%;top:${o.y}%;width:${o.w}%;height:${o.h}%"><img src="${esc(u)}" style="left:${-o.x}cqw;top:${(-o.y*0.5625).toFixed(2)}cqw" alt=""></span>`).join("")}
 function wallsOf(sc){return sc.walls&&sc.walls.length?sc.walls:[{x1:4,x2:96,y1:5,y2:50,ry:0}]}
 function place(sc){
  const L=sc.logo||{x:5,y:7,w:50};const W=wallsOf(sc);
@@ -1574,7 +1578,7 @@ function parseSiteLogos(htmlText,baseUrl){try{
  const inHead=el=>!!(el&&el.closest&&el.closest('header,nav,[role=banner],a[href="/"],a[href="./"]'));
  const push=(u,sc)=>{if(!u)return;u=String(u).trim();if(!u||u.length>2000)return;
   try{u=new URL(u,baseUrl).href}catch(e){return}
-  if(!/^https?:|^data:/.test(u))return;
+  u=normDataUrl(u);if(badSrc(u))return;   /* v98 (security review): http(s) or data:image only, never a character that could end an attribute — new URL() leaves quotes in a data: URL, so a raw payload is percent-encoded first */
   if(seen.has(u))return;seen.add(u);found.push({u,sc})};
  // JSON-LD Organization / Brand / WebSite logo
  doc2.querySelectorAll('script[type="application/ld+json"]').forEach(sc2=>{try{
@@ -1661,24 +1665,76 @@ function scrapeTargets(raw,domain){const out=[];const seen=new Set();
  return out}
 function siteMeta(t){try{const d=new DOMParser().parseFromString(t,"text/html"),g=q=>{const e=d.querySelector(q);return e?String(e.getAttribute("content")||"").trim():""};
  return {title:String((d.querySelector("title")||{}).textContent||"").replace(/\s+/g," ").trim().slice(0,200),site:(g('meta[property="og:site_name"]')||g('meta[name="application-name"]')||g('meta[name="apple-mobile-web-app-title"]')).slice(0,120)}}catch(e){return {title:"",site:""}}}   /* v94 (V94-4): the page's own name for pickBrandName */
+/* v98 (C3): the scrape's own route. The Supabase Edge Function mb-brand (meetingbrand-site/supabase/functions/mb-brand) fetches
+   https://<domain>/ (then https://www.<domain>/) server-side — hostname-only input, every DNS answer classified and the socket pinned to the
+   vetted address, 7.5 s, 2 MB, text/html only after sniffing, scripts stripped (JSON-LD kept) — and answers JSON {ok, final_url, html, html_bytes,
+   logos, icons, manifest_icons, og, title}. The app parses that HTML with its own parseSiteLogos exactly as it parsed the proxy's copy. */
+function brandEdgeUrl(){try{const c=window.__MB;if(c&&c.supabaseUrl&&c.supabaseAnonKey&&c.brandEdge!==false)return String(c.supabaseUrl).replace(/\/+$/,"")+"/functions/v1/mb-brand"}catch(e){}return null}
+async function fetchBrandEdge(domain){const u=brandEdgeUrl();if(!u||!window.fetch)return {err:"off"};
+ const ctl=typeof AbortController!=="undefined"?new AbortController():null;const tm=setTimeout(()=>{try{if(ctl)ctl.abort()}catch(e){}},BRAND_EDGE_MS);
+ try{const r=await fetch(u+"?host="+encodeURIComponent(domain),ctl?{signal:ctl.signal}:{});
+  if(!r||!r.ok)return {err:"http "+(r&&r.status)};const j=await r.json();
+  if(!j||j.ok!==true||typeof j.html!=="string")return {err:"shape"};return j}
+ catch(e){return {err:String((e&&e.name)||e).slice(0,40)}}finally{clearTimeout(tm)}}
+/* registrable domain (a short public-suffix list: two-level ccTLD suffixes like co.uk / co.il / com.au) — a 'From site' candidate hosted
+   on another registrable domain is demoted (brandOpts), never dropped: the person can still pick it in the picker */
+function regDomain(h){h=String(h||"").toLowerCase().replace(/\.$/,"");const p=h.split(".").filter(Boolean);if(p.length<=2)return p.join(".");
+ const sld=p[p.length-1].length===2&&/^(co|com|net|org|gov|edu|ac|or|ne|go|gob|nom|mil|ltd|plc|me|biz|info|web|firm|gen|ind|sch|res|muni|k12|org|id|my|in)$/.test(p[p.length-2]);
+ return p.slice(sld?-3:-2).join(".")}
+function candHost(src){try{if(!/^https?:/i.test(String(src)))return null;return new URL(src).hostname.toLowerCase()}catch(e){return null}}
+function foreignCand(src,domain){const h=candHost(src);if(!h||!domain)return false;return regDomain(h)!==regDomain(String(domain).replace(/^www\./,""))}
+/* v98 (security review): a candidate image URL is http(s) or data:image/<raster|svg>, at most 2000 chars, and carries no quote, angle bracket, whitespace or
+   backslash (the characters that could end an attribute when the URL is written into markup). Built-in marks never pass through here. */
+function badSrc(u){return typeof u!=="string"||!u||(/^data:/i.test(u)?u.length>400000:u.length>2000)||/["'<>\s\\]/.test(u)||!/^(https?:\/\/|data:image\/[a-z0-9.+-]+[;,])/i.test(u)}   /* an http(s) URL is at most 2000 chars; an inline image (data:) may be far longer */
+function normDataUrl(u){try{if(!/^data:/i.test(u))return u;const i=u.indexOf(",");if(i<0)return u;const head=u.slice(5,i),payload=u.slice(i+1);if(/;base64$/i.test(head)||!/["'<>\s\\]/.test(payload))return u;
+ let raw=payload;try{raw=decodeURIComponent(payload)}catch(e){}return "data:"+head+","+encodeURIComponent(raw)}catch(e){return u}}   /* a raw inline SVG becomes a percent-encoded one (the app's own serSvg form) */
+function normSrc(u){if(typeof u!=="string")return u;if(/^https?:\/\//i.test(u)){try{return new URL(u).href}catch(e){return u}}return normDataUrl(u)}
+function scrapeInfo(m){return {route:(m&&m.route)||"pending",html_bytes:(m&&m.html_bytes)|0,logos_found:(m&&m.logos_found)|0}}
+/* v98 (C3): the late mark that should replace the logo in place — only when the current logo is a Favicon / Icon (the weak sources), the person
+   has not picked a logo, and the newcomer is a real site mark (From site / Site icon / App icon) that is an SVG or at least 64 px wide */
+function lateBetter(b,add){try{if(!b||b._userPick||!b.logo||!b.logo.src)return null;const cur=((b.logoOpts||[]).find(o=>o&&o.src===b.logo.src)||{}).label;
+ if(cur!=="Favicon"&&cur!=="Icon")return null;
+ return (add||[]).find(o=>o&&(o.label==="From site"||o.label==="Site icon"||o.label==="App icon")&&(/\.svg([?#]|$)|^data:image\/svg/i.test(o.src)||(o.w||0)>=64))||null}catch(e){return null}}
+function scrapeProps(b){const s=(b&&b.scrape)||{};const r=s.route&&s.route!=="none"?String(s.route):"favicon";return {route:r,html_bytes:s.html_bytes|0,logos_found:s.logos_found|0}}
 async function fetchSiteLogos(domain,rawInput,sink){try{
  if(!window.fetch)return[];
- const ctl=typeof AbortController!=="undefined"?new AbortController():null;
- if(ctl)setTimeout(()=>ctl.abort(),BRAND_SCRAPE_MS);   /* v94: 4 s (was 9 s, which every connect waited out) */
- const grab=async full=>{try{const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(full),ctl?{signal:ctl.signal}:{});
-  if(!r.ok)return null;const t2=await r.text();return t2&&t2.length>=400?t2:null}catch(e){return null}};
- const targets=scrapeTargets(rawInput,domain);
- for(const tg of targets){const t2=await grab(tg);
-  if(t2){const base=tg.replace(/[?#].*$/,"");if(sink&&!sink.title&&!sink.site){const mt=siteMeta(t2);sink.title=mt.title;sink.site=mt.site}
-   const got=parseSiteLogos(t2,base.endsWith("/")?base:base+"/");
-   try{console.info("Presence scrape",tg,"html:"+t2.length,"logos:"+got.length)}catch(e){}
-   if(got.length)return got}
-  else{try{console.info("Presence scrape",tg,"unreachable")}catch(e){}}}
+ const rec=(route,bytes,n)=>{if(sink){sink.route=route;sink.html_bytes=bytes|0;sink.logos_found=n|0}};
+ const useHtml=(t2,base,route,bytes)=>{if(sink&&!sink.title&&!sink.site){const mt=siteMeta(t2);sink.title=mt.title;sink.site=mt.site}
+  const got=parseSiteLogos(t2,base.endsWith("/")?base:base+"/");
+  try{console.info("Presence scrape",route,base,"html:"+bytes,"logos:"+got.length)}catch(e){}
+  return got};
+ /* the fallback: the public proxy, exactly the v94 path (its own 4 s abort from the moment it starts) */
+ const viaProxy=async()=>{const ctl=typeof AbortController!=="undefined"?new AbortController():null;
+  if(ctl)setTimeout(()=>ctl.abort(),BRAND_SCRAPE_MS);   /* v94: 4 s (was 9 s, which every connect waited out) */
+  const grab=async full=>{try{const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(full),ctl?{signal:ctl.signal}:{});
+   if(!r.ok)return null;const t2=await r.text();return t2&&t2.length>=400?t2:null}catch(e){return null}};
+  const targets=scrapeTargets(rawInput,domain);let seen=0;
+  for(const tg of targets){const t2=await grab(tg);
+   if(t2){seen=t2.length;const got=useHtml(t2,tg.replace(/[?#].*$/,""),"allorigins",t2.length);if(got.length){rec("allorigins",t2.length,got.length);return got}}
+   else{try{console.info("Presence scrape",tg,"unreachable")}catch(e){}}}
+  return seen?{none:true,bytes:seen}:null};
+ const pEdge=fetchBrandEdge(domain);
+ let edge=await Promise.race([pEdge,__sleep(BRAND_HEDGE_MS).then(()=>undefined)]);
+ let proxyP=null;
+ if(edge===undefined){proxyP=viaProxy();edge=await pEdge}   /* slow own route: the proxy is hedged in, but the own route's answer still wins */
+ if(edge&&!edge.err){const base=(()=>{try{return new URL(edge.final_url||("https://"+domain+"/")).href}catch(e){return "https://"+domain+"/"}})();
+  if(sink)sink.icons=[].concat(edge.icons||[],edge.manifest_icons||[]).filter(ic=>ic&&typeof ic.src==="string"&&/^https?:|^data:image\//i.test(ic.src)).slice(0,6);
+  let got=useHtml(edge.html,base.replace(/[?#].*$/,""),"edge",edge.html_bytes|0);
+  if(!got.length&&Array.isArray(edge.logos))got=edge.logos.map(l=>l&&l.src).filter(u=>typeof u==="string"&&/^https?:/i.test(u)).slice(0,6);
+  if(got.length){rec("edge",edge.html_bytes|0,got.length);return got}
+  const viaP=proxyP?await proxyP:await viaProxy();   /* the page was read but carried no mark the parser trusts: the proxy's copy gets one try */
+  if(Array.isArray(viaP)&&viaP.length)return viaP;
+  rec("edge",edge.html_bytes|0,0);return[]}
+ try{console.info("Presence scrape edge",domain,"failed:"+(edge&&edge.err))}catch(e){}
+ const got=proxyP?await proxyP:await viaProxy();
+ if(Array.isArray(got)&&got.length)return got;
+ if(got&&got.none)rec("allorigins",got.bytes,0);else rec("none",0,0);
  return[]}catch(e){return[]}}
 async function probeBigIcons(d){const out=[];
  const apple=await Promise.all(["https://"+d+"/apple-touch-icon.png","https://www."+d+"/apple-touch-icon.png"].map(u2=>loadImg(u2,3200).then(img=>img&&(img.naturalWidth||img.width||0)>=57?{src:u2,label:"Site icon"}:null)));
  apple.forEach(a=>{if(a&&!out.some(o=>o.src===a.src))out.push(a)});
- try{const ctl2=typeof AbortController!=="undefined"?new AbortController():null;if(ctl2)setTimeout(()=>ctl2.abort(),3800);
+ try{if(brandEdgeUrl())throw 0;   /* v98 (C3): the own route returns the manifest icons; the public proxy is not asked for them */
+  const ctl2=typeof AbortController!=="undefined"?new AbortController():null;if(ctl2)setTimeout(()=>ctl2.abort(),3800);
   for(const mu of ["https://"+d+"/manifest.json","https://"+d+"/site.webmanifest"]){
    try{const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(mu),ctl2?{signal:ctl2.signal}:{});
     if(!r.ok)continue;const j=await r.json();const ics=(j&&j.icons)||[];if(!ics.length)continue;
@@ -1716,7 +1772,7 @@ function extractColors(img){try{const c=document.createElement("canvas");const w
           (no built-in mark) already carries the name, so the wall text goes '' (wordmarkAuto, Undo); colours come from the palette,
           else the logo's own pixels (the V94-1 readable copy), else a neutral (the darkest logo colour or #1F2328) with
           colorsGuessed — never a hash hue. ---- */
-const BRAND_CAP_MS=6000,BRAND_SCRAPE_MS=4000,BRAND_ML_TTL=7*864e5,BRAND_NEUTRAL="#1F2328";
+const BRAND_CAP_MS=6000,BRAND_SCRAPE_MS=4000,BRAND_ML_TTL=7*864e5,BRAND_NEUTRAL="#1F2328",BRAND_EDGE_MS=8500,BRAND_HEDGE_MS=1500;   /* v98 (C3): the own route gets the server's 7.5 s budget + transit (a slow customer site needs ~4.5 s to its first byte); the proxy is only hedged in after 1.5 s; a result after the 6 s landing cap arrives through brandLate */
 const WEBMAIL_KB=["gmail.com","googlemail.com","outlook.com","hotmail.com","live.com","msn.com","yahoo.com","ymail.com","icloud.com","me.com","mac.com","aol.com","proton.me","protonmail.com","gmx.com","gmx.de","mail.com","yandex.com","yandex.ru","zoho.com","walla.co.il","walla.com","012.net.il","bezeqint.net","netvision.net.il"];
 const __sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let __brandLate=null;
@@ -1787,7 +1843,8 @@ function iconPlaceholder(img){try{const N=64,c=document.createElement("canvas");
 async function favGone(src){try{if(!window.fetch||!/^https?:\/\//i.test(String(src||"")))return false;const ctl=typeof AbortController!=="undefined"?new AbortController():null;if(ctl)setTimeout(()=>ctl.abort(),3500);
  const r=await fetch("https://wsrv.nl/?url="+encodeURIComponent(String(src).replace(/^https?:\/\//,""))+"&output=png&w=64",ctl?{signal:ctl.signal,mode:"cors"}:{mode:"cors"});
  const s=+(r&&r.status)||0;return s>=400&&s<500}catch(e){return false}}
-async function brandCand(src,label){let img=null,cors=false;const t0=Date.now();const __fg=label==="Favicon"?favGone(src):null;
+async function brandCand(src,label){src=normSrc(src);if(badSrc(src))return null;   /* v98 (security review): every remote candidate passes here */
+ let img=null,cors=false;const t0=Date.now();const __fg=label==="Favicon"?favGone(src):null;
  if(label==="Icon"){img=await loadImg(src,4500,true);cors=!!img;if(!img&&Date.now()-t0>1500)return null}   /* CORS for the placeholder test; a timeout is not retried */
  if(!img)img=await loadImg(src,4500);if(!img)return null;
  let w=img.naturalWidth||img.width||0,h=img.naturalHeight||img.height||0;
@@ -1797,8 +1854,8 @@ async function brandCand(src,label){let img=null,cors=false;const t0=Date.now();
  if((w<16||h<16)&&/\.svg([?#]|$)|^data:image\/svg/i.test(src)){w=w||256;h=h||256}
  let r=w&&h?w/h:0;if(sd&&sd.declared&&sd.h>0)r=sd.w/sd.h;
  return {src,label,w,h,r:Math.round(r*1000)/1000}}
-function brandOpts(got,cap){const BASE={"From site":100,"Site icon":85,"App icon":85,"Meta":70,"Icon":50,"Favicon":40},ORD=["From site","Meta","Site icon","App icon","Icon","Favicon"];
- const sc=c=>(BASE[c.label]||30)+Math.min(40,c.w/8)+(/\.svg([?#]|$)|^data:image\/svg/i.test(c.src)?45:0)-(c.w<48?25:0)+(c.label==="Meta"&&c.r>2&&c.w>=120?60:0);   /* v94 (V94-4): a wide Meta wordmark outranks the apple-touch icons */
+function brandOpts(got,cap,domain){const BASE={"From site":100,"Site icon":85,"App icon":85,"Meta":70,"Icon":50,"Favicon":40},ORD=["From site","Meta","Site icon","App icon","Icon","Favicon"];
+ const sc=c=>(BASE[c.label]||30)+Math.min(40,c.w/8)+(/\.svg([?#]|$)|^data:image\/svg/i.test(c.src)?45:0)-(c.w<48?25:0)+(c.label==="Meta"&&c.r>2&&c.w>=120?60:0)-(c.label==="From site"&&domain&&foreignCand(c.src,domain)?70:0);   /* v98 (C3): 70 > the vector bonus, so the site's own PNG beats a foreign SVG — a mark hosted on another registrable domain (a CDN, a partner) ranks below the site's own */   /* v94 (V94-4): a wide Meta wordmark outranks the apple-touch icons */
  const out=[],seen=new Set();
  for(const c of (got||[]).filter(c=>c&&!c.ph).slice().sort((a,b)=>(sc(b)-sc(a))||(ORD.indexOf(a.label)-ORD.indexOf(b.label))||(a.src<b.src?-1:a.src>b.src?1:0))){
   if(c.w<16||seen.has(c.src))continue;
@@ -1806,10 +1863,10 @@ function brandOpts(got,cap){const BASE={"From site":100,"Site icon":85,"App icon
   if((c.label==="Site icon"||c.label==="App icon")&&out.some(o=>(o.label==="Site icon"||o.label==="App icon")&&o.w===c.w&&o.h===c.h))continue;   /* apex + www: the same icon twice */
   seen.add(c.src);out.push({src:c.src,label:c.label,w:c.w,h:c.h||0,r:c.r||0});if(out.length>=(cap||6))break}
  return out}
-function brandJob(key,raw,kbHit){const J={key,ml:null,meta:{title:"",site:""},dnsNX:false,dnsOk:false,got:[],seen:new Set(),settled:false};const L=LOGO_SRCS(key);
+function brandJob(key,raw,kbHit){const J={key,ml:null,meta:{title:"",site:"",route:"pending",html_bytes:0,logos_found:0,icons:[]},dnsNX:false,dnsOk:false,got:[],seen:new Set(),settled:false};   /* v98 (C3): meta also records the scrape route */const L=LOGO_SRCS(key);
  const add=(src,label)=>{src=src&&(src.url||src);if(!src||J.seen.has(src))return Promise.resolve(null);J.seen.add(src);return brandCand(src,label).then(c=>{if(c)J.got.push(c);return c}).catch(()=>null)};
  const pML=mlFetch(key).then(m=>{J.ml=m;const d=m&&m.st==="ok"&&m.j&&m.j.data;if(d&&d.logo&&d.logo.url)return add(d.logo.url,"Meta")});
- const pSite=fetchSiteLogos(key,raw,J.meta).then(list=>Promise.all((list||[]).slice(0,3).map(u=>add(u,"From site"))));
+ const pSite=fetchSiteLogos(key,raw,J.meta).then(list=>Promise.all((list||[]).slice(0,3).map(u=>add(u,"From site")))).then(()=>Promise.all((J.meta.icons||[]).slice(0,3).map(ic=>add(ic.src,ic.kind==="manifest"||/^\d+x\d+$/.test(String(ic.sizes||""))&&parseInt(ic.sizes,10)>=192?"App icon":"Site icon"))));   /* v98 (C3): the edge route's <link> / manifest icons */
  const pBig=probeBigIcons(key).then(list=>Promise.all((list||[]).map(bi=>add(bi.src,bi.label))));
  const pFav=Promise.all([add(L[2],"Icon"),add(L[1],"Favicon"),add(L[0],"Favicon")]);
  const pDns=kbHit?Promise.resolve():dnsMissing(key).then(v=>{J.dnsNX=!!(v&&v.nx);J.dnsOk=!!(v&&v.ok)});
@@ -1870,7 +1927,7 @@ function brandFrom(J,key,kb){const m=J.ml,d=(m&&m.st==="ok"&&m.j&&m.j.data)||nul
  if(kb){b.name=kb.n;b.primary=kb.p;b.secondary=kb.s;b.source="library"}
  else{b.name=pickBrandName(key,[d&&d.title,J.meta.title],[d&&d.publisher,J.meta.site]);b._autoName=b.name;if(d)b.source="site"}
  b._mlUsed=!!d;
- const opts=brandOpts(J.got,6);b.logoOpts=opts;b.logoMiss=!opts.length;
+ const opts=brandOpts(J.got,6,key);b.logoOpts=opts;b.logoMiss=!opts.length;b.scrape=scrapeInfo(J.meta);   /* v98 (C3): route / html_bytes / logos_found travel with the brand */
  if(opts.length){const o=opts[0];b.logo={src:o.src,ok:true,safe:/^data:/i.test(o.src),w:o.w||0,r:o.r||0};if(b.source==="fallback")b.source="favicon"}
  if(!kb){if(J.dnsNX||(m&&m.st==="unreachable"))b.fetchNote=opts.length?"limited":"unreachable";else if(m&&(m.st==="limited"||(m.st==="error"&&opts.length)))b.fetchNote="limited"}
  b.blocked=!kb&&b.source==="fallback"&&!!(m&&m.st==="error")&&!opts.length&&!J.dnsNX&&!J.dnsOk;   /* 'unreachable web' only when the DNS service did not answer either (microlink's 429 can arrive without CORS headers) */
@@ -1886,10 +1943,10 @@ function brandToast(b,key,isKb){const has=!!(b.logo&&b.logo.src);
  if(b._lockup&&b._lockup.auto){toast("Your logo already carries the name — the sign shows it alone.",{undo:lockupUndo});return}
  if(b.source==="site"){toast("Brand pulled live from "+key+"."+(b.colorsGuessed?" Colors guessed — adjust them on the Brand tab.":""),b.colorsGuessed?{warn:true}:undefined);return}
  toast(b.colorsGuessed?"Logo found on "+key+" — colors guessed, adjust them on the Brand tab.":"Logo found. Colors read from "+key+"'s icon.",b.colorsGuessed?{warn:true}:undefined)}
-function brandLate(b,J,kb,builtin){const late=(async()=>{await J.done;if(state.brand!==b)return false;let ch=false;
-  const fresh=brandOpts(J.got,6),cur=(b.logoOpts||[]).slice(),have=new Set(cur.map(o=>o&&o.src)),add=fresh.filter(o=>!have.has(o.src));
+function brandLate(b,J,kb,builtin){const late=(async()=>{await J.done;if(state.brand!==b)return false;let ch=false;b.scrape=scrapeInfo(J.meta);   /* v98 (C3): the settled route */
+  const fresh=brandOpts(J.got,6,b.domain),cur=(b.logoOpts||[]).slice(),have=new Set(cur.map(o=>o&&o.src)),add=fresh.filter(o=>!have.has(o.src));
   if(add.length){b.logoOpts=capOpts(b,cur.concat(add),6);ch=true;
-   if(!(b.logo&&b.logo.src)){const o=b.logoOpts[0];if(o){b.logo={src:o.src,ok:true,safe:/^data:/i.test(o.src),w:o.w||0,r:o.r||0};b.logoMiss=false;b.blocked=false;if(b.source==="fallback")b.source="favicon";if(b.fetchNote==="unreachable")b.fetchNote="limited";wordmarkAuto(b,o.r,false);b._tiny=tinyLogoUp(b)}}if(b.logo&&b.logo.src&&logoRemote(b.logo.src)&&(!b._autoLogo||b._autoLogo===b.logo.src))b._lfb=logoAutoFallback(b)}   /* v94 (b6 F2): late options can rescue a blocked logo */
+   if(!(b.logo&&b.logo.src)){const o=b.logoOpts[0];if(o){b.logo={src:o.src,ok:true,safe:/^data:/i.test(o.src),w:o.w||0,r:o.r||0};b.logoMiss=false;b.blocked=false;if(b.source==="fallback")b.source="favicon";if(b.fetchNote==="unreachable")b.fetchNote="limited";wordmarkAuto(b,o.r,false);b._tiny=tinyLogoUp(b)}}else{const lb=lateBetter(b,add);if(lb){const was=((b.logoOpts||[]).find(o=>o&&o.src===b.logo.src)||{}).label||"";b.logo={src:lb.src,ok:true,safe:/^data:/i.test(lb.src),w:lb.w||0,r:lb.r||0};b.logoClear=false;b.logo.clearSrc=null;if(b.source==="favicon")b.source="site";wordmarkAuto(b,lb.r,false);b._tiny=tinyLogoUp(b);__mbTrack("logo_late_switch",{from:was,to:lb.label})}}if(b.logo&&b.logo.src&&logoRemote(b.logo.src)&&(!b._autoLogo||b._autoLogo===b.logo.src))b._lfb=logoAutoFallback(b)}   /* v94 (b6 F2): late options can rescue a blocked logo; v98 (C3): a late site mark replaces a favicon */
   const m=J.ml,d=m&&m.st==="ok"&&m.j&&m.j.data;
   if(!kb&&d&&!b._mlUsed){b._mlUsed=true;
    if(b.name===b._autoName&&b.wallText==null){const nm=pickBrandName(b.domain,[d.title,J.meta.title],[d.publisher,J.meta.site]);if(nm&&nm!==b.name){b.name=nm;b._autoName=nm;ch=true}}
@@ -2346,12 +2403,12 @@ function logoLayer(sc,style){if(sc.kind!=="plate"||sc.noLogo)return "";
  if(style==="plaque"||style==="backlit"){
   const pcls=style==="plaque"?"mplate":"bplate";
   const pink=style==="plaque"?"#2E333B":"#2E3440";
-  const inner=(logoOn(b)?`<img src="${logoSrcNow()}" alt="" style="${clearBlend()}"><b style="color:${style==="plaque"?pink:b.primary}">${escBR(b.name)}</b>`
+  const inner=(logoOn(b)?`<img src="${esc(logoSrcNow())}" alt="" style="${clearBlend()}"><b style="color:${style==="plaque"?pink:b.primary}">${escBR(b.name)}</b>`
    :`<span class="mono" style="background:${b.primary}">${esc((b.name[0]||"?").toUpperCase())}</span><b style="color:${style==="plaque"?pink:b.primary}">${escBR(b.name)}</b>`);
   const scr=`<i class="standoff" style="left:.26em;top:.26em"></i><i class="standoff" style="right:.26em;top:.26em"></i><i class="standoff" style="left:.26em;bottom:.26em"></i><i class="standoff" style="right:.26em;bottom:.26em"></i>`;
   return `<span class="slogo" style="${pos};font-size:${G.s46}cqw"><span class="${pcls}">${scr}${inner}</span></span>`}
  if(style==="glass"){
-  const inner=(logoOn(b)?`<img src="${logoSrcNow()}" alt="" style="${clearBlend()}"><b style="color:${dark?"#FFFFFF":b.primary}">${esc(b.name)}</b>`
+  const inner=(logoOn(b)?`<img src="${esc(logoSrcNow())}" alt="" style="${clearBlend()}"><b style="color:${dark?"#FFFFFF":b.primary}">${esc(b.name)}</b>`
    :`<span class="mono" style="background:${b.primary}">${esc((b.name[0]||"?").toUpperCase())}</span><b style="color:${dark?"#FFFFFF":b.primary}">${esc(b.name)}</b>`);
   return `<span class="slogo" style="${pos};font-size:${gfs}cqw"><span class="gplate"><i class="screw" style="left:.5cqw;top:.5cqw"></i><i class="screw" style="right:.5cqw;top:.5cqw"></i><i class="screw" style="left:.5cqw;bottom:.5cqw"></i><i class="screw" style="right:.5cqw;bottom:.5cqw"></i>${inner}</span></span>`}
  if(style==="silver"||style==="brass"||style==="wood"||style==="washed"||style==="black"||style==="illum"||style==="acrylic"||style==="led"){
@@ -2363,14 +2420,14 @@ function logoLayer(sc,style){if(sc.kind!=="plate"||sc.noLogo)return "";
  const ink=dark?"#FFFFFF":b.primary;
  if(style==="sticker"){
   const bT=`<b style="color:${ink}">${escBR(txt)}</b>`;
-  if(logoOn(b))return `<span class="slogo" style="${pos};${sfs}"><img src="${logoSrcNow()}" alt="" style="${clearBlend()}">${bT}</span>`;
+  if(logoOn(b))return `<span class="slogo" style="${pos};${sfs}"><img src="${esc(logoSrcNow())}" alt="" style="${clearBlend()}">${bT}</span>`;
   return `<span class="slogo" style="${pos};${sfs}"><span class="mono" style="background:${b.primary}">${esc((b.name[0]||"?").toUpperCase())}</span>${bT}</span>`}
  const rel=`color:${ink};text-shadow:calc(var(--sx,0)*-.012em) calc(var(--sy,1)*-.012em) 0 ${shade(ink,30)},calc(var(--ex,0)*.022em) calc(var(--ey,1)*.022em) 0 ${shade(ink,-18)},calc(var(--ex,0)*.044em) calc(var(--ey,1)*.044em) 0 ${shade(ink,-24)},calc(var(--ex,0)*.066em) calc(var(--ey,1)*.066em) 0 ${shade(ink,-30)},calc(var(--sx,0)*.095em) calc(var(--sy,1)*.095em) calc(var(--sy,1)*.05em) rgba(0,0,0,.30)`;
  const bR=`<b style="${rel}">${G.brk?escBR(txt):esc(txt)}</b>`;   /* v94: a fit-broken wall text keeps its line break */
  if(logoOn(b)){const u2=logoSrcNow();
   const __lbr=(LT.pts&&LT.pts.length&&!LT.off)?`filter:brightness(${(0.85+lightsAmp(LT.pts,P.x/100+.035,P.y/100+.045)*.35).toFixed(2)});`:"";
-  const stack=blendOn?`<img src="${u2}" alt="" style="${clearBlend()}${__lbr}">`
-   :`<span class="istack"><img class="ilay" src="${u2}" alt="" style="transform:translate(calc(var(--ex,0)*.088em),calc(var(--ey,1)*.088em));filter:brightness(.42) saturate(.7)"><img class="ilay" src="${u2}" alt="" style="transform:translate(calc(var(--ex,0)*.066em),calc(var(--ey,1)*.066em));filter:brightness(.48) saturate(.72)"><img class="ilay" src="${u2}" alt="" style="transform:translate(calc(var(--ex,0)*.044em),calc(var(--ey,1)*.044em));filter:brightness(.55) saturate(.76)"><img class="ilay" src="${u2}" alt="" style="transform:translate(calc(var(--ex,0)*.022em),calc(var(--ey,1)*.022em));filter:brightness(.66) saturate(.82)"><img class="itop" src="${u2}" alt="" style="${__lbr}"></span>`;
+  const stack=blendOn?`<img src="${esc(u2)}" alt="" style="${clearBlend()}${__lbr}">`
+   :`<span class="istack"><img class="ilay" src="${esc(u2)}" alt="" style="transform:translate(calc(var(--ex,0)*.088em),calc(var(--ey,1)*.088em));filter:brightness(.42) saturate(.7)"><img class="ilay" src="${esc(u2)}" alt="" style="transform:translate(calc(var(--ex,0)*.066em),calc(var(--ey,1)*.066em));filter:brightness(.48) saturate(.72)"><img class="ilay" src="${esc(u2)}" alt="" style="transform:translate(calc(var(--ex,0)*.044em),calc(var(--ey,1)*.044em));filter:brightness(.55) saturate(.76)"><img class="ilay" src="${esc(u2)}" alt="" style="transform:translate(calc(var(--ex,0)*.022em),calc(var(--ey,1)*.022em));filter:brightness(.66) saturate(.82)"><img class="itop" src="${esc(u2)}" alt="" style="${__lbr}"></span>`;
   return `<span class="slogo" style="${pos};${sfs}">${stack}${bR}</span>`}
  return `<span class="slogo" style="${pos};${sfs}"><span class="mono rel3d" style="background:${b.primary}">${esc((b.name[0]||"?").toUpperCase())}</span>${bR}</span>`}
 /* ---- v94 (V94-2): developer tools (the local ComfyUI engine, the Gemini key card, 'Generate new rooms', the boot probe of
@@ -2900,7 +2957,7 @@ function chipBgNow(b){try{const s=logoSrcNow();if(!s)return "#fff";const v=__chi
  loadImg(s,2200,logoRemote(s)).then(im=>{const dk=!!(im&&imgSafe(im)&&chipNeedsDark(im));__chipBg.set(s,dk?CHIP_DARK:"#fff");if(dk){try{renderBrandUI();renderTiles()}catch(e){}}},()=>__chipBg.set(s,"#fff"));return "#fff"}catch(e){return "#fff"}}
 function chipBgCSS(b){const v=b&&!b.logoClear?chipBgNow(b):"#fff";return v==="#fff"?"":"background:"+v+";"}
 function brandChipHTML(px){const sz=px||24;const st=`width:${sz}px;height:${sz}px`;const b=state.brand;
- if(logoOn(b)&&chipAR(b))return `<span class="chip logo" style="${st};${clearBG()}${chipBgCSS(b)}"><img src="${logoSrcNow()}" alt="" style="${clearBlend()}${b.logoClear?"background:transparent":""}"></span>`;
+ if(logoOn(b)&&chipAR(b))return `<span class="chip logo" style="${st};${clearBG()}${chipBgCSS(b)}"><img src="${esc(logoSrcNow())}" alt="" style="${clearBlend()}${b.logoClear?"background:transparent":""}"></span>`;
  const letter=esc(((b?b.name:"w")[0]||"w").toUpperCase());   /* v94 (b5 F5): the same initial as the wall */
  return `<span class="chip" style="background:${b?b.primary:"#5739FB"};${st};font-size:${Math.round(sz*.55)}px">${letter}</span>`}
 function renderLogoOpts(){const b=state.brand,el=$("#logoOpts"),nt=$("#logoOptsNote");if(!el)return;
@@ -2912,22 +2969,22 @@ function renderLogoOpts(){const b=state.brand,el=$("#logoOpts"),nt=$("#logoOptsN
  const opts=(b.logoOpts||[]).slice(0,6);   /* v85: up to 6 marks */
  if(!opts.length){el.style.display="none";nt.style.display="none";return}
  el.style.display="flex";nt.style.display=opts.length>1?"block":"none";
- el.innerHTML=opts.map((o,i)=>`<button class="lopt${b.logo&&b.logo.src===o.src?" sel":""}" data-i="${i}" aria-label="Use ${esc(o.label)}"><img src="${o.src}" alt="" style="${o.w&&o.w<42?`width:${Math.min(40,Math.round(o.w*1.4))}px;height:auto;`:""}max-width:100%;max-height:100%"><span class="lbl">${esc(o.label)}</span></button>`).join("")}
-$("#logoOpts").onclick=e=>{const btn=e.target.closest(".lopt");if(!btn)return;
- const b=state.brand;if(!b||!b.logoOpts)return;const o=b.logoOpts[+btn.dataset.i];if(!o)return;
+ el.innerHTML=opts.map((o,i)=>`<button class="lopt${b.logo&&b.logo.src===o.src?" sel":""}" data-i="${i}" aria-label="Use ${esc(o.label)}"><img src="${esc(o.src)}" alt="" style="${o.w&&o.w<42?`width:${Math.min(40,Math.round(o.w*1.4))}px;height:auto;`:""}max-width:100%;max-height:100%"><span class="lbl">${esc(o.label)}</span></button>`).join("")}
+function pickLogoOpt(i){const b=state.brand;if(!b||!b.logoOpts)return false;const o=b.logoOpts[+i];if(!o)return false;b._userPick=true;   /* v98: a picked logo is never replaced by a late mark */   /* v98 (C3): the picker as a function — the Brand tab's row and the gate's 'Does this look like your logo?' share it */
  b.logo={src:o.src,ok:true,safe:/^data:/i.test(o.src),w:o.w||0};if(o.src===(kbLogo(b.domain)||{logo:{}}).logo.src)b.logo=builtinLogo(o.src,o.w||200);b.logoClear=false;b.logo.clearSrc=null;saveBrandLocal();
  loadImg(o.src,1800,true).then(ci=>{if(ci&&imgSafe(ci)){b.logo.safe=true;b.logo.r=(ci.naturalWidth||1)/Math.max(1,ci.naturalHeight||1);renderTiles()}upgradeTinyLogo(b,ci&&imgSafe(ci)?ci:null)});
- renderBrandUI();renderVariants();renderTiles();toast("Logo switched.");wordmarkSwitch(b,o)};   /* v94 (V94-4) */
+ renderBrandUI();renderVariants();renderTiles();toast("Logo switched.");wordmarkSwitch(b,o);return true}
+$("#logoOpts").onclick=e=>{const btn=e.target.closest(".lopt");if(!btn)return;pickLogoOpt(+btn.dataset.i)};   /* v94 (V94-4); v98: pickLogoOpt */
 function renderBrandUI(){
  if(state.brand&&state.brand.name&&/\.[a-z]{2,6}$/i.test(state.brand.name)){
   state.brand.name=state.brand.name.replace(/\.[a-z.]{2,10}$/i,"").replace(/^www\./i,"").replace(/^\w/,c=>c.toUpperCase())}
 const b=state.brand;
  const slot=$("#brandSlot"),av=$("#bsAv");
  if(b){slot.classList.add("connected");
-  if(b.logo&&b.logo.ok&&b.logo.src){av.style.background=b.logoClear?"transparent":chipBgNow(b);av.innerHTML=`<img src="${logoSrcNow()}" alt="" style="${clearBlend()}${b.logoClear?"background:transparent":""}">`}
+  if(b.logo&&b.logo.ok&&b.logo.src){av.style.background=b.logoClear?"transparent":chipBgNow(b);av.innerHTML=`<img src="${esc(logoSrcNow())}" alt="" style="${clearBlend()}${b.logoClear?"background:transparent":""}">`}
   else{av.style.background=b.primary;av.style.color="#fff";av.innerHTML=esc(b.name[0]||"?")}
   $("#bsName").textContent=b.name;$("#bsRole").textContent=(b.domain||b.site||"starter kit")+" · brand connected";
-  if(b.logo&&b.logo.ok&&b.logo.src){$("#logoBox").style.background=b.logoClear?"var(--panel)":"#fff";$("#logoBox").innerHTML=`<img src="${logoSrcNow()}" alt="Logo" style="${clearBlend()}${b.logoClear?"background:transparent;":""}${(!b.logo.hiSrc&&b.logo.w&&b.logo.w<58)?`width:${Math.min(56,Math.round(b.logo.w*1.5))}px;height:auto;`:""}">`}
+  if(b.logo&&b.logo.ok&&b.logo.src){$("#logoBox").style.background=b.logoClear?"var(--panel)":"#fff";$("#logoBox").innerHTML=`<img src="${esc(logoSrcNow())}" alt="Logo" style="${clearBlend()}${b.logoClear?"background:transparent;":""}${(!b.logo.hiSrc&&b.logo.w&&b.logo.w<58)?`width:${Math.min(56,Math.round(b.logo.w*1.5))}px;height:auto;`:""}">`}
   else{$("#logoBox").style.background=b.primary;$("#logoBox").style.color="#fff";$("#logoBox").innerHTML=esc((b.name[0]||"?").toUpperCase())}
   $("#tglClear").classList.toggle("on",!!b.logoClear);$("#tglClear").setAttribute("aria-checked",!!b.logoClear);
   renderLogoOpts();
@@ -2972,7 +3029,7 @@ function barHTML(e,line2,bbg,light,S,B){const k=S.k||1,u=v=>(v*k/19.2).toFixed(3
  const tt=line2?`<div class="tt" style="color:${light?"#7A879B":"#AFB9CC"};font-size:${u(27)};left:${u(38)};top:${u((B.f.name?88:46)-.85*27)}">${esc(line2)}</div>`:"";
  return `<div class="lower lx" style="background:${bbg};width:${u(900)};height:${u(bh)};border-radius:${u(18)}">${nm}${tt}${B.logo?barChipHTML(k,bh):""}</div>`}
 function barChipHTML(k,bh){const u=v=>(v*k/19.2).toFixed(3)+"cqw",b=state.brand,cs=74,pos=`right:${u(16)};top:${u((bh-cs)/2)};width:${u(cs)};height:${u(cs)};border-radius:${u(15)}`;
- if(logoOn(b)&&chipAR(b)){const ins=b.logoClear?2:8;return `<span class="lchip" style="${pos};background:${b.logoClear?"transparent":chipBgNow(b)}"><img src="${logoSrcNow()}" alt="" style="left:${u(ins)};top:${u(ins)};width:${u(cs-2*ins)};height:${u(cs-2*ins)};${clearBlend()}"></span>`}
+ if(logoOn(b)&&chipAR(b)){const ins=b.logoClear?2:8;return `<span class="lchip" style="${pos};background:${b.logoClear?"transparent":chipBgNow(b)}"><img src="${esc(logoSrcNow())}" alt="" style="left:${u(ins)};top:${u(ins)};width:${u(cs-2*ins)};height:${u(cs-2*ins)};${clearBlend()}"></span>`}
  const letter=esc(((b?b.name:"w")[0]||"w").toUpperCase());   /* v94 (b5 F5): the same initial as the wall */
  return `<span class="lchip" style="${pos};background:${b?b.primary:"#5739FB"}"><i style="font-size:${u(38)};top:${u(.66*cs-.85*38)}">${letter}</i></span>`}
 /* v94 (V94-8): the bar's fields with an empty name — the name line is off (the export follows the same B) */
@@ -3882,7 +3939,7 @@ $("#brandSlot").onclick=()=>{go("brandtab");setTimeout(()=>{try{$("#domIn").focu
 async function __mbConnect(raw){const before=state.brand;await connectBrand(raw);const b=state.brand;if(!b||b===before||!b.domain)return;
  if(b.blocked)__mbTrack("brand_fetch_failed",{reason:"blocked",domain:b.domain,via:"manual"});
  else if(b.source==="fallback")__mbTrack("brand_fetch_failed",{reason:"miss",domain:b.domain,via:"manual"});
- else __mbTrack("brand_fetched",{source:b.source,fetch_ms:+b.fetchMs||0,logo:!!(b.logo&&b.logo.src),colors:[b.primary,b.secondary].filter((x,i,a)=>!!x&&a.indexOf(x)===i).length,via:"manual"})}
+ else __mbTrack("brand_fetched",Object.assign({source:b.source,fetch_ms:+b.fetchMs||0,logo:!!(b.logo&&b.logo.src),colors:[b.primary,b.secondary].filter((x,i,a)=>!!x&&a.indexOf(x)===i).length,via:"manual"},scrapeProps(b)))}   /* v98 (C3): + route / html_bytes / logos_found */
 $("#domGo").onclick=()=>__mbConnect($("#domIn").value);
 $("#domIn").addEventListener("keydown",e=>{if(e.key==="Enter")__mbConnect($("#domIn").value)});
 $("#tglClear").onclick=async()=>{const b=state.brand;
@@ -3987,9 +4044,9 @@ $("#brandNameIn").oninput=()=>{const b=state.brand;if(!b)return;
  renderVariants();renderTiles();if(typeof renderTeam==="function")renderTeam()};
 $("#logoUrlBtn").onclick=async()=>{const b=state.brand;
  if(!b){toast("Connect a brand first.");return}
- const u2=(window.prompt("Paste a direct image URL for the logo (right-click the logo on the site → Copy image address):","")||"").trim();
+ let u2=(window.prompt("Paste a direct image URL for the logo (right-click the logo on the site → Copy image address):","")||"").trim();   /* v98: normalised below */
  if(!u2)return;
- if(!/^https?:\/\//i.test(u2)&&!/^data:image\//i.test(u2)){toast("That doesn't look like an image URL.");return}
+ u2=normSrc(u2);if(badSrc(u2)){toast("That doesn't look like an image URL.");return}   /* v98 (security review): the pasted URL passes the same funnel as every candidate */
  const im=await loadImg(u2,5000);
  if(!im||((im.naturalWidth||im.width||0)<16)){toast("Couldn't load an image from that URL.");return}
  b.logo={src:u2,ok:true,safe:false};b.logoClear=false;b.logo.clearSrc=null;b.logoMiss=false;
@@ -4246,7 +4303,7 @@ function dlSlug(s){return String(s||"").normalize("NFKD").replace(/[\u0300-\u036
 function dlName(e){return [dlSlug(state.brand&&state.brand.name||"MeetingBrand"),dlSlug(e&&e.name)].filter(Boolean).join("-")+"-meeting-background.png"}
 
 applyBrand(mbBrand());   /* v83: the boot (demo) brand is MeetingBrand's own brand — the same object the gate uses as the fallback */
-window.__PRESENCE_DEBUG={devMode:()=>devMode(),dlName:(e)=>dlName(e||emp()),liveRoutes:()=>liveRoutes(),covSplit:()=>{const s=teamStats();return {on:s.on,applied:s.applied,gallery:s.gallery,active:s.active}},clearLogo:(b)=>buildClearLogo(b),svgDims:(u)=>svgDims(u),svgRaster:(u,l)=>svgRaster(u,l),brandRec:()=>dbBrandGet(),sceneSrc:(id)=>{const s2=SCENES.find(x2=>x2.id===id);return s2?baseSrc(s2):null},plateReady:(id)=>{const s2=SCENES.find(x2=>x2.id===id);return s2?plateImg(s2,15000).then(im=>!!im):Promise.resolve(false)},daily:()=>DAILY_ROOMS.map(r=>r.id),localBakeGraph:(n,p,s)=>localBakeGraph(n,p,s),localGraph:(p,s)=>localGraph(p,s),localProbe:(ms)=>localProbe(ms),warp:(d3,s3,r3,z3)=>perspStrips(d3,s3,r3,z3),signGeom:(id,st)=>{const s2=SCENES.find(x2=>x2.id===id);if(!s2)return null;const G=signGeom(s2,st||styleOf(s2));return {P:G.P,em:G.em,warp:G.warp,persp:G.persp,sfs:G.sfs,fpx:G.fpx,gfs:G.gfs,vars:[G.sxv,G.syv,G.exv,G.eyv],guard:G.guard,gw:G.gw,fit:G.fit,mark:G.mark,ctr:G.ctr,brk:G.brk,txt:G.txt,s3fs:G.s3fs,fitX:G.fitX}},signGuardMin:()=>SIGN_WMIN,signFitConst:()=>({on:SIGN_FIT_ON,onL:SIGN_FIT_ONL,r:SIGN_FIT_R,l:SIGN_FIT_L,brk:SIGN_FIT_BRK,markH:SIGN_MARK_H}),logoRd:s=>{const e=__logoRd.get(s);return e?{st:e.st,len:e.data?e.data.length:0}:null},logoRdSet:(s,st,data)=>{__logoRd.set(s,{st,data:data||null,p:null});return true},readablePx:s=>readablePixels(s).then(p=>p?{W:p.W,H:p.H}:null),rpMemo:()=>__rpMemo.size,chipDark:()=>{const s=logoSrcNow();return s?__chipBg.get(s)||null:null},logoOn:()=>logoOn(state.brand),logoBlocked:()=>logoBlocked(state.brand),signTaint:n=>{__signTaintT=n|0;return true},lastSign:()=>__lastSign?JSON.parse(JSON.stringify(__lastSign)):null,signWarp:(c3,x3,y3,T3)=>signWarp(c3,x3,y3,T3),castList:id=>{const s2=SCENES.find(x2=>x2.id===id);if(!s2)return null;const G=signGeom(s2,styleOf(s2));return castList(G.LT,G.dCur,styleOf(s2))},renderer:()=>signRenderer(),scrapeTargets:(r3,d3)=>scrapeTargets(r3,d3),pixelRoutes:u2=>pixelRoutes(u2),parseLogos:(h2,b2)=>parseSiteLogos(h2,b2),rebuild:(c2,w2,h2)=>rebuildTinyMark(c2,w2,h2),lights:(id,pts)=>{const s=SCENES.find(x2=>x2.id===id);if(!s)return null;if(pts!==undefined){if(pts&&pts.length)ensureAdj(s).lights=pts.slice(0,6);else if(s.adj)delete s.adj.lights;persistAdj(s)}return (s.adj&&s.adj.lights)||[]},lt:id=>{const s=SCENES.find(x2=>x2.id===id);return s&&s._lt},light:id=>{const s=SCENES.find(x2=>x2.id===id);return s&&lightOf(s)},sample:id=>{const s=SCENES.find(x2=>x2.id===id);if(s)sampleLight(s)},brand:()=>state.brand,setLogo:u=>{if(!state.brand)return;state.brand.logo={src:u,ok:true,safe:true};state.brand.logoClear=false;if(state.brand.logo)state.brand.logo.clearSrc=null;renderBrandUI();renderVariants();renderTiles()}};
+window.__PRESENCE_DEBUG={devMode:()=>devMode(),dlName:(e)=>dlName(e||emp()),liveRoutes:()=>liveRoutes(),covSplit:()=>{const s=teamStats();return {on:s.on,applied:s.applied,gallery:s.gallery,active:s.active}},clearLogo:(b)=>buildClearLogo(b),svgDims:(u)=>svgDims(u),svgRaster:(u,l)=>svgRaster(u,l),brandRec:()=>dbBrandGet(),sceneSrc:(id)=>{const s2=SCENES.find(x2=>x2.id===id);return s2?baseSrc(s2):null},plateReady:(id)=>{const s2=SCENES.find(x2=>x2.id===id);return s2?plateImg(s2,15000).then(im=>!!im):Promise.resolve(false)},daily:()=>DAILY_ROOMS.map(r=>r.id),localBakeGraph:(n,p,s)=>localBakeGraph(n,p,s),localGraph:(p,s)=>localGraph(p,s),localProbe:(ms)=>localProbe(ms),warp:(d3,s3,r3,z3)=>perspStrips(d3,s3,r3,z3),signGeom:(id,st)=>{const s2=SCENES.find(x2=>x2.id===id);if(!s2)return null;const G=signGeom(s2,st||styleOf(s2));return {P:G.P,em:G.em,warp:G.warp,persp:G.persp,sfs:G.sfs,fpx:G.fpx,gfs:G.gfs,vars:[G.sxv,G.syv,G.exv,G.eyv],guard:G.guard,gw:G.gw,fit:G.fit,mark:G.mark,ctr:G.ctr,brk:G.brk,txt:G.txt,s3fs:G.s3fs,fitX:G.fitX}},signGuardMin:()=>SIGN_WMIN,signFitConst:()=>({on:SIGN_FIT_ON,onL:SIGN_FIT_ONL,r:SIGN_FIT_R,l:SIGN_FIT_L,brk:SIGN_FIT_BRK,markH:SIGN_MARK_H}),logoRd:s=>{const e=__logoRd.get(s);return e?{st:e.st,len:e.data?e.data.length:0}:null},logoRdSet:(s,st,data)=>{__logoRd.set(s,{st,data:data||null,p:null});return true},readablePx:s=>readablePixels(s).then(p=>p?{W:p.W,H:p.H}:null),rpMemo:()=>__rpMemo.size,chipDark:()=>{const s=logoSrcNow();return s?__chipBg.get(s)||null:null},logoOn:()=>logoOn(state.brand),logoBlocked:()=>logoBlocked(state.brand),signTaint:n=>{__signTaintT=n|0;return true},lastSign:()=>__lastSign?JSON.parse(JSON.stringify(__lastSign)):null,signWarp:(c3,x3,y3,T3)=>signWarp(c3,x3,y3,T3),castList:id=>{const s2=SCENES.find(x2=>x2.id===id);if(!s2)return null;const G=signGeom(s2,styleOf(s2));return castList(G.LT,G.dCur,styleOf(s2))},renderer:()=>signRenderer(),scrapeTargets:(r3,d3)=>scrapeTargets(r3,d3),pixelRoutes:u2=>pixelRoutes(u2),parseLogos:(h2,b2)=>parseSiteLogos(h2,b2),regDomain:(h2)=>regDomain(h2),lateBetter:(b2,a2)=>lateBetter(b2,a2),foreignCand:(u2,d2)=>foreignCand(u2,d2),brandEdgeUrl:()=>brandEdgeUrl(),rebuild:(c2,w2,h2)=>rebuildTinyMark(c2,w2,h2),lights:(id,pts)=>{const s=SCENES.find(x2=>x2.id===id);if(!s)return null;if(pts!==undefined){if(pts&&pts.length)ensureAdj(s).lights=pts.slice(0,6);else if(s.adj)delete s.adj.lights;persistAdj(s)}return (s.adj&&s.adj.lights)||[]},lt:id=>{const s=SCENES.find(x2=>x2.id===id);return s&&s._lt},light:id=>{const s=SCENES.find(x2=>x2.id===id);return s&&lightOf(s)},sample:id=>{const s=SCENES.find(x2=>x2.id===id);if(s)sampleLight(s)},brand:()=>state.brand,setLogo:u=>{if(!state.brand)return;state.brand.logo={src:u,ok:true,safe:true};state.brand.logoClear=false;if(state.brand.logo)state.brand.logo.clearSrc=null;renderBrandUI();renderVariants();renderTiles()}};
 renderEmpSel();renderDepts();renderTeam();renderCamps();renderBars();renderHbars();syncLogoX();syncRib();ring(true);
 sampleLight(scene());learnRoom(scene());
 dbBrandGet().then(rec=>{if(!rec||!rec.key)return;__brandRec=rec;if(applyBrandRec(state.brand)){__brandRec=null;renderBrandUI();renderVariants();renderLogoRow();renderTiles()}}).catch(()=>{});   /* v85 (3): the local logo record, before or after the draft/session brand */
@@ -4453,6 +4510,20 @@ function MBTrack(ev,props){
  }catch(e){return false}
 }
 window.MBTrack=MBTrack;
+/* v98 (C1): the first touch of this tab — the landing page's ?src=<slug> CTA, the referrer (origin + path only, never its query) and the
+   path — kept in sessionStorage mb-first-touch (first one wins) and passed as signUp metadata first_touch (sheet_funnel.js reads
+   raw_user_meta_data.first_touch); app_open fires once per boot with THIS page view's values. */
+var FT_KEY='mb-first-touch';
+function touchNow(){var src=null,ref=null,landing=null;
+ try{src=String(new URLSearchParams(location.search).get('src')||'').replace(/[^A-Za-z0-9_.:-]/g,'').slice(0,40)||null}catch(e){}
+ try{var r=String(document.referrer||'');if(r){var u=new URL(r);ref=(u.origin+u.pathname).slice(0,200)}}catch(e){ref=null}
+ try{landing=String(location.pathname||'/').slice(0,120)}catch(e){}
+ return {src:src,ref:ref,landing:landing}}
+function firstTouch(){var o=null;try{o=JSON.parse(sessionStorage.getItem(FT_KEY)||'null')}catch(e){o=null}
+ if(o&&typeof o==='object'&&o.ts)return o;
+ o=touchNow();o.ts=new Date().toISOString();try{sessionStorage.setItem(FT_KEY,JSON.stringify(o))}catch(e){}return o}
+var _ft=firstTouch();
+try{MBTrack('app_open',touchNow())}catch(e){}
 function uuid(){try{if(window.crypto&&window.crypto.randomUUID)return window.crypto.randomUUID()}catch(e){}return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}
 function remote(u){return typeof u==='string'&&/^https?:\/\//i.test(u)}
 /* The account backend can be unreachable at the infrastructure level (ProSignature measured it 2026-08-21..24:
@@ -4496,6 +4567,7 @@ async function api(p,method,bodyObj){
   var dom=String(B.domain||(B.email||'').split('@')[1]||'').toLowerCase();
   /* product:'meetingbrand' is mandatory on the shared project: CompanyCard's handle_new_user returns early on it and mb.handle_new_user only acts on it */
   var meta={product:String(CFG.product||'meetingbrand'),domain:dom,company_name:B.company||'',full_name:B.name||''};
+  try{meta.first_touch=firstTouch()}catch(e){}   /* v98 (C1): {src, ref, landing, ts} of the tab's first page view */
   if(B.invite)meta.invite_token=String(B.invite);
   var r=await withTimeout(sb.auth.signUp({email:B.email,password:B.password,options:{data:meta}}),SIGNUP_MS,'the account service');   /* v94 (V94-8) */
   if(r.error){var m=r.error.message||'';if(/registered|already/i.test(m))throw 'registered';throw m;}
@@ -5148,7 +5220,7 @@ window.__MB_CLOUD={
  agentBuilds:agentBuilds,agentBuildsUrl:agentBuildsUrl,AGENT:{bucket:AGENT_BUCKET,files:AGENT_FILES.slice(),keyRe:KEY_RE,ttlMs:BUILDS_TTL_MS},
  /* v89: the Meet extension manifest */
  extBuilds:extBuilds,extBuildsUrl:extBuildsUrl,EXT:{ttlMs:EXT_TTL_MS},
- track:MBTrack,sid:sid,get lastEvents(){return _events.slice()},get exportsDropped(){return _exportsDropped},trackReset:function(){_sent={};_events.length=0},version:'v93'
+ track:MBTrack,sid:sid,firstTouch:firstTouch,touchNow:touchNow,get lastEvents(){return _events.slice()},get exportsDropped(){return _exportsDropped},trackReset:function(){_sent={};_events.length=0},version:'v93'
 };
 (async function(){try{await loadSession()}catch(e){if(e!=='OFFLINE'&&e!=='NOSESSION'&&window.console)console.warn('[mb-cloud] session restore skipped:',String(e&&e.message||e))}})();
 })();
@@ -5341,6 +5413,7 @@ var CSS='#mbGate{position:fixed;inset:0;z-index:'+GATE_Z+';display:flex;align-it
 +'.mbg-dom{display:inline-block;background:#F5F7FB;border:1px solid #DDE3EE;border-radius:8px;padding:3px 9px;font-size:13px;font-weight:500;color:#031436;margin:0 0 4px}'
 +'.mbg-alt{display:block;width:100%;box-sizing:border-box;background:#fff;color:#031436;border:1px solid #DDE3EE;border-radius:10px;padding:11px 16px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;margin-top:10px;transition:background .15s,border-color .15s}.mbg-alt:hover{background:#F5F7FB;border-color:#C9D2E3}'
 +'#mbStarter{margin:6px 0 10px;font-size:12.5px;color:#031436;background:#F5F7FB;border:1px solid #DDE3EE;border-radius:10px;padding:8px 12px;line-height:1.5}#mbStarter b{color:#5739FB;font-weight:600}'
++'#mbLogoAsk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-4px 0 10px;font-size:12.5px;color:#031436}#mbLogoAsk .mbla-q{font-weight:600}#mbLogoAsk .mbla-row{display:flex;gap:6px}#mbLogoAsk .mbla-opt{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px;padding:4px;background:#fff;border:2px solid #DDE3EE;border-radius:8px;cursor:pointer;font:500 10px Poppins,sans-serif;color:#667085}#mbLogoAsk .mbla-opt img{width:52px;height:30px;object-fit:contain}#mbLogoAsk .mbla-opt.sel{border-color:#5739FB;box-shadow:0 0 0 2px rgba(87,57,251,.2)}#mbLogoAsk .mbla-opt span{max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mbLogoAsk .btn-quiet{flex:none;padding:6px 12px}#mbLogoAsk .mbg-link{font-size:12px}'
 +'#mbNameAsk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-4px 0 10px;font-size:12.5px;color:#031436}#mbNameAsk input{flex:1 1 120px;min-width:0;padding:6px 10px;border:1px solid #DDE3EE;border-radius:8px;font:500 13px Poppins,sans-serif;color:#031436}#mbNameAsk input:focus{outline:2px solid #5739FB;outline-offset:1px}#mbNameAsk .btn-quiet{flex:none;padding:6px 12px}'
 +'.tpl .mbready{position:absolute;top:6px;left:6px;z-index:3;background:#5739FB;color:#fff;font-style:normal;font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;border-radius:999px;padding:2px 7px;line-height:1.4;pointer-events:none}'
 +'#mbRetry{margin-top:8px}.mb-pulse{box-shadow:0 0 0 3px rgba(87,57,251,.35)!important;border-color:#5739FB!important;transition:box-shadow .2s}'
@@ -5452,6 +5525,7 @@ function unreachMsg(){var c=CLOUD();return (c&&c.UNREACH_MSG)||'Can’t reach Me
 function fieldErr(id,msg){var el=$('#'+id),er=$('#'+id+'Err');if(el){if(msg)el.setAttribute('aria-invalid','true');else el.removeAttribute('aria-invalid')}if(er){er.textContent=msg||'';er.hidden=!msg}if(msg&&el)try{el.focus()}catch(e){}}
 function gateErr(msg,retry){var el=$('#mbGateErr');if(!el)return;if(!msg){el.hidden=true;el.innerHTML='';return}el.innerHTML=esc(msg)+(retry?'<button type="button" class="mbg-retry" id="mbGateRetry">Retry</button>':'');el.hidden=false;var dn=$('#mbGateDown');if(dn)dn.hidden=true;var r=$('#mbGateRetry');if(r)r.onclick=function(){signupEmail()}}   /* one message at a time: the card error replaces the footer's */
 function clearErrs(){['mbEmail','mbPass'].forEach(function(id){fieldErr(id,'')});gateErr('')}
+function gateFail(reason,msg){var p={reason:reason,mode:mode};if(msg)p.msg=String(msg).slice(0,80);track('gate_error',p)}   /* v98 (C1): one gate_error per failed submit (MBTrack de-dupes a name for 4 s) */
 async function retryClient(btn){var c=CLOUD();if(btn){btn.disabled=true;btn.textContent='Connecting…'}var ok=false;try{ok=!!(c&&c.ensureClient&&await c.ensureClient(8000))}catch(e){ok=false}
  if(ok){if(gate)renderGate();return true}if(btn){btn.disabled=false;btn.textContent='Retry'}return false}
 function focusFirst(){setTimeout(function(){try{var f=gate&&gate.querySelector('#mbSite,#mbEmail:not([readonly]),#mbPass');if(f&&window.innerWidth>820)f.focus()}catch(e){}},380)}
@@ -5463,6 +5537,7 @@ function mount(force){
  gate.setAttribute('aria-label',mode==='invite'?'Join your team on MeetingBrand':mode==='website'?'Tell MeetingBrand your company website':mode==='join'?'Join your colleagues or create your own workspace':'Create MeetingBrand — your free account — or log in');
  document.body.appendChild(gate);
  open=true;renderGate();inertOn();
+ track('gate_shown',{mode:mode});   /* v98 (C1) */
  requestAnimationFrame(function(){requestAnimationFrame(function(){if(gate)gate.classList.remove('enter')})});
  return true;
 }
@@ -5489,13 +5564,13 @@ function busy(on,label){var b=$('#mbSignup');if(!b)return;if(on){b.dataset.orig=
 async function signupEmail(){
  var em=($('#mbEmail')||{}).value||'',pw=($('#mbPass')||{}).value||'',nm=String(($('#mbName')||{}).value||'').trim().slice(0,80);
  em=em.trim();
- clearErrs();
- if(!validEmail(em)){fieldErr('mbEmail','Enter your work email (you@company.com)');return false}
- if(pw.length<8){fieldErr('mbPass','Choose a password with at least 8 characters');return false}
- if(mode==='invite'&&invite&&invite.email&&invite.email.toLowerCase()!==em.toLowerCase()){fieldErr('mbEmail','This invite was issued to '+invite.email);return false}
+ clearErrs();track('gate_submit',{mode:mode});   /* v98 (C1) */
+ if(!validEmail(em)){fieldErr('mbEmail','Enter your work email (you@company.com)');gateFail('invalid_email');return false}
+ if(pw.length<8){fieldErr('mbPass','Choose a password with at least 8 characters');gateFail('short_password');return false}
+ if(mode==='invite'&&invite&&invite.email&&invite.email.toLowerCase()!==em.toLowerCase()){fieldErr('mbEmail','This invite was issued to '+invite.email);gateFail('invite_mismatch');return false}
  var c=CLOUD();
  if(c&&!online()&&acctReq()){busy(true,'Connecting…');var okc=false;try{okc=!!(c.ensureClient&&await c.ensureClient(8000))}catch(e){okc=false}busy(false);   /* v94 (V94-8): the vendor copy did not load — try the pinned CDN copy once */
-  if(!okc){track('signup_failed_infra',{reason:'no_client'});gateErr(unreachMsg(),true);return false}if(gate){renderGate();$('#mbEmail').value=em;$('#mbPass').value=pw;if(nm&&$('#mbName'))$('#mbName').value=nm}}
+  if(!okc){track('signup_failed_infra',{reason:'no_client'});gateFail('no_client');gateErr(unreachMsg(),true);return false}if(gate){renderGate();$('#mbEmail').value=em;$('#mbPass').value=pw;if(nm&&$('#mbName'))$('#mbName').value=nm}}
  busy(true,mode==='invite'?'Joining…':'Creating your account…');
  try{
   lastName=nm;   /* v85: travels as signUp metadata full_name and seeds the first employee */
@@ -5505,9 +5580,9 @@ async function signupEmail(){
   return true;
  }catch(err){
   var m=String(err&&err.message||err);   /* v94 (V94-8): inline, the gate stays open with the typed values; Retry resubmits */
-  if(c&&c.isInfraErr(err))gateErr(/^UNREACHABLE/.test(m)?unreachMsg():/^TIMEOUT:/.test(m)?(c.TIMEOUT_MSG||m):'We couldn’t reach our account service — check your connection and try again.',true);
-  else if((/password/i.test(m)&&/registered|already/i.test(m))||/invalid login credentials/i.test(m))fieldErr('mbPass','That email already has an account — log in with its password.');   /* v94 (b6 F4): the e-mail exists and the password did not match (was the raw 'Invalid login credentials') */
-  else gateErr(m,false);
+  if(c&&c.isInfraErr(err)){gateFail('infra',m);gateErr(/^UNREACHABLE/.test(m)?unreachMsg():/^TIMEOUT:/.test(m)?(c.TIMEOUT_MSG||m):'We couldn’t reach our account service — check your connection and try again.',true)}
+  else if((/password/i.test(m)&&/registered|already/i.test(m))||/invalid login credentials/i.test(m)){gateFail('exists');fieldErr('mbPass','That email already has an account — log in with its password.')}   /* v94 (b6 F4): the e-mail exists and the password did not match (was the raw 'Invalid login credentials') */
+  else{gateFail('other',m);gateErr(m,false)}
   return false;
  }finally{busy(false)}
 }
@@ -5604,6 +5679,25 @@ function renderNameAsk(b){var el=$('#mbNameAsk'),sl=$('#mbStarter'),a=APP();
  var done=function(){try{a.setBrandName(inp.value,true)}catch(e){}track('brand_name_confirmed',{edited:String(inp.value||'').trim()!==String(auto||'')});if(el.parentNode)el.parentNode.removeChild(el)};
  ok.onclick=done;inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();done()}};
  return el}
+function scrapeOf(b){var a=APP();try{if(a&&a.scrapeProps)return a.scrapeProps(b)}catch(e){}return {}}   /* v98 (C3): {route, html_bytes, logos_found} */
+/* v98 (C3): 'Does this look like your logo?' — the engine's candidates (brand.logoOpts, the Brand tab's picker) under the landing summary,
+   the selected mark ringed. A click switches the logo through the app's pickLogo (= the #logoOpts click) and re-renders the starter set
+   silently; 'Looks right' confirms (logo_confirmed) and closes the row for this brand; 'Upload a different logo' opens the Brand tab tools.
+   Not for a library brand (its mark is exact), the fallback brand, a logo miss, or fewer than two candidates. */
+var logoAskDone='',ASK_N=4;
+function renderLogoAsk(b){var el=$('#mbLogoAsk'),sl=$('#mbStarter'),a=APP();
+ var all=(b&&b.logoOpts)||[],opts=all.filter(function(o){return o&&o.src}).slice(0,ASK_N);
+ var want=!!(b&&b.domain&&b.source!=='library'&&!b.fallbackFor&&logoOk(b)&&opts.length>=2&&starter.length&&a&&a.pickLogo&&logoAskDone!==brandKey(b));
+ if(!want){if(el&&el.parentNode)el.parentNode.removeChild(el);return null}
+ if(!el){if(!sl||!sl.parentNode)return null;el=document.createElement('div');el.id='mbLogoAsk';sl.parentNode.insertBefore(el,sl.nextSibling);track('logo_ask_shown',{n:opts.length})}
+ var cur=b.logo&&b.logo.src;
+ el.innerHTML='<span class="mbla-q">Does this look like your logo?</span><div class="mbla-row" role="radiogroup" aria-label="Logo candidates">'
+  +opts.map(function(o){var sel=o.src===cur;return '<button type="button" class="mbla-opt'+(sel?' sel':'')+'" data-i="'+all.indexOf(o)+'" role="radio" aria-checked="'+(sel?'true':'false')+'" title="'+esc(o.label||'')+'"><img src="'+esc(o.src)+'" alt=""><span>'+esc(o.label||'')+'</span></button>'}).join('')
+  +'</div><button type="button" class="btn-quiet" id="mbLogoOk">Looks right</button><a href="#" class="mbg-link" id="mbLogoOther">Upload a different logo</a>';
+ Array.prototype.forEach.call(el.querySelectorAll('.mbla-opt'),function(btn){btn.onclick=function(){var i=+btn.dataset.i,o=all[i];if(!o||o.src===cur)return;if(a.pickLogo(i)){track('logo_picked',{i:i,label:String(o.label||'').slice(0,20)});renderLogoAsk(stateOf().brand);try{renderStarter({silent:true})}catch(e){}}}});
+ $('#mbLogoOk').onclick=function(){logoAskDone=brandKey(b);var o=all.filter(function(x){return x&&x.src===cur})[0]||{};track('logo_confirmed',{label:String(o.label||'').slice(0,20),n:opts.length});if(el.parentNode)el.parentNode.removeChild(el)};
+ $('#mbLogoOther').onclick=function(e){e.preventDefault();logoAskDone=brandKey(b);if(el.parentNode)el.parentNode.removeChild(el);track('logo_ask_upload',{});go('brandtab');focusLogoTools()};
+ return el}
 function restoredLine(n){n=+n||0;return 'Your brand and <b>'+n+' background'+(n===1?'':'s')+'</b> are ready'}   /* v82: the restored summary — no fetch time (nothing was fetched) */
 function brandKey(b){return b?[b.domain||'',b.fallbackFor||'',b.missDomain||''].join('|'):''}   /* v89 */
 function renderStarterUI(o){
@@ -5611,6 +5705,7 @@ function renderStarterUI(o){
  if(el){el.innerHTML=(o&&o.restored)?restoredLine(starter.length):summaryLine(b);el.hidden=!starter.length}
  summarized=brandKey(b);
  if(!(o&&(o.lineOnly||o.restored)))try{renderNameAsk(b)}catch(e){}   /* v94 (V94-4) */
+ if(!(o&&(o.lineOnly||o.restored)))try{renderLogoAsk(b)}catch(e){}   /* v98 (C3) */
  if(o&&o.lineOnly)return;   /* v89: a later brand refreshes the line alone — the app already re-rendered its grid */
  /* v81: show the three starter tiles — expand the grid (no .collapsed) before the refresh; the app lists _starter looks first */
  try{if(starter.length){var vw=$('#vwrap');if(vw){vw.classList.remove('collapsed');vw.classList.add('expanded')}}}catch(e){}
@@ -5629,8 +5724,8 @@ function restoreStarter(){
 /* the starter set: the 3 default looks rendered through the export sink (1920x1080 PNG, name bar off), registered as
    backgrounds rows via persistBackground; v81: each render also goes to mb-cloud persistPreview (640x360 JPEG in the
    public bucket mb-previews + a brand_assets row + backgrounds.preview_asset_id) when signed in */
-async function renderStarter(){
- var a=APP();if(!a||!a.renderLook)return [];
+async function renderStarter(o){
+ var a=APP();if(!a||!a.renderLook)return [];   /* v98: o.silent = a re-render after a logo pick (no background_generated event) */
  var scenes=a.scenes()||[],out=[],c=CLOUD();
  for(var i=0;i<STARTER.length;i++){
   var id=STARTER[i],sc=scenes.filter(function(s2){return s2.id===id})[0];if(!sc)continue;
@@ -5643,7 +5738,7 @@ async function renderStarter(){
   try{if(c&&c.persistPreview)c.persistPreview(sc,url)}catch(e){}   /* v81: 640x360 JPEG -> Storage mb-previews (signed-in only, non-fatal) */
  }
  starter=out;renderStarterUI();
- if(out.length)track('background_generated',{look:'starter',count:out.length});
+ if(out.length&&!(o&&o.silent))track('background_generated',{look:'starter',count:out.length});
  return out;
 }
 function focusLogoTools(){
@@ -5663,7 +5758,7 @@ function land(b,o){
  if(b.blocked){track('brand_fetch_failed',{reason:'blocked',domain:att});go('brandtab');showRetry(true);focusLogoTools();toast('The web is unreachable from this page right now — MeetingBrand’s own brand is in place for now. Check the connection and hit Retry brand fetch.');return 'blocked'}
  showRetry(false);
  if(b.source==='fallback'&&att&&!b.domain)track('brand_fetch_failed',{reason:'miss',domain:att});
- else if(b.domain)track('brand_fetched',{source:b.source,fetch_ms:+b.fetchMs||0,logo:!miss,colors:colorCount(b)});
+ else if(b.domain)track('brand_fetched',Object.assign({source:b.source,fetch_ms:+b.fetchMs||0,logo:!miss,colors:colorCount(b)},scrapeOf(b)));   /* v98 (C3): + route / html_bytes / logos_found */
  if(miss&&b.domain&&b.fetchNote==='unreachable'){go('brandtab');toastW('We couldn’t reach '+b.domain+' — check the spelling. Your first backgrounds are on the Backgrounds tab.');try{var di=$('#domIn');if(di){di.focus();if(di.select)di.select()}}catch(e){}return 'miss'}   /* v94 (b5 F2) */
  if(miss&&b.domain){go('brandtab');focusLogoTools();toast('No logo found on '+b.domain+' — upload it, paste an image URL, or crop one from the site. Your first backgrounds are on the Backgrounds tab.');return 'miss'}
  go('backgrounds');
@@ -5845,6 +5940,7 @@ try{restored=restoreDraft()}catch(e){}
 if(a&&a.on){
  a.on('brand',function(){saveDraftSoon()});
  a.on('brand',function(b){try{if(!starter.length||machineBusy)return;var st=stateOf(),cur=(st&&st.brand)||b;if(brandKey(cur)!==summarized)renderStarterUI({lineOnly:true})}catch(e){}});   /* v89: a different brand connected later refreshes the #mbStarter summary line */
+ a.on('brand',function(){try{if(starter.length&&!machineBusy&&!open)renderLogoAsk(stateOf().brand)}catch(e){}});   /* v98 (C3): later marks (brandLate) refresh the logo question */
  a.on('adj',function(){saveDraftSoon()});
  a.on('viewer',function(){saveDraftSoon()});   /* v85 */
  a.on('go',function(v){if(open&&v!==BACK)close()});
@@ -5890,7 +5986,7 @@ window.__MB_GATE={
  mount:function(f){return mount(f)},close:function(){close()},openLogin:openLogin,closeLogin:closeLogin,isLoginOpen:isLoginOpen,
  signupEmail:signupEmail,doLogin:doLogin,finishSignup:finishSignup,demoContinue:demoContinue,keepPre:keepPre,get draftBrand(){return draftBrand},
  runMachine:runMachine,runFallback:runFallback,mbFallback:mbFallback,needsFallback:needsFallback,hydrateBuiltin:hydrateBuiltin,kbLogo:kbLogo,siteSubmit:siteSubmit,siteSkip:siteSkip,joinOrg:joinOrg,ownWorkspace:ownWorkspace,summaryLine:summaryLine,restoredLine:restoredLine,restoreStarter:restoreStarter,joinTitle:joinTitle,cleanDomain:cleanDomain,STARTER:STARTER.slice(),FLOOR_MS:FLOOR_MS,
- saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,brandKey:brandKey,get summarized(){return summarized},refreshLine:refreshLine,version:'v89'
+ saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,brandKey:brandKey,get summarized(){return summarized},refreshLine:refreshLine,renderLogoAsk:renderLogoAsk,scrapeOf:scrapeOf,get logoAskDone(){return logoAskDone},version:'v89'
 };
 })();
 
