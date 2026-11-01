@@ -62,3 +62,9 @@ entrypoint = "./functions/mb-agent/index.ts"
 [functions.mb-zoom-app]
 verify_jwt = false
 entrypoint = "./functions/mb-zoom-app/index.ts"
+
+# mb-brand: the brand scrape's own route (C3, 2026-11-01) — called by the app BEFORE sign-up completes (and by the future lite mode)
+# with no Supabase JWT at all; it authenticates nothing (public HTML only) and rate-limits per caller (memory + mb.brand_rate_hit).
+[functions.mb-brand]
+verify_jwt = false
+entrypoint = "./functions/mb-brand/index.ts"
