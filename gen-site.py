@@ -1150,8 +1150,9 @@ for L in LANDING:   # image sitemap: the page's hero + gallery, titled with the 
     PAGE_IMAGES[L["path"]]=[(IMG[k][0],f'{dict(LANDING_LINKS)[L["path"]]} — {IMG[k][1]}',f'{IMG[k][1]} — a {dict(LANDING_LINKS)[L["path"]].lower()} made with MeetingBrand') for k in [L["hero"]]+L["gallery"]]
 open(f"{INDEXNOW_KEY}.txt","w").write(INDEXNOW_KEY)
 PAGE_IMAGES["/rooms/"]=[(r["file"][len("assets/"):],f"{r['name']} — virtual background room with a company sign",f"{r['name']} — a MeetingBrand room, shown with the MeetingBrand logo") for r in GAL["rooms"]]   # v97
-def _sm_imgs(u):
-    return "".join(f"<image:image><image:loc>{SITE}/assets/{f}</image:loc><image:title>{t}</image:title><image:caption>{c}</image:caption></image:image>" for f,t,c in PAGE_IMAGES.get(u,[]))
+def _sm_imgs(u):   # 2026-11-03: XML-escape every value — "Stone & slats lounge" made sitemap.xml malformed from 2026-10-20 (GSC: "1 error", 0 discovered pages)
+    x=lambda v:_html.escape(str(v),quote=False)
+    return "".join(f"<image:image><image:loc>{x(SITE+'/assets/'+f)}</image:loc><image:title>{x(t)}</image:title><image:caption>{x(c)}</image:caption></image:image>" for f,t,c in PAGE_IMAGES.get(u,[]))
 open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'+"".join(f"<url><loc>{SITE}{u}</loc><lastmod>{lm}</lastmod>{_sm_imgs(u)}</url>" for u,lm in urls)+"</urlset>\n")
 # ---------- /app/: byte-identical copy of the LATEST gated build (highest vNN in BB/outputs). Never hand-edit app/index.html.
 def sync_app():
@@ -1445,6 +1446,9 @@ def _batch_b_guard():
         nc=t.count('<link rel="canonical"')
         if nc!=1: bad.append(f"{f}: {nc} canonicals")
     json.load(open("pricing.json",encoding="utf-8"))
+    import xml.etree.ElementTree as _ET
+    try: _ET.parse("sitemap.xml")   # Google reads nothing from a malformed sitemap (2026-10-20..11-03)
+    except _ET.ParseError as e: bad.append(f"sitemap.xml: not well-formed XML ({e})")
     lf=open("llms-full.txt",encoding="utf-8").read()
     for L in LANDING:
         if L["h1"] not in lf or L["faq"][0][0] not in lf: bad.append(f"llms-full.txt: {L['path']} missing")
