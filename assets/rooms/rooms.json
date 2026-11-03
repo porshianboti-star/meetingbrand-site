@@ -1,8 +1,8 @@
 {
- "product": "presence-product-demo-v97.html",
- "version": "v97",
- "md5": "82b0c703b4f143219ee2779e53ab939c",
- "rendered": "2026-10-20",
+ "product": "presence-product-demo-v100.html",
+ "version": "v100",
+ "md5": "355c579a3de4deee67d421c29fc4df83",
+ "rendered": "2026-11-03",
  "brand": "meetingbrand.com",
  "rooms": [
   {
@@ -180,6 +180,14 @@
    "file": "assets/rooms/pastoralstone.jpg",
    "bytes": 41774,
    "md5": "b255d1f997cdc74af4619dbc22d5befd"
+  },
+  {
+   "id": "archspa",
+   "name": "Arched spa reception",
+   "daily": true,
+   "file": "assets/rooms/archspa.jpg",
+   "bytes": 33301,
+   "md5": "4e362ff0132156db6ee0daecdb0a2189"
   }
  ]
 }

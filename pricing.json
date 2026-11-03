@@ -4,7 +4,7 @@
  "app": "https://meetingbrand.com/app/",
  "currency": "USD",
  "verified": "2026-11-03",
- "product_build": "v99",
+ "product_build": "v100",
  "plans": [
   {
    "id": "early-access",
@@ -14,7 +14,7 @@
    "seat_minimum": 0,
    "sentence": "Free during early access.",
    "includes": [
-    "22 built-in office rooms and 14 sign treatments",
+    "23 built-in office rooms and 14 sign treatments",
     "1920×1080 PNG export per background",
     "Optional name bar per employee (CSV)",
     "Microsoft Teams delivery through the MeetingBrand Agent",
