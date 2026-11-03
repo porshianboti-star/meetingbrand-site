@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="canonical" href="https://meetingbrand.com/app/">
 <meta name="description" content="Create a branded virtual background for Teams, Google Meet and Zoom from your company website: logo, colors, 1920×1080 PNG. Free during early access.">
-<meta name="mb-version" content="v98">
+<meta name="mb-version" content="v99">
 <title>MeetingBrand app — create your branded background</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAADsAAAA7AF5KHG9AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA7xJREFUWIXFl0tMnFUUx3/n+755YMcWGAKUsTyHgK222pratD4wLExsl0YSkq7aVYN1YWNQ6qouGqNsutHExGVjNTEtdGUXjcQEW1KtRgKC9CF0OuBH6TA4D775rgs7tMxcYECw/+U5557//577OleUUmQhFfsqrIw67goHBcLAJtYHcwpGDMVFx5QzKtofXeDMCrDK97ah5AsgsE6kS2EWUUedySvnFgQ8ID8LyAaTZ6EQ2pzJH78Wyl+sMF01ysbPPBezGdMKm5Y/9AFC65rTeDyoHTugrg6ZtsFxCh3pM12VslzhUMF1LypC1ddDQwOqthaqq1Fbq8Ay//XbNuaHJ8GeLiidK+qQJVCv9VoWqrkZmppQdfWo2hooKwNZRm4wiNq/H+npLUiAQNhCt/bBIJmuLgiFCkq0CD7/aqIDls7qHj6cRy6DgzA6Co/cG1oMD69GAFoBKty4mPzCBSq/HeKpQCsrn9RtUP4GAH87E/w5e4m5+burE5DL4bl4iQNVZzHFtwJ5Pp4uPcLPk93ciPVo/UYhSTwpWRM5gCledle8R9C/U+vXV2AFuOIwXnpzkXxv2kfl/W3aeMGgseRN7Mgv6yPgu9Y+ZloW7xOUYtfn12ke36UdU+xr1toLWoJcPDFj5p+GVJpAYunbfD5zX2tfUwVeHngFBlY35s7cD1r7miqwWsRSY4zMfPV4BMRSN7g80YHjJh6PgM2+Ol6q+gSv+eTGCHj+9SE6PxunpX1wyZhS/3b2lHdqfWvahFl4fXDi5HZM0+C5nfDr9zb2+BZtbCjwKpu99cTSY4vs/6kC82kYGr4DQOTuNHF7uR5WKCvKvw31FUgmCxKgFJzuCFLVNEz0jxCpxPIFNcWTZ9NWwOjrK0hASe0Ixz+O8P7pEO922zTs+23Z+Hup0TybVrKcP4/hZHBfa4HiEtC0AKW1v9P9ZRi/zwtA8ZYAz3xaTec7V7k1sDsvfjZ9GztxXSsgTm5XpBTS24PZ++AJNYN5A9s7jAXyBeEiHDtRQ2e7QrkP33THTXA1egqFm5smZigYy7XmIpmZxk4+fMkMI8MLe/StZE11BaVVdnYm/JX4icvjx5hO5h9TBWNiBfd+pISulUSImAT9z2KIB9NSbK2LLxk7NbGJxJxLPH2TZObe0jmRU9mPyQigv6o2DrGMNR82VLQ/iqijaLfahkEhckRFrk0ZAM7klXMIbcDs/0AeQ+QtZ7L/G3jkdwwglQfKLSfztivqoEAj6/dfjCsYMZBex0qfUZFrU1nHP1lhPr2nXjwYAAAAAElFTkSuQmCC">
 <!-- ================= PRESENCE DEMO STATE =================
-version: v98 (2026-11-01)
+version: v99 (2026-11-03)
 source of truth: this block. Any session resuming work MUST read it before editing.
 constraint: INTERNAL PREVIEW ONLY - never published to a production domain without the owner's go.
-gate: jsdom regression (regress.js, 785 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
+gate: jsdom regression (regress.js, 797 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
 
 MODULES (verified v39):
 - Views: Overview, Brand, Backgrounds, Campaigns, People, Analytics
@@ -51,6 +51,7 @@ MODULES (verified v39):
 - v96: the owner's own setup is every new user's default (2026-10-10): DEFAULT_SETUP rows of the 7 looks he tuned and saved (glasscorridor, travertinelounge, concreteoffice, oakskyline, towersunset, alpinelake, archloft) = the adj of his saved mb.backgrounds rows (org wiz.com), values unchanged; sign text/font, starter and export_hash are not setup. The other 14 rows are untouched. Two pastoral rooms appended after alpinelake (plates engine/scenes/<id>.webp, 1365x768 from the owner's engine/scenes-src photos, never upscaled, no fg occluder, light walls = brand-colour letters): pastoralbarn 'Farmhouse meadow studio' (ONE wall = the large blank warm-white wall on the left) and pastoralstone 'Stone farmhouse study' (ONE wall = the large blank warm-white wall on the right); ry fitted to each wall's measured vanishing point; their rows = our defaults. 22 built-in scenes; STARTER unchanged.
 - v97: the daily-rooms pipeline (2026-10-18), no new room: DAILY_ROOMS (engine/daily-rooms.json, empty in v97) joins SCENES after the 22 built-in rooms and DEFAULT_SETUP before seeding; a daily room's plate is the same-origin file rooms/<id>.webp (loaded once, on demand; tiles lazily when they scroll into view); the export waits for the plate (plateImg) and never ships a frame without it. Each later version (v98, v99, ...) adds ONE daily room through tools/add-room.py. The 22 built-in SCENES entries, the 23 DEFAULT_SETUP rows and STARTER are unchanged.
 - v98: BATCH C of the 2026-10-30 SEO audit (2026-11-01), no new room: (C3) the brand scrape's own route — the Supabase Edge Function mb-brand (hostname-only, SSRF-vetted, 7.5 s, 2 MB, text/html, scripts stripped) is asked first and api.allorigins.win only hedged in after 1.5 s or on failure; brand_fetched carries route 'edge' | 'allorigins' | 'favicon', html_bytes, logos_found; a 'From site' mark hosted on another registrable domain is demoted (70 points); the gate asks 'Does this look like your logo?' (#mbLogoAsk) with the engine's candidates. (C1) app_open {ref, src, landing} at boot, gate_shown / gate_submit / gate_error, first touch in sessionStorage mb-first-touch and as signUp metadata first_touch. (C2) /app/ title 'MeetingBrand app — create your branded background', canonical https://meetingbrand.com/app/, meta description. The version base is 98 (tools/daily_rooms.py BASE_N): the next daily room is v99.
+- v99: lite mode (C4, 2026-11-03; owner-approved 2026-11-01): /app/?go=<domain>[&room=<id>] shows the three STARTER looks with the visitor's logo and a free 1280x720 PNG with the credit line 'Made with MeetingBrand · meetingbrand.com' (liteDownload); 1920x1080 (#dlFull), any other room, the name bar (off in the preview), My team and Campaigns open the sign-up card with the lite copy (liteGuard; 'Back to the free preview' closes it); ?gate=late skips the card for the demo brand; never for a browser holding a Supabase session; webmail refused; 3 domains per visit (sessionStorage mb-lite-domains, the Brand tab's Connect included); a sign-up from the preview keeps the brand and saves the three starters. Events lite_generated {domain_hash, route, logo} / lite_downloaded {look} / download_gate_shown {what} / demo_to_signup / lite_gate_dismissed. C3 measurement: brand_scrape_settled {route, html_bytes, logos_found, source} when the scrape settled after the landing. NOT the default and not linked from the site until 14 green days of brand_fetched (checkpoint 2026-11-13). Version base 99: the next daily room is v100.
 - Placement: per-scene wall segments (x1,x2,y1,y2,ry,rz) -> nearest-segment snap, perspective foreshortening, per-scene adj {x,y,s,ry,rz,dep} persisted to 'adj' store
 - Signage: 13 treatments (sign, sticker, silver, brass, wood, black, illum, glass, plaque, backlit, acrylic, led, wallpaper)
 - Lighting engine (v40): per-scene photometric detector (96x54, gamma-linear) = sign-anchored local gradient (median profiles, fg-masked, band trimmed of near-black rows) + downlight fingerprint (bottom-brighter & dark-above & warm => from-top) + global source centroid (top-2% brightness, 1/d^1.8 to sign) + elevation prior; outputs sc._lt {ang,amt,hard,lum,warm}. lightOf(sc) merges per-scene overrides adj.la/adj.li and derives shadow vector S (gravity-biased), shadow alpha (ambient-scaled), penumbra blur (hardness), emissive gain (room darkness). Rendering: extrusion body direction via --ex/--ey from E (3D angle adj.da; defaults to S so untouched scenes are pixel-identical); bevel highlight via --sx/--sy from S; 3-tier contact/mid/far drop-shadow penumbra (DOM castCSS + export castPass); letters-only face-shading gradient along the light axis (export offscreen source-in); led/illum cast elliptical wall glow scaled by eGain. UI: Lighting sliders (Light -180..180, 3D -180..180, Power 20..160) + Auto light in the wall-fit panel, persisted per scene. Debug: window.__PRESENCE_DEBUG {lt,light,sample}.
@@ -65,6 +66,7 @@ MODULES (verified v39):
 DORMANT (kept intentionally, no UI): bake stack since v74 (geminiBake, localBake, BAKEWOOD, __bmSet, bake mode/species state), WASHES beyond 'none' (brand wash removed per owner, pipeline retained), TEMPLATES/template mode (renderTpls/renderSw/syncStudio stubs; artCV still used by the export fallback), recolorAll (awaits scenes carrying recolor metadata)
 
 CHANGELOG:
+v99 2026-11-03 free preview: /app/?go=<your domain> shows three backgrounds with your logo and a free 1280x720 download before any account (behind the link only); a brand fetch that finishes late now reports where the logo came from
 v98 2026-11-01 the brand fetch reads your website through MeetingBrand's own server route first (the public proxy is only a fallback), asks 'Does this look like your logo?', and the funnel is measured from the landing page to the sign-up
 v97 2026-10-18 daily rooms: new rooms can be added one at a time as separate image files, loaded only when needed (no new room yet)
 v96 2026-10-10 the owner's own sign placement and size on the 7 rooms he tuned is now every new user's starting point; two new pastoral rooms with white walls — Farmhouse meadow studio and Stone farmhouse study
@@ -699,7 +701,7 @@ html:not(.mb-dev) [data-dev]{display:none!important}   /* v94 (V94-2): developer
         <div style="height:14px"></div>
         <div class="meetwin"><div class="bar"><i></i><i></i><i></i><span id="mwLabel">Live meeting preview</span><button id="pvMaxBtn" title="Expand preview" aria-label="Expand preview" style="margin-left:auto;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:none;border:none;color:var(--slate);cursor:pointer;padding:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg></button></div><div class="tile" data-tile id="mainTile"></div></div>
         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center">
-          <button class="btn" id="dl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v11M7 10l5 5 5-5M4 20h16"/></svg>Download PNG</button>
+          <button class="btn" id="dl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v11M7 10l5 5 5-5M4 20h16"/></svg>Download PNG</button><button class="btn-quiet" id="dlFull" hidden>Full 1920×1080 — free account</button>
           <button class="btn-quiet" id="empView">Employee view</button>
           <span id="platChip"></span>
         </div>
@@ -1283,7 +1285,7 @@ const state={emp:1,viewer:null,ribBg:null,gemKey:null,gemModel:"gemini-3-pro-ima
 const __mbH={};function __mbFire(k,a){(__mbH[k]||[]).forEach(f=>{try{f(a)}catch(e){}})}
 /* v80: every product event goes through window.MBTrack (mb-cloud); a missing MBTrack (file:// before the cloud block) is a silent no-op */
 function __mbTrack(n,p){try{if(typeof window.MBTrack==="function")window.MBTrack(n,p||{})}catch(e){}}
-window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m,o)=>toast(m,o),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),prepareBackgrounds:(o)=>prepareBackgrounds(o),wantedLooks:()=>wantedLooks(),agentEnsure:()=>agentEnsure(),agentScripts:()=>agentScripts(),rotateKey:()=>rotateKey(),chipFor:(e)=>chipFor(e),deployCopy:(ppl)=>deployCopy(ppl),renderAgentCard:()=>renderAgentCard(),agentOffline:(a)=>agentOffline(a),refreshTeam:()=>refreshTeam(),teamFreshMs:()=>teamFreshMs(),agentsActive:()=>agentsActive(),extProbe:(ms)=>extProbe(ms),extConnect:()=>extConnect(),extEnsure:(o)=>extEnsure(o),extPolicy:()=>extPolicy(),extRunbook:()=>extRunbook(),renderExtBlock:()=>renderExtBlock(),capOpts:(b,l,c)=>capOpts(b,l,c),lockupCheck:(b,r)=>lockupCheck(b,r),lockupClear:()=>lockupClear(),agentIsExt:(a)=>agentIsExt(a),extIds:()=>EXT_IDS.slice(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),csvRead:(t)=>csvRead(t),csvSummary:(r,d)=>csvSummary(r,d),addPerson:(p)=>addPerson(p),openAdd:()=>openAdd(),csvTemplate:()=>csvTemplate(),zipTeam:()=>zipTeam(),zipBlob:(e,w)=>zipBlob(e,w),crc32:(u)=>crc32(u),inviteText:()=>inviteText(),zipState:()=>Object.assign({},__zip,{part:ZIP_PART}),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},renderShare:()=>renderShare(),shareSet:(on)=>shareSet(on),on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a),logoShip:(b)=>logoShipState(b),brandSettled:()=>__brandLate||Promise.resolve(false),setBrandName:(n,c)=>setBrandName(n,c),lockupUndo:()=>lockupUndo(),pickLogo:(i)=>pickLogoOpt(i),scrapeProps:(b)=>scrapeProps(b||state.brand),brandTools:()=>({pickBrandName,domainLabel,nameKey,brandColors,logoColors,iconPlaceholder,parseSiteLogos,isWebmail,mlCacheGet,brandOpts,wordmarkAuto,cap:BRAND_CAP_MS,scrape:BRAND_SCRAPE_MS,ttl:BRAND_ML_TTL,neutral:BRAND_NEUTRAL}),get renderer(){return signRenderer()}};   /* v91: the sign renderer version (exportHash) */
+window.__MB_APP={state:()=>state,scenes:()=>SCENES,toast:(m,o)=>toast(m,o),applyBrand:(b)=>applyBrand(b),mbBrand:()=>mbBrand(),kbLogo:(d)=>kbLogo(d),viewerFrom:(u)=>viewerFrom(u),setViewer:(u,o)=>setViewer(u,o),defaultSetup:()=>JSON.parse(JSON.stringify(DEFAULT_SETUP)),saveBrandLocal:()=>saveBrandLocal(),teamLoad:(o)=>teamLoad(o),setTeam:(d)=>setTeam(d),teamStats:()=>teamStats(),teamMode:()=>teamMode(),employees:()=>EMPLOYEES,teamEnsure:(o)=>teamEnsure(o),connectModel:()=>connectModel(),teamStale:()=>teamStale(),renderTeam:()=>renderTeam(),prepareBackgrounds:(o)=>prepareBackgrounds(o),wantedLooks:()=>wantedLooks(),agentEnsure:()=>agentEnsure(),agentScripts:()=>agentScripts(),rotateKey:()=>rotateKey(),chipFor:(e)=>chipFor(e),deployCopy:(ppl)=>deployCopy(ppl),renderAgentCard:()=>renderAgentCard(),agentOffline:(a)=>agentOffline(a),refreshTeam:()=>refreshTeam(),teamFreshMs:()=>teamFreshMs(),agentsActive:()=>agentsActive(),extProbe:(ms)=>extProbe(ms),extConnect:()=>extConnect(),extEnsure:(o)=>extEnsure(o),extPolicy:()=>extPolicy(),extRunbook:()=>extRunbook(),renderExtBlock:()=>renderExtBlock(),capOpts:(b,l,c)=>capOpts(b,l,c),lockupCheck:(b,r)=>lockupCheck(b,r),lockupClear:()=>lockupClear(),agentIsExt:(a)=>agentIsExt(a),extIds:()=>EXT_IDS.slice(),openChooser:()=>openChooser(),pushTo:(ids)=>pushTo(ids),getPack:(p,ids)=>getPack(p,ids),csvPeople:(t)=>csvPeople(t),importCSV:(t)=>importCSV(t),csvRead:(t)=>csvRead(t),csvSummary:(r,d)=>csvSummary(r,d),addPerson:(p)=>addPerson(p),openAdd:()=>openAdd(),csvTemplate:()=>csvTemplate(),zipTeam:()=>zipTeam(),zipBlob:(e,w)=>zipBlob(e,w),crc32:(u)=>crc32(u),inviteText:()=>inviteText(),zipState:()=>Object.assign({},__zip,{part:ZIP_PART}),demoConnect:(p)=>demoConnect(p),delivery:()=>Object.assign({},DELIVERY),marks:()=>({meetingbrand:MB_LOGO_SRC,companycard:CC_LOGO_SRC,prosignature:PS_LOGO_SRC}),go:(v)=>go(v),connectBrand:(raw)=>connectBrand(raw),renderLook:(id,o)=>renderLook(id,o),hashHue:(s)=>hashHue(s),hslToHex:(h,s,l)=>hslToHex(h,s,l),refresh:()=>{renderBrandUI();renderSw();renderLogoRow();renderVariants();renderTiles();syncLogoX()},renderShare:()=>renderShare(),shareSet:(on)=>shareSet(on),on:(k,f)=>{(__mbH[k]=__mbH[k]||[]).push(f)},fire:(k,a)=>__mbFire(k,a),logoShip:(b)=>logoShipState(b),brandSettled:()=>__brandLate||Promise.resolve(false),setBrandName:(n,c)=>setBrandName(n,c),lockupUndo:()=>lockupUndo(),pickLogo:(i)=>pickLogoOpt(i),selectScene:(id)=>{const t=$('#variants [data-s="'+String(id).replace(/[^a-z0-9]/g,"")+'"]');if(!t)return false;t.click();return true},liteDownload:(u,e2)=>liteDownload(u,e2||emp()),liteMode:(on)=>{if(on){state.bar.on=false;try{$("#tglBar").classList.remove("on");$("#tglBar").setAttribute("aria-checked",false)}catch(err){}renderTiles()}return true},scrapeProps:(b)=>scrapeProps(b||state.brand),brandTools:()=>({pickBrandName,domainLabel,nameKey,brandColors,logoColors,iconPlaceholder,parseSiteLogos,isWebmail,mlCacheGet,brandOpts,wordmarkAuto,cap:BRAND_CAP_MS,scrape:BRAND_SCRAPE_MS,ttl:BRAND_ML_TTL,neutral:BRAND_NEUTRAL}),get renderer(){return signRenderer()}};   /* v91: the sign renderer version (exportHash) */
 const EMP_PLACEHOLDER={id:-1,name:"Your name",title:"Your title",dept:"",plat:"Zoom",platform:"zoom",st:"pend",placeholder:true,active:false,push:null};
 const emp=()=>EMPLOYEES.find(e=>String(e.id)===String(state.emp))||EMPLOYEES.find(e=>e.you)||EMPLOYEES[0]||EMP_PLACEHOLDER;   /* v86: ids may be uuids; an empty roster renders a placeholder person */
 const tpl=()=>TEMPLATES.find(t=>t.id===state.tpl)||TEMPLATES[0];
@@ -1695,7 +1697,7 @@ function scrapeInfo(m){return {route:(m&&m.route)||"pending",html_bytes:(m&&m.ht
 function lateBetter(b,add){try{if(!b||b._userPick||!b.logo||!b.logo.src)return null;const cur=((b.logoOpts||[]).find(o=>o&&o.src===b.logo.src)||{}).label;
  if(cur!=="Favicon"&&cur!=="Icon")return null;
  return (add||[]).find(o=>o&&(o.label==="From site"||o.label==="Site icon"||o.label==="App icon")&&(/\.svg([?#]|$)|^data:image\/svg/i.test(o.src)||(o.w||0)>=64))||null}catch(e){return null}}
-function scrapeProps(b){const s=(b&&b.scrape)||{};const r=s.route&&s.route!=="none"?String(s.route):"favicon";return {route:r,html_bytes:s.html_bytes|0,logos_found:s.logos_found|0}}
+function scrapeProps(b){const s=(b&&b.scrape)||null;if(!s)return {route:(b&&b.source==="library")?"library":"pending",html_bytes:0,logos_found:0};const r=s.route&&s.route!=="none"?String(s.route):"favicon";return {route:r,html_bytes:s.html_bytes|0,logos_found:s.logos_found|0}}   /* v99: 'library' = a built-in mark landed before any scrape; 'pending' = not settled yet (brand_scrape_settled follows) */
 async function fetchSiteLogos(domain,rawInput,sink){try{
  if(!window.fetch)return[];
  const rec=(route,bytes,n)=>{if(sink){sink.route=route;sink.html_bytes=bytes|0;sink.logos_found=n|0}};
@@ -1943,7 +1945,7 @@ function brandToast(b,key,isKb){const has=!!(b.logo&&b.logo.src);
  if(b._lockup&&b._lockup.auto){toast("Your logo already carries the name — the sign shows it alone.",{undo:lockupUndo});return}
  if(b.source==="site"){toast("Brand pulled live from "+key+"."+(b.colorsGuessed?" Colors guessed — adjust them on the Brand tab.":""),b.colorsGuessed?{warn:true}:undefined);return}
  toast(b.colorsGuessed?"Logo found on "+key+" — colors guessed, adjust them on the Brand tab.":"Logo found. Colors read from "+key+"'s icon.",b.colorsGuessed?{warn:true}:undefined)}
-function brandLate(b,J,kb,builtin){const late=(async()=>{await J.done;if(state.brand!==b)return false;let ch=false;b.scrape=scrapeInfo(J.meta);   /* v98 (C3): the settled route */
+function brandLate(b,J,kb,builtin){const late=(async()=>{await J.done;if(state.brand!==b)return false;let ch=false;const __wasPend=!b.scrape||b.scrape.route==="pending";b.scrape=scrapeInfo(J.meta);if(__wasPend)__mbTrack("brand_scrape_settled",Object.assign({source:b.source},scrapeProps(b)));   /* v98 (C3): the settled route; v99: a scrape that settled after the landing reports its final route */
   const fresh=brandOpts(J.got,6,b.domain),cur=(b.logoOpts||[]).slice(),have=new Set(cur.map(o=>o&&o.src)),add=fresh.filter(o=>!have.has(o.src));
   if(add.length){b.logoOpts=capOpts(b,cur.concat(add),6);ch=true;
    if(!(b.logo&&b.logo.src)){const o=b.logoOpts[0];if(o){b.logo={src:o.src,ok:true,safe:/^data:/i.test(o.src),w:o.w||0,r:o.r||0};b.logoMiss=false;b.blocked=false;if(b.source==="fallback")b.source="favicon";if(b.fetchNote==="unreachable")b.fetchNote="limited";wordmarkAuto(b,o.r,false);b._tiny=tinyLogoUp(b)}}else{const lb=lateBetter(b,add);if(lb){const was=((b.logoOpts||[]).find(o=>o&&o.src===b.logo.src)||{}).label||"";b.logo={src:lb.src,ok:true,safe:/^data:/i.test(lb.src),w:lb.w||0,r:lb.r||0};b.logoClear=false;b.logo.clearSrc=null;if(b.source==="favicon")b.source="site";wordmarkAuto(b,lb.r,false);b._tiny=tinyLogoUp(b);__mbTrack("logo_late_switch",{from:was,to:lb.label})}}if(b.logo&&b.logo.src&&logoRemote(b.logo.src)&&(!b._autoLogo||b._autoLogo===b.logo.src))b._lfb=logoAutoFallback(b)}   /* v94 (b6 F2): late options can rescue a blocked logo; v98 (C3): a late site mark replaces a favicon */
@@ -3070,7 +3072,7 @@ function renderVariants(){const w=washOf(state.scene.wash);
  $("#vToggle").textContent=$("#vwrap").classList.contains("expanded")?"Show less":"Show all "+visibleScenes().length+" scenes";lazyMinis()}
 $("#variants").onclick=e=>{const dl=e.target.closest("[data-del]");
  if(dl){e.stopPropagation();removeCustom(dl.dataset.del);return}
- const b=e.target.closest("[data-s]");if(!b)return;
+ const b=e.target.closest("[data-s]");if(!b)return;if(__liteGuard("room",b.dataset.s))return;   /* v99 (C4) */
  state.mode="scene";state.scene.id=b.dataset.s;const _ns=SCENES.find(s2=>s2.id===b.dataset.s);state.scene.logo=styleOf(_ns);sampleLight(_ns);learnRoom(_ns);
  renderLogoRow();syncLogoX();renderVariants();renderTpls();renderTiles();renderAssets();if(state.occMode)renderOccEditor()};
 $("#vToggle").onclick=()=>{const w=$("#vwrap");w.classList.toggle("expanded");w.classList.toggle("collapsed");renderVariants()};
@@ -3213,7 +3215,7 @@ $("#genMore").onclick=async()=>{const btn=$("#genMore");btn.disabled=true;const 
 function renderTpls(){}
 function renderSw(){}
 function syncStudio(){}
-$("#tglBar").onclick=()=>{state.bar.on=!state.bar.on;$("#tglBar").classList.toggle("on",state.bar.on);$("#tglBar").setAttribute("aria-checked",state.bar.on);renderTiles()};
+$("#tglBar").onclick=()=>{if(__liteGuard("name_bar"))return;state.bar.on=!state.bar.on;$("#tglBar").classList.toggle("on",state.bar.on);$("#tglBar").setAttribute("aria-checked",state.bar.on);renderTiles()};
 $$("#segBar button").forEach(b=>b.onclick=()=>{state.bar.size=b.dataset.bs;$$("#segBar button").forEach(x=>x.classList.toggle("sel",x===b));renderTiles()});
 $("#barFields").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;const k=b.dataset.f;state.bar.f[k]=!state.bar.f[k];b.classList.toggle("sel",state.bar.f[k]);renderTiles()};
 $("#barBgRow").onclick=e=>{const b=e.target.closest("[data-bg]");if(!b)return;
@@ -3936,7 +3938,8 @@ $("#localUrl").value=state.localUrl;
 if(devMode())localProbe(2500).then(localBadge).catch(()=>{});   /* v94 (V94-2): no loopback request for customers */
 $("#brandSlot").onclick=()=>{go("brandtab");setTimeout(()=>{try{$("#domIn").focus()}catch(e){}},380)};
 /* v80: the manual connect reports itself (the gate's machine calls connectBrand directly and reports from its own landing) */
-async function __mbConnect(raw){const before=state.brand;await connectBrand(raw);const b=state.brand;if(!b||b===before||!b.domain)return;
+async function __mbConnect(raw){if(__liteOn()&&!__liteAllow(raw))return;   /* v99 (C4): the 4th domain of a free-preview visit opens the card */
+ const before=state.brand;await connectBrand(raw);const b=state.brand;if(!b||b===before||!b.domain)return;
  if(b.blocked)__mbTrack("brand_fetch_failed",{reason:"blocked",domain:b.domain,via:"manual"});
  else if(b.source==="fallback")__mbTrack("brand_fetch_failed",{reason:"miss",domain:b.domain,via:"manual"});
  else __mbTrack("brand_fetched",Object.assign({source:b.source,fetch_ms:+b.fetchMs||0,logo:!!(b.logo&&b.logo.src),colors:[b.primary,b.secondary].filter((x,i,a)=>!!x&&a.indexOf(x)===i).length,via:"manual"},scrapeProps(b)))}   /* v98 (C3): + route / html_bytes / logos_found */
@@ -4230,7 +4233,8 @@ function applyColorInputs(){if(!state.brand){state.brand={domain:"custom",name:"
 $("#cPrim").oninput=applyColorInputs;$("#cSec").oninput=applyColorInputs;
 
 const META={overview:["Overview","Your brand, live in every meeting"],brandtab:["Brand","The identity every background is built from"],backgrounds:["Backgrounds","Real scenes and templates, on your brand"],campaigns:["Campaigns","One campaign, every surface"],people:["My team","Everyone who should be on brand"],analytics:["Analytics","Proof the brand is showing up"]};
-function go(v){__mbFire("go",v);$$(".nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
+function go(v){if((v==="people"||v==="campaigns")&&__liteGuard(v))return;   /* v99 (C4) */
+ __mbFire("go",v);$$(".nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v));
  $$(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
  $("#tTitle").textContent=META[v][0];$("#tSub").textContent=META[v][1];
  if(v==="overview"){ring(true);if(!state.counted.m){countUp($("#stMeet"),state.meet,1100);state.counted.m=1}}
@@ -4295,9 +4299,23 @@ $("#dl").onclick=async()=>{if(document.fonts&&document.fonts.ready)await documen
   x2.fillStyle="#7A879B";x2.font="400 27px Poppins, sans-serif";x2.fillText(line2,74,1024);
   url=cv2.toDataURL("image/png");toast("A remote logo blocked export, used the brand template instead. Upload the logo file for a perfect export.")}
  if(__exportSink){const __s=__exportSink;__exportSink=null;__s(url);return}
+ if(__liteOn()){liteDownload(url,e);return}   /* v99 (C4): the free preview downloads 1280x720 with a credit line */
  __mbTrack("background_downloaded",{look:state.mode==="scene"?state.scene.id:"template",format:"png",platform:e.plat||null});
   const a=document.createElement("a");a.download=dlName(e);a.href=url;a.click();
  toast("Background downloaded. Set it in Zoom, Teams or Meet.");titleAskMaybe(e)};
+/* v99 (C4, lite mode): the free download — the 1920x1080 composite downscaled to 1280x720 with the credit line; the full size opens the card */
+function __liteOn(){try{const G=window.__MB_GATE;return !!(G&&G.liteActive)}catch(err){return false}}
+function __liteGuard(w,id){try{const G=window.__MB_GATE;return !!(G&&G.liteGuard&&G.liteGuard(w,id))}catch(err){return false}}
+function __liteAllow(raw){try{const G=window.__MB_GATE;return !G||!G.liteAllow||G.liteAllow(raw)}catch(err){return true}}
+const LITE_CREDIT="Made with MeetingBrand · meetingbrand.com";
+async function liteDownload(url,e){const im=await loadImg(url,8000);if(!im){toast("Couldn’t prepare the download.",{warn:true});return false}
+ const c=document.createElement("canvas");c.width=1280;c.height=720;const x=c.getContext("2d");x.drawImage(im,0,0,1280,720);
+ x.font="600 20px Poppins, sans-serif";x.textAlign="right";x.textBaseline="alphabetic";x.shadowColor="rgba(0,0,0,.6)";x.shadowBlur=10;x.fillStyle="rgba(255,255,255,.94)";x.fillText(LITE_CREDIT,1280-24,720-22);
+ let out;try{out=c.toDataURL("image/png")}catch(err){toast("Couldn’t prepare the download.",{warn:true});return false}
+ __mbTrack("lite_downloaded",{look:state.mode==="scene"?state.scene.id:"template"});
+ const a=document.createElement("a");a.download=dlName(e).replace(/\.png$/,"-1280.png");a.href=out;a.click();
+ toast("Free 1280×720 saved. Create your free account for the full 1920×1080 without the credit line.");return true}
+$("#dlFull").onclick=()=>{__liteGuard("full_download")};
 /* v94 (V94-2): <company>-<first-last>-meeting-background.png (letters and digits of any script, accents folded) */
 function dlSlug(s){return String(s||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,"").slice(0,60).replace(/-+$/,"")}
 function dlName(e){return [dlSlug(state.brand&&state.brand.name||"MeetingBrand"),dlSlug(e&&e.name)].filter(Boolean).join("-")+"-meeting-background.png"}
@@ -5414,6 +5432,7 @@ var CSS='#mbGate{position:fixed;inset:0;z-index:'+GATE_Z+';display:flex;align-it
 +'.mbg-alt{display:block;width:100%;box-sizing:border-box;background:#fff;color:#031436;border:1px solid #DDE3EE;border-radius:10px;padding:11px 16px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;margin-top:10px;transition:background .15s,border-color .15s}.mbg-alt:hover{background:#F5F7FB;border-color:#C9D2E3}'
 +'#mbStarter{margin:6px 0 10px;font-size:12.5px;color:#031436;background:#F5F7FB;border:1px solid #DDE3EE;border-radius:10px;padding:8px 12px;line-height:1.5}#mbStarter b{color:#5739FB;font-weight:600}'
 +'#mbLogoAsk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-4px 0 10px;font-size:12.5px;color:#031436}#mbLogoAsk .mbla-q{font-weight:600}#mbLogoAsk .mbla-row{display:flex;gap:6px}#mbLogoAsk .mbla-opt{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px;padding:4px;background:#fff;border:2px solid #DDE3EE;border-radius:8px;cursor:pointer;font:500 10px Poppins,sans-serif;color:#667085}#mbLogoAsk .mbla-opt img{width:52px;height:30px;object-fit:contain}#mbLogoAsk .mbla-opt.sel{border-color:#5739FB;box-shadow:0 0 0 2px rgba(87,57,251,.2)}#mbLogoAsk .mbla-opt span{max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mbLogoAsk .btn-quiet{flex:none;padding:6px 12px}#mbLogoAsk .mbg-link{font-size:12px}'
++'html.mb-lite #dl::after{content:" · free 1280×720";font-weight:500;opacity:.8}#dlFull{margin-left:8px}.mbg-lite{margin-top:-6px}'
 +'#mbNameAsk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-4px 0 10px;font-size:12.5px;color:#031436}#mbNameAsk input{flex:1 1 120px;min-width:0;padding:6px 10px;border:1px solid #DDE3EE;border-radius:8px;font:500 13px Poppins,sans-serif;color:#031436}#mbNameAsk input:focus{outline:2px solid #5739FB;outline-offset:1px}#mbNameAsk .btn-quiet{flex:none;padding:6px 12px}'
 +'.tpl .mbready{position:absolute;top:6px;left:6px;z-index:3;background:#5739FB;color:#fff;font-style:normal;font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;border-radius:999px;padding:2px 7px;line-height:1.4;pointer-events:none}'
 +'#mbRetry{margin-top:8px}.mb-pulse{box-shadow:0 0 0 3px rgba(87,57,251,.35)!important;border-color:#5739FB!important;transition:box-shadow .2s}'
@@ -5428,6 +5447,7 @@ function googleBtn(id){return googleAllowed()?'<button type="button" class="mbg-
 /* v81: '1 person … already uses' / 'N people … already use' / 'Your colleagues … already use' */
 function joinTitle(n,domain){n=+n||0;return (n?n+' '+(n===1?'person':'people'):'Your colleagues')+' from '+esc(domain)+' already '+(n===1?'uses':'use')+' MeetingBrand'}
 var mode='signup',invite=null,inviteToken='',inviteErr='',bootDomain='',joinInfo=null,lastEmail='',lastHow='',lastDomain='',lastName='';   /* v85: lastName = the name typed on the signup card */   /* bootDomain = the demo brand the page booted with: never a draft, never 'work to keep' */
+var lite=false,liteDomain='',liteRoom='',liteWhy='',LITE_MAX=3,LITE_KEY='mb-lite-domains';   /* v99 (C4): the free preview */
 function cardHTML(){
  var lg=logoSrc(),head=lg?'<img class="mbg-logo" src="'+lg+'" alt="MeetingBrand" width="150" height="29">':'';
  if(mode==='invite'){
@@ -5465,8 +5485,8 @@ function cardHTML(){
   +(canJoin?'<button type="button" class="mbg-alt" id="mbJoinGo">Join '+esc(o.name||'the team')+'</button>':'<p class="mbg-fine">Ask your admin for an invite link to join '+esc(o.name||'their workspace')+'.</p>')
   +'</div>';
  }
- return '<div class="mbg-card" id="mbGateCard" data-mode="signup">'+head+'<h2>Create MeetingBrand</h2>'
- +'<p class="mbg-sub">We use your work email to fetch your company’s brand.</p>'
+ return '<div class="mbg-card" id="mbGateCard" data-mode="signup"'+(liteActive()?' data-lite="1"':'')+'>'+head+'<h2>Create MeetingBrand</h2>'
+ +'<p class="mbg-sub">'+(liteActive()?'Save your backgrounds and download the 1920×1080 PNG — free, no card.':'We use your work email to fetch your company’s brand.')+'</p>'+(liteActive()?'<p class="mbg-fine mbg-lite">Download the PNG and add it once in Teams, Google Meet or Zoom. The Zoom app is coming.</p>':'')
  +googleBtn('mbGoogle')
  +'<form id="mbSignupForm" autocomplete="on" novalidate>'
  +'<div class="mbg-f"><label for="mbEmail">Work email</label><input type="email" id="mbEmail" name="email" placeholder="you@company.com" autocomplete="email" aria-describedby="mbEmailErr"><p class="mbg-ferr" id="mbEmailErr" role="alert" hidden></p></div>'
@@ -5481,6 +5501,7 @@ function footHTML(){
  var h='';
  if(mode==='website'||mode==='join')return h;
  if(mode!=='invite'||inviteErr||!invite)h+='<p class="mbg-foot">Already have an account? <a href="#login" id="mbGateLogin">Log in</a></p>';
+ if(liteActive())h+='<p class="mbg-demo"><a href="#" id="mbGateLite">Back to the free preview</a><br><small>Three backgrounds with your logo, 1280×720 downloads with a small credit line.</small></p>';   /* v99 (C4) */
  if(!online()&&acctReq())h+='<div class="mbg-err" id="mbGateDown" role="alert">'+esc(unreachMsg())+'<button type="button" class="mbg-retry" id="mbGateRetry2">Retry</button></div><p class="mbg-demo"><a href="#" id="mbGateDemo">Explore without an account</a><br><small>Nothing is saved — for a look around only.</small></p>';   /* v94 (V94-8) */
  else if(!online())h+='<p class="mbg-demo"><a href="#" id="mbGateDemo">Continue without an account (demo)</a><br><small>Accounts are off in this preview — everything you build stays in this browser.</small></p>';
  return h;
@@ -5511,6 +5532,7 @@ function bindGate(){
  if(nm){nm.oninput=function(){nm.dataset.touched=nm.value.trim()?'1':''};nm.onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();if(p)p.focus()}}}
  var l=$('#mbGateLogin');if(l)l.onclick=function(ev){ev.preventDefault();openLogin()};
  var d=$('#mbGateDemo');if(d)d.onclick=function(ev){ev.preventDefault();demoContinue()};
+ var lt=$('#mbGateLite');if(lt)lt.onclick=function(ev){ev.preventDefault();close();track('lite_gate_dismissed',{})};   /* v99 (C4) */
  var f=$('#mbGateFresh');if(f)f.onclick=function(ev){ev.preventDefault();mode='signup';invite=null;inviteErr='';inviteToken='';renderGate();focusFirst()};
  var sg=$('#mbSiteGo');if(sg)sg.onclick=function(){siteSubmit()};
  var si=$('#mbSite');if(si)si.onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();siteSubmit()}};
@@ -5565,6 +5587,7 @@ async function signupEmail(){
  var em=($('#mbEmail')||{}).value||'',pw=($('#mbPass')||{}).value||'',nm=String(($('#mbName')||{}).value||'').trim().slice(0,80);
  em=em.trim();
  clearErrs();track('gate_submit',{mode:mode});   /* v98 (C1) */
+ if(liteActive())track('demo_to_signup',{});   /* v99 (C4): a sign-up that started in the free preview */
  if(!validEmail(em)){fieldErr('mbEmail','Enter your work email (you@company.com)');gateFail('invalid_email');return false}
  if(pw.length<8){fieldErr('mbPass','Choose a password with at least 8 characters');gateFail('short_password');return false}
  if(mode==='invite'&&invite&&invite.email&&invite.email.toLowerCase()!==em.toLowerCase()){fieldErr('mbEmail','This invite was issued to '+invite.email);gateFail('invite_mismatch');return false}
@@ -5592,6 +5615,7 @@ async function signupEmail(){
 async function finishSignup(email,how){
  try{acctLine()}catch(e){}
  lastEmail=String(email||'').trim().toLowerCase();lastHow=how||'new';
+ var wasLite=!!(lite&&how!=='demo'&&signed());if(wasLite){lite=false;try{liteUI(false)}catch(e){}}   /* v99 (C4): the account ends the free preview */
  try{var av=APP();if(av&&av.setViewer)av.setViewer({name:lastName,email:lastEmail},{silent:true})}catch(e){}   /* v85 (1): the new account's person is the first employee (silent: the trigger already stored full_name) */
  if(how!=='demo'&&signed()){try{var at=APP();if(at&&at.teamLoad)at.teamLoad({silent:true})}catch(e){}}   /* v87: a fresh account reads the live My-team model NOW (the org exists — /api/signup polled the profile row); only loadSession (login/reload) did before, so the chooser fell back to the demo's 'Connect Zoom' */
  var st=stateOf();
@@ -5600,7 +5624,7 @@ async function finishSignup(email,how){
  var d=detect(lastEmail);
  if(how==='demo'){try{sessionStorage.setItem('mb-demo','1')}catch(e){}toast('Demo mode — no server connected. Everything you build stays in this browser.')}   /* v85: an OFFLINE signup degrade is demo mode too — a reload keeps the gate closed like demoContinue (v84 demoResumed) */
  else toast('Account created. Your backgrounds are saved to your account.');
- if(had){close();var c0=CLOUD();try{if(c0&&c0.persistBrand)c0.persistBrand()}catch(e){}saveDraft();go('backgrounds');return 'kept'}
+ if(had){close();var c0=CLOUD();try{if(c0&&c0.persistBrand)c0.persistBrand()}catch(e){}if(wasLite)liteSaveStarters(c0);saveDraft();go('backgrounds');return 'kept'}   /* v99 (C4): the preview's three backgrounds are saved to the new account */
  if(!d){mode='website';if(!gate)mount(true);else renderGate();focusFirst();return 'website'}
  var others=await orgsForDomain(d,how);
  if(others.length){mode='join';joinInfo={domain:d,orgs:others};if(!gate)mount(true);else renderGate();return 'join'}
@@ -5759,9 +5783,11 @@ function land(b,o){
  showRetry(false);
  if(b.source==='fallback'&&att&&!b.domain)track('brand_fetch_failed',{reason:'miss',domain:att});
  else if(b.domain)track('brand_fetched',Object.assign({source:b.source,fetch_ms:+b.fetchMs||0,logo:!miss,colors:colorCount(b)},scrapeOf(b)));   /* v98 (C3): + route / html_bytes / logos_found */
+ if(o.how==='lite')track('lite_generated',{domain_hash:liteHash(b.domain||att),route:String((scrapeOf(b)||{}).route||'pending'),logo:!miss});   /* v99 (C4): every free-preview landing */
  if(miss&&b.domain&&b.fetchNote==='unreachable'){go('brandtab');toastW('We couldn’t reach '+b.domain+' — check the spelling. Your first backgrounds are on the Backgrounds tab.');try{var di=$('#domIn');if(di){di.focus();if(di.select)di.select()}}catch(e){}return 'miss'}   /* v94 (b5 F2) */
  if(miss&&b.domain){go('brandtab');focusLogoTools();toast('No logo found on '+b.domain+' — upload it, paste an image URL, or crop one from the site. Your first backgrounds are on the Backgrounds tab.');return 'miss'}
  go('backgrounds');
+ if(o.how==='lite'){toast(LITE_TOAST);return (miss||b.fallbackFor)?'fallback':'ok'}   /* v99 (C4) */
  if(b.fetchNote||b.colorsGuessed||(logoOk(b)&&logoLbl(b)!=='logo ✓'))toastW(summaryLine(b).replace(/<[^>]+>/g,''));else toast(summaryLine(b).replace(/<[^>]+>/g,''));   /* v94: a partial read is a warning, not a check mark */
  return (miss||b.fallbackFor)?'fallback':'ok';
 }
@@ -5932,6 +5958,23 @@ async function resolveInvite(tok){
  catch(e){inviteErr=c.isInfraErr(e)?c.DB_DOWN_MSG:String(e&&e.message||e);return null}
 }
 
+/* ---------- v99 (C4): the free preview (lite mode) — /app/?go=<domain>[&room=<id>] | ?gate=late (owner decision 2026-11-01, PROJECT.md) ---------- */
+var LITE_TOAST='Your free preview is ready: download any of the three backgrounds at 1280×720, or create your free account for 1920×1080, every room and your team.';
+function liteActive(){return !!(lite&&!signed())}
+function liteHash(s){s=String(s||'').toLowerCase();var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return ('0000000'+h.toString(16)).slice(-8)}   /* a tag for the funnel, not the domain itself */
+function liteList(){try{var l=JSON.parse(sessionStorage.getItem(LITE_KEY)||'[]');return Array.isArray(l)?l:[]}catch(e){return []}}
+function liteRefused(d){var a=APP();try{var bt=a&&a.brandTools&&a.brandTools();if(bt&&bt.isWebmail&&bt.isWebmail(d))return 'webmail'}catch(e){}var l=liteList();if(l.indexOf(d)<0&&l.length>=LITE_MAX)return 'max';return ''}
+function liteRemember(d){try{var l=liteList();if(l.indexOf(d)<0){l.push(d);sessionStorage.setItem(LITE_KEY,JSON.stringify(l.slice(0,LITE_MAX)))}}catch(e){}}
+function liteMaybeSigned(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.+-auth-token$/.test(k||'')&&localStorage.getItem(k))return true}}catch(e){}return false}   /* a stored Supabase session: never the preview (it would overwrite that workspace's brand) */
+function liteUI(on){try{var f=$('#dlFull');if(f)f.hidden=!on;document.documentElement.classList.toggle('mb-lite',!!on);var a=APP();if(on&&a&&a.liteMode)a.liteMode(true)}catch(e){}}
+function liteCard(what){mode='signup';if(!gate)mount(true);else renderGate();focusFirst();track('download_gate_shown',{what:String(what||'').slice(0,24)})}
+/* true = blocked (the card is up): everything but the three STARTER looks (and the ?room= look), the free download and the Brand tab */
+function liteGuard(what,id){if(!liteActive())return false;if(what==='room'&&(STARTER.indexOf(id)>=0||(liteRoom&&id===liteRoom)))return false;liteCard(what);return true}
+/* the Brand tab's Connect in the preview: webmail is refused by the engine itself; the 4th domain of the visit opens the card */
+function liteAllow(raw){if(!liteActive())return true;var d=cleanDomain(raw);if(!d)return true;if(liteRefused(d)==='max'){liteCard('domain_cap');return false}liteRemember(d);return true}
+function liteSaveStarters(c){try{var a=APP(),sc=(a&&a.scenes&&a.scenes())||[];if(!c)return;starter.forEach(function(s){var x=sc.filter(function(y){return y.id===s.look})[0];if(!x)return;try{if(c.persistBackground)c.persistBackground(x)}catch(e){}try{if(s.url&&c.persistPreview)c.persistPreview(x,s.url)}catch(e){}})}catch(e){}}
+try{var qs0=new URLSearchParams(location.search),goD=cleanDomain(qs0.get('go')||'');liteRoom=String(qs0.get('room')||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,24);
+ if(liteMaybeSigned()){}else if(goD&&goD.indexOf('.')>0){var why0=liteRefused(goD);if(why0)liteWhy=why0;else{lite=true;liteDomain=goD}}else if(qs0.get('gate')==='late')lite=true}catch(e){}
 /* ---------- boot ---------- */
 var a=APP();
 var restored=false;
@@ -5952,6 +5995,7 @@ if(a&&a.on){
   toast('Finish setting up your workspace');
  });
  a.on('session',function(j){
+  lite=false;try{liteUI(false)}catch(e){}   /* v99 (C4): a session ends the free preview */
   if(open)close();closeLogin();
   acctLine();
   var c=CLOUD(),org=(j&&j.org)||(c&&c.org);
@@ -5972,7 +6016,11 @@ var wantsLogin=false;try{wantsLogin=/^#login\b/.test(location.hash)||/[?&]login\
 (async function(){
  if(inviteToken){mode='invite';await resolveInvite(inviteToken)}
  if(!inviteToken&&demoResumed()){toast(DEMO_TOAST);return}      /* v84: OFFLINE demo reload — the draft is already restored, the gate stays closed */
+ if(lite&&!inviteToken&&!signed()){acctLine();liteUI(true);   /* v99 (C4): the free preview — no card at boot */
+  if(liteDomain){liteRemember(liteDomain);await runMachine(liteDomain,{email:'',how:'lite'});if(liteRoom){try{var ap0=APP();if(ap0&&ap0.selectScene)ap0.selectScene(liteRoom)}catch(e){}}return}
+  toast(LITE_TOAST);return}
  if(!mount())return;                                            /* a restored session got here first: no gate */
+ if(liteWhy)toastW(liteWhy==='webmail'?'That’s an email provider — enter your company’s website (e.g. acme.com).':'Three brands per visit in the free preview — create your free account to keep going.');   /* v99 (C4) */
  acctLine();
  if(!online()&&acctReq())retryClient($('#mbGateRetry2'));   /* v94 (V94-8): the production host without its client tries the pinned CDN copy by itself */
  if(wantsLogin)setTimeout(function(){try{openLogin()}catch(e){}},280);
@@ -5986,7 +6034,7 @@ window.__MB_GATE={
  mount:function(f){return mount(f)},close:function(){close()},openLogin:openLogin,closeLogin:closeLogin,isLoginOpen:isLoginOpen,
  signupEmail:signupEmail,doLogin:doLogin,finishSignup:finishSignup,demoContinue:demoContinue,keepPre:keepPre,get draftBrand(){return draftBrand},
  runMachine:runMachine,runFallback:runFallback,mbFallback:mbFallback,needsFallback:needsFallback,hydrateBuiltin:hydrateBuiltin,kbLogo:kbLogo,siteSubmit:siteSubmit,siteSkip:siteSkip,joinOrg:joinOrg,ownWorkspace:ownWorkspace,summaryLine:summaryLine,restoredLine:restoredLine,restoreStarter:restoreStarter,joinTitle:joinTitle,cleanDomain:cleanDomain,STARTER:STARTER.slice(),FLOOR_MS:FLOOR_MS,
- saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,brandKey:brandKey,get summarized(){return summarized},refreshLine:refreshLine,renderLogoAsk:renderLogoAsk,scrapeOf:scrapeOf,get logoAskDone(){return logoAskDone},version:'v89'
+ saveDraft:saveDraft,readDraft:readDraft,restoreDraft:restoreDraft,detect:detect,GENERIC:GENERIC.slice(),googleAllowed:googleAllowed,brandKey:brandKey,get summarized(){return summarized},refreshLine:refreshLine,renderLogoAsk:renderLogoAsk,scrapeOf:scrapeOf,get logoAskDone(){return logoAskDone},get lite(){return lite},get liteActive(){return liteActive()},get liteDomain(){return liteDomain},get liteWhy(){return liteWhy},liteGuard:liteGuard,liteAllow:liteAllow,liteRefused:liteRefused,liteList:liteList,liteHash:liteHash,liteMaybeSigned:liteMaybeSigned,LITE_MAX:LITE_MAX,version:'v89'
 };
 })();
 
