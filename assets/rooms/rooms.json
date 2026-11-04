@@ -1,8 +1,8 @@
 {
- "product": "presence-product-demo-v100.html",
- "version": "v100",
- "md5": "355c579a3de4deee67d421c29fc4df83",
- "rendered": "2026-11-03",
+ "product": "presence-product-demo-v101.html",
+ "version": "v101",
+ "md5": "919539d714407839f9a5ae9775755658",
+ "rendered": "2026-11-04",
  "brand": "meetingbrand.com",
  "rooms": [
   {
@@ -188,6 +188,14 @@
    "file": "assets/rooms/archspa.jpg",
    "bytes": 33301,
    "md5": "4e362ff0132156db6ee0daecdb0a2189"
+  },
+  {
+   "id": "timberstudio",
+   "name": "Timber frame studio",
+   "daily": true,
+   "file": "assets/rooms/timberstudio.jpg",
+   "bytes": 43591,
+   "md5": "3c099867bf613300295017b904481594"
   }
  ]
 }
