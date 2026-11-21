@@ -1,8 +1,8 @@
 {
- "product": "presence-product-demo-v101.html",
- "version": "v101",
- "md5": "919539d714407839f9a5ae9775755658",
- "rendered": "2026-11-04",
+ "product": "presence-product-demo-v102.html",
+ "version": "v102",
+ "md5": "9d688a92ea40664de6fcb24583ad5a30",
+ "rendered": "2026-11-21",
  "brand": "meetingbrand.com",
  "rooms": [
   {
@@ -196,6 +196,14 @@
    "file": "assets/rooms/timberstudio.jpg",
    "bytes": 43591,
    "md5": "3c099867bf613300295017b904481594"
+  },
+  {
+   "id": "olivestudio",
+   "name": "Olive studio office",
+   "daily": true,
+   "file": "assets/rooms/olivestudio.jpg",
+   "bytes": 38545,
+   "md5": "debc2ce64d8a782144c870eb7e6fe1b8"
   }
  ]
 }
