@@ -1,8 +1,8 @@
 {
- "product": "presence-product-demo-v102.html",
- "version": "v102",
- "md5": "9d688a92ea40664de6fcb24583ad5a30",
- "rendered": "2026-11-21",
+ "product": "presence-product-demo-v103.html",
+ "version": "v103",
+ "md5": "d5b5e4a9e9fd61bfba786de2ff0d1322",
+ "rendered": "2026-11-23",
  "brand": "meetingbrand.com",
  "rooms": [
   {
@@ -204,6 +204,14 @@
    "file": "assets/rooms/olivestudio.jpg",
    "bytes": 38545,
    "md5": "debc2ce64d8a782144c870eb7e6fe1b8"
+  },
+  {
+   "id": "courtyardglass",
+   "name": "Courtyard glass office",
+   "daily": true,
+   "file": "assets/rooms/courtyardglass.jpg",
+   "bytes": 40206,
+   "md5": "a76791be77668d29795f513e2e8b2834"
   }
  ]
 }
