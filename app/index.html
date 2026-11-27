@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="canonical" href="https://meetingbrand.com/app/">
 <meta name="description" content="Create a branded virtual background for Teams, Google Meet and Zoom from your company website: logo, colors, 1920×1080 PNG. Free during early access.">
-<meta name="mb-version" content="v104">
+<meta name="mb-version" content="v105">
 <title>MeetingBrand app — create your branded background</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAADsAAAA7AF5KHG9AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA7xJREFUWIXFl0tMnFUUx3/n+755YMcWGAKUsTyHgK222pratD4wLExsl0YSkq7aVYN1YWNQ6qouGqNsutHExGVjNTEtdGUXjcQEW1KtRgKC9CF0OuBH6TA4D775rgs7tMxcYECw/+U5557//577OleUUmQhFfsqrIw67goHBcLAJtYHcwpGDMVFx5QzKtofXeDMCrDK97ah5AsgsE6kS2EWUUedySvnFgQ8ID8LyAaTZ6EQ2pzJH78Wyl+sMF01ysbPPBezGdMKm5Y/9AFC65rTeDyoHTugrg6ZtsFxCh3pM12VslzhUMF1LypC1ddDQwOqthaqq1Fbq8Ay//XbNuaHJ8GeLiidK+qQJVCv9VoWqrkZmppQdfWo2hooKwNZRm4wiNq/H+npLUiAQNhCt/bBIJmuLgiFCkq0CD7/aqIDls7qHj6cRy6DgzA6Co/cG1oMD69GAFoBKty4mPzCBSq/HeKpQCsrn9RtUP4GAH87E/w5e4m5+burE5DL4bl4iQNVZzHFtwJ5Pp4uPcLPk93ciPVo/UYhSTwpWRM5gCledle8R9C/U+vXV2AFuOIwXnpzkXxv2kfl/W3aeMGgseRN7Mgv6yPgu9Y+ZloW7xOUYtfn12ke36UdU+xr1toLWoJcPDFj5p+GVJpAYunbfD5zX2tfUwVeHngFBlY35s7cD1r7miqwWsRSY4zMfPV4BMRSN7g80YHjJh6PgM2+Ol6q+gSv+eTGCHj+9SE6PxunpX1wyZhS/3b2lHdqfWvahFl4fXDi5HZM0+C5nfDr9zb2+BZtbCjwKpu99cTSY4vs/6kC82kYGr4DQOTuNHF7uR5WKCvKvw31FUgmCxKgFJzuCFLVNEz0jxCpxPIFNcWTZ9NWwOjrK0hASe0Ixz+O8P7pEO922zTs+23Z+Hup0TybVrKcP4/hZHBfa4HiEtC0AKW1v9P9ZRi/zwtA8ZYAz3xaTec7V7k1sDsvfjZ9GztxXSsgTm5XpBTS24PZ++AJNYN5A9s7jAXyBeEiHDtRQ2e7QrkP33THTXA1egqFm5smZigYy7XmIpmZxk4+fMkMI8MLe/StZE11BaVVdnYm/JX4icvjx5hO5h9TBWNiBfd+pISulUSImAT9z2KIB9NSbK2LLxk7NbGJxJxLPH2TZObe0jmRU9mPyQigv6o2DrGMNR82VLQ/iqijaLfahkEhckRFrk0ZAM7klXMIbcDs/0AeQ+QtZ7L/G3jkdwwglQfKLSfztivqoEAj6/dfjCsYMZBex0qfUZFrU1nHP1lhPr2nXjwYAAAAAElFTkSuQmCC">
 <!-- ================= PRESENCE DEMO STATE =================
-version: v104 (2026-11-26)
+version: v105 (2026-11-27)
 source of truth: this block. Any session resuming work MUST read it before editing.
 constraint: INTERNAL PREVIEW ONLY - never published to a production domain without the owner's go.
 gate: jsdom regression (regress.js, 797 checks) + node --check + verify-light.js (real-canvas: detector parity vs detector-expected.json tol 25deg/0.25amt, clear-logo pixel assertions on synthetic badge/brand-disc icons) must pass before delivery.
@@ -66,6 +66,7 @@ MODULES (verified v39):
 DORMANT (kept intentionally, no UI): bake stack since v74 (geminiBake, localBake, BAKEWOOD, __bmSet, bake mode/species state), WASHES beyond 'none' (brand wash removed per owner, pipeline retained), TEMPLATES/template mode (renderTpls/renderSw/syncStudio stubs; artCV still used by the export fallback), recolorAll (awaits scenes carrying recolor metadata)
 
 CHANGELOG:
+v105 2026-11-27 new daily room: Teak garden office (teakgreen)
 v104 2026-11-26 new daily room: Walnut partner lounge (partnerlounge)
 v103 2026-11-23 new daily room: Courtyard glass office (courtyardglass)
 v102 2026-11-21 new daily room: Olive studio office (olivestudio)
@@ -1200,7 +1201,8 @@ const DAILY_ROOMS=/*mb-daily-rooms*/[
 {"id":"timberstudio","name":"Timber frame studio","src":"rooms/timberstudio.webp?v=9c6b37846a72","logo":{"x":74,"y":36,"w":30},"dark":true,"walls":[{"x1":56,"x2":99,"y1":3,"y2":96,"ry":-24,"rz":0}],"row":{"dep":80,"s":76,"x":78,"y":50},"added":"2026-11-04","v":"v101"},
 {"id":"olivestudio","name":"Olive studio office","src":"rooms/olivestudio.webp?v=dc7049b44272","logo":{"x":74,"y":36,"w":30},"dark":true,"walls":[{"x1":63,"x2":99.5,"y1":2,"y2":85,"ry":0,"rz":0}],"row":{"dep":150,"la":180,"li":75,"s":62,"x":82.2,"y":52},"added":"2026-11-21","v":"v102"},
 {"id":"courtyardglass","name":"Courtyard glass office","src":"rooms/courtyardglass.webp?v=08ca3f1329bc","logo":{"x":4,"y":36,"w":30},"dark":true,"walls":[{"x1":1,"x2":28,"y1":9,"y2":84,"ry":0,"rz":0}],"row":{"dep":160,"la":0,"li":75,"s":61,"x":12.8,"y":50},"added":"2026-11-23","v":"v103"},
-{"id":"partnerlounge","name":"Walnut partner lounge","src":"rooms/partnerlounge.webp?v=e74c0d43d51b","logo":{"x":74,"y":34,"w":30},"dark":true,"walls":[{"x1":59,"x2":99.5,"y1":1,"y2":86,"ry":0,"rz":0}],"row":{"dep":160,"la":0,"li":75,"s":60,"x":81.8,"y":50},"added":"2026-11-26","v":"v104"}
+{"id":"partnerlounge","name":"Walnut partner lounge","src":"rooms/partnerlounge.webp?v=e74c0d43d51b","logo":{"x":74,"y":34,"w":30},"dark":true,"walls":[{"x1":59,"x2":99.5,"y1":1,"y2":86,"ry":0,"rz":0}],"row":{"dep":160,"la":0,"li":75,"s":60,"x":81.8,"y":50},"added":"2026-11-26","v":"v104"},
+{"id":"teakgreen","name":"Teak garden office","src":"rooms/teakgreen.webp?v=600c7ddbdf79","logo":{"x":74,"y":34,"w":30},"dark":true,"walls":[{"x1":62.5,"x2":99.5,"y1":7,"y2":86,"ry":0,"rz":0}],"row":{"da":40,"dep":220,"la":-135,"li":160,"s":60,"x":81.8,"y":50},"added":"2026-11-27","v":"v105"}
 ]/*/mb-daily-rooms*/;
 for(const r of DAILY_ROOMS){if(!r||!r.id||!r.src||SCENES.some(s=>s.id===r.id))continue;const sc={id:r.id,name:r.name,src:r.src,kind:"plate",logo:r.logo};if(r.dark)sc.dark=true;sc.walls=r.walls;sc.daily=true;SCENES.push(sc);if(r.row&&!DEFAULT_SETUP[r.id])DEFAULT_SETUP[r.id]=r.row}
 SCENES.forEach(seedDefaultAdj);

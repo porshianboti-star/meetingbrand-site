@@ -1,8 +1,8 @@
 {
- "product": "presence-product-demo-v104.html",
- "version": "v104",
- "md5": "8d3fba91f45f732015a3db06489c5ded",
- "rendered": "2026-11-26",
+ "product": "presence-product-demo-v105.html",
+ "version": "v105",
+ "md5": "089d372376b8579617577a85f2adff17",
+ "rendered": "2026-11-27",
  "brand": "meetingbrand.com",
  "rooms": [
   {
@@ -220,6 +220,14 @@
    "file": "assets/rooms/partnerlounge.jpg",
    "bytes": 38002,
    "md5": "ae3248a33ebe5d19b860f203e565c672"
+  },
+  {
+   "id": "teakgreen",
+   "name": "Teak garden office",
+   "daily": true,
+   "file": "assets/rooms/teakgreen.jpg",
+   "bytes": 45855,
+   "md5": "d0f6ef72d9a72fc73113d8df10bcb3ad"
   }
  ]
 }
